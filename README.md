@@ -1,0 +1,48 @@
+# gocklkatz
+
+**Gocklkatz Inc** — engineering portfolio and demo works.
+
+One monorepo: a landing page and four independent demo applications. Each application is
+self-contained — its own `package.json`, its own lockfile, its own test suite — so that one
+demo's dependency or build breakage cannot take down another's.
+
+## Applications
+
+| Path | Demo | What it is |
+| --- | --- | --- |
+| *(root)* | Landing page | The portfolio home. One card per demo, each linking to its live deployment. |
+| `apps/ameisenwerkstatt` | Ameisenwerkstatt | Ant colony optimization on a fixed TSP, with a live 3D workspace. |
+| `apps/bienenstock` | Bienenstock | Bee colony simulation — hive and foraging, rendered in 3D. |
+| `apps/simplified` | Simplified | Learning and practising simplified Chinese characters (汉字). |
+| `apps/arbeitsmarkt` | Arbeitsmarkt | Relevance-ranked IT job listings from public APIs. |
+
+Source of truth for code: <https://cursor.com/codebase/gocklkatz/gocklkatz>.
+This repository is public — read [`AGENTS.md`](./AGENTS.md) before contributing.
+
+## Deploy
+
+Each application is a separate Vercel project pointing at its own root directory, so a demo can be
+built, shared and rolled back on its own.
+
+| Vercel project | Root Directory | Live URL |
+| --- | --- | --- |
+| `gocklkatz` | `.` | — |
+| `gocklkatz-ameisenwerkstatt` | `apps/ameisenwerkstatt` | — |
+| `gocklkatz-bienenstock` | `apps/bienenstock` | — |
+| `gocklkatz-simplified` | `apps/simplified` | — |
+| `gocklkatz-arbeitsmarkt` | `apps/arbeitsmarkt` | — |
+
+A URL is recorded here only once it has been fetched and returned `200`. Details, the CI gate and
+the shared quality bar: [`docs/DEPLOY.md`](./docs/DEPLOY.md).
+
+## Working on this repository
+
+```bash
+bash tools/gate.sh          # content guard, identity, hygiene, every app, all self-tests
+```
+
+The gate is bound to the git tree and enforced again on push. See [`AGENTS.md`](./AGENTS.md).
+
+## License
+
+MIT — see [`LICENSE`](./LICENSE). Copyright (c) 2026 Gocklkatz Inc.
