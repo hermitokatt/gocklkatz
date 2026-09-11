@@ -106,6 +106,15 @@ trap cleanup EXIT INT TERM
 say "verify: Ameisenwerkstatt"
 say "base:   $BASE"
 
+# The probe needs curl. A missing curl would look exactly like a server that never answers, and
+# that ambiguity cost a CI cycle, so it is checked explicitly.
+for tool in curl npm; do
+    if ! command -v "$tool" >/dev/null 2>&1; then
+        say "verify: $tool is not on PATH; cannot probe the server."
+        exit 4
+    fi
+done
+
 # ---------------------------------------------------------------------------
 step "the port is free"
 if ! port_is_free "$PORT"; then
@@ -154,9 +163,15 @@ while [ "$waited" -lt "$READY_TIMEOUT_S" ]; do
         dump_log
         exit 1
     fi
-    if curl -fsS -o /dev/null -m 2 "$BASE/api/health" 2>/dev/null; then
+    if curl -s -o /dev/null -m 2 "$BASE/api/health" 2>/dev/null; then
         ready=1
         break
+    fi
+    # Every 15s, say what the probe is seeing. A wait that reports nothing cannot be told apart
+    # from a wait that is not running.
+    if [ $((waited % 15)) -eq 0 ]; then
+        probe_rc="$(curl -s -o /dev/null -w '%{http_code}' -m 2 "$BASE/api/health" 2>&1)"
+        say "    ... waiting ${waited}s (curl exit $?, response '${probe_rc:-none}')"
     fi
     waited=$((waited + 2))
 done
