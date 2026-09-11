@@ -11,7 +11,7 @@
 #   tools/guard.sh --paths F..  scan named files
 #   tools/guard.sh --identity            check identity; report but do not fail if unset
 #   tools/guard.sh --require-identity    check identity; an unset identity is a failure
-#   tools/guard.sh --audit-commits       check the AUTHOR and COMMITTER of every commit
+#   tools/guard.sh --audit-commits       check the AUTHOR and COMMITTER of every non-merge commit
 #
 # The commit-identity check is deliberately NOT part of --tracked. A bare CI checkout has no git
 # identity at all, so asserting one there fails every run for a condition that cannot hold. The
@@ -216,7 +216,11 @@ if [ "$MODE" = "audit" ]; then
             echo "       committer: $cn <$ce>" >&2
             bad_commits=$((bad_commits + 1))
         fi
-    done < <(git log --all --format='%h|%an|%ae|%cn|%ce' 2>/dev/null || true)
+    # --no-merges: a pull-request check is run against a synthetic merge commit that the hosting
+    # platform creates and attributes to itself. That commit is an artefact of review, not part of
+    # any branch's history, so auditing it reports the platform as a foreign identity and fails on
+    # every pull request. The substantive commits are what carry authorship, and those are checked.
+    done < <(git log --no-merges --all --format='%h|%an|%ae|%cn|%ce' 2>/dev/null || true)
 
     if [ "$bad_commits" -gt 0 ]; then
         echo "guard: $bad_commits commit(s) carry an identity other than $IDENTITY_NAME <$IDENTITY_EMAIL>" >&2
