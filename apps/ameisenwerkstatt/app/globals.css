@@ -1,0 +1,247 @@
+html,
+body {
+  margin: 0;
+}
+
+body {
+  min-height: 100vh;
+  background: #07060a;
+  color: #f4ead5;
+}
+
+.home {
+  position: relative;
+  isolation: isolate;
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: clamp(1.25rem, 4vw, 2.5rem);
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.homeAtmosphere {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(1100px 640px at 8% -12%, #3a1208 0%, transparent 58%),
+    radial-gradient(900px 560px at 108% 8%, #123528 0%, transparent 52%),
+    radial-gradient(700px 480px at 50% 110%, #2a1800 0%, transparent 55%),
+    #07060a;
+}
+
+.homeAtmosphere::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.18;
+  background-image:
+    linear-gradient(115deg, transparent 0 46%, rgba(255, 208, 0, 0.07) 46% 47%, transparent 47%),
+    repeating-linear-gradient(
+      -18deg,
+      transparent 0,
+      transparent 11px,
+      rgba(255, 122, 24, 0.04) 11px,
+      rgba(255, 122, 24, 0.04) 12px
+    );
+  animation: homeDrift 18s linear infinite;
+}
+
+.factoryCard {
+  width: min(40rem, 100%);
+  padding: clamp(1.4rem, 3.5vw, 2.1rem) clamp(1.35rem, 3.2vw, 2rem);
+  border: 3px solid #ffd000;
+  background: rgba(12, 10, 8, 0.82);
+  box-shadow:
+    10px 10px 0 #1a0a00,
+    inset 0 0 0 2px #140800;
+  transform: rotate(-0.6deg);
+  animation: factorySettle 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.factoryKicker {
+  margin: 0 0 0.55rem;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: #ff7a18;
+  animation: factoryFade 0.55s ease 0.08s both;
+}
+
+.factoryBrand {
+  margin: 0;
+  font-family: Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
+  font-size: clamp(2.2rem, 8vw, 4.1rem);
+  line-height: 0.9;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  background: linear-gradient(92deg, #ff3b00 0%, #ffd000 48%, #9dff4a 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: factoryFade 0.55s ease 0.16s both;
+}
+
+.factoryLead {
+  margin: 1rem 0 0;
+  max-width: 28rem;
+  font-size: 1.05rem;
+  line-height: 1.45;
+  color: #cbbda6;
+  animation: factoryFade 0.55s ease 0.24s both;
+}
+
+.factoryBeats {
+  margin: 1.15rem 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.45rem;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.82rem;
+  letter-spacing: 0.04em;
+  color: #9dff4a;
+  animation: factoryFade 0.55s ease 0.32s both;
+}
+
+.factoryBeats li {
+  position: relative;
+  padding-left: 1.1rem;
+}
+
+.factoryBeats li::before {
+  content: "›";
+  position: absolute;
+  left: 0;
+  color: #ff7a18;
+}
+
+.factoryCtaRow {
+  margin: 1.45rem 0 0;
+  animation: factoryFade 0.55s ease 0.4s both;
+}
+
+.factoryCta {
+  display: inline-block;
+  appearance: none;
+  border: 3px solid #ffd000;
+  background: #ff3b00;
+  color: #140800;
+  font-family: Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
+  font-size: clamp(1.35rem, 4vw, 1.85rem);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+  padding: 0.55rem 1.25rem 0.45rem;
+  box-shadow:
+    6px 6px 0 #1a0a00,
+    inset 0 0 0 2px #140800;
+  transform: rotate(-2deg);
+  transition:
+    background 0.15s ease,
+    transform 0.15s ease;
+}
+
+.factoryCta:hover {
+  background: #ffd000;
+  transform: rotate(-1deg) translate(-1px, -1px);
+}
+
+.factoryCta:focus-visible {
+  outline: 3px solid #9dff4a;
+  outline-offset: 4px;
+}
+
+.factoryNext {
+  margin: 1.25rem 0 0;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  line-height: 1.4;
+  color: #9dff4a;
+  animation: factoryFade 0.55s ease 0.44s both;
+}
+
+.factoryNextBrand {
+  color: #ffd000;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.factoryNext code {
+  font-family: inherit;
+  color: #ff7a18;
+}
+
+.factoryFoot {
+  margin: 1.35rem 0 0;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  color: #8a7f6e;
+  animation: factoryFade 0.55s ease 0.48s both;
+}
+
+.factoryFoot a {
+  color: #ff7a18;
+  text-decoration: none;
+}
+
+.factoryFoot a:hover {
+  color: #ffd000;
+}
+
+@keyframes factorySettle {
+  from {
+    opacity: 0;
+    transform: rotate(-2.4deg) translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(-0.6deg) translateY(0);
+  }
+}
+
+@keyframes factoryFade {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes homeDrift {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-24px, 12px, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .homeAtmosphere::after,
+  .factoryCard,
+  .factoryKicker,
+  .factoryBrand,
+  .factoryLead,
+  .factoryBeats,
+  .factoryCtaRow,
+  .factoryNext,
+  .factoryFoot {
+    animation: none;
+  }
+}
+
+@media (max-width: 420px) {
+  .factoryBrand {
+    white-space: normal;
+    font-size: clamp(1.9rem, 11vw, 2.6rem);
+  }
+}

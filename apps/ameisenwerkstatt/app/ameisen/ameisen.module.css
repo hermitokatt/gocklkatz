@@ -1,0 +1,469 @@
+.shell {
+  min-height: 100vh;
+  margin: 0;
+  background:
+    radial-gradient(1200px 700px at 12% -10%, #3a1208 0%, transparent 55%),
+    radial-gradient(900px 600px at 110% 10%, #123528 0%, transparent 50%), #07060a;
+  color: #f4ead5;
+}
+
+.stage {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 14px;
+  min-height: 100vh;
+  padding: 22px clamp(1rem, 3vw, 2rem) 18px;
+  box-sizing: border-box;
+}
+
+.mast {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 1rem 1.5rem;
+  align-items: end;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem 0.65rem;
+  align-items: end;
+  justify-content: end;
+}
+
+.kicker {
+  margin: 0 0 0.35rem;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: #ff7a18;
+}
+
+.kickerHot {
+  color: #ff3080;
+}
+
+.story {
+  margin: 0 0 0.45rem;
+  max-width: 36rem;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  line-height: 1.35;
+  color: #9dff4a;
+}
+
+.title {
+  margin: 0;
+  font-family: Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
+  font-size: clamp(3.2rem, 11vw, 7.5rem);
+  line-height: 0.82;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  background: linear-gradient(92deg, #ff3b00 0%, #ffd000 48%, #9dff4a 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.sub {
+  margin: 0.55rem 0 0;
+  max-width: 38rem;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  color: #cbbda6;
+}
+
+.toggle {
+  appearance: none;
+  border: 3px solid #ffd000;
+  background: #ff3b00;
+  color: #140800;
+  font-family: Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
+  font-size: clamp(1.6rem, 4vw, 2.4rem);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.55rem 1.4rem 0.45rem;
+  min-width: 9.5rem;
+  cursor: pointer;
+  box-shadow:
+    6px 6px 0 #1a0a00,
+    inset 0 0 0 2px #140800;
+  transform: rotate(-2deg);
+}
+
+.toggle:hover {
+  background: #ffd000;
+}
+
+.toggle[aria-pressed="false"] {
+  background: #1a120c;
+  color: #ffd000;
+  border-color: #9dff4a;
+}
+
+.chaos,
+.frei,
+.edgeToggle {
+  appearance: none;
+  border: 3px solid #ff3080;
+  background: #ff3080;
+  color: #140800;
+  font-family: Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
+  font-size: clamp(1.15rem, 3vw, 1.7rem);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.5rem 1.05rem 0.4rem;
+  cursor: pointer;
+  box-shadow:
+    5px 5px 0 #1a0a00,
+    inset 0 0 0 2px #140800;
+}
+
+.chaos:hover {
+  background: #ffd000;
+  border-color: #ffd000;
+}
+
+.chaosHot {
+  box-shadow:
+    5px 5px 0 #1a0a00,
+    inset 0 0 0 2px #140800,
+    0 0 26px rgba(255, 48, 128, 0.55);
+}
+
+.frei,
+.edgeToggle {
+  background: #1a120c;
+  color: #ffd0dc;
+  border-color: #ff3080;
+}
+
+.frei:hover:not(:disabled),
+.edgeToggle:hover {
+  background: #2a1018;
+  color: #ffd000;
+}
+
+.frei:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.freiOn:not(:disabled) {
+  opacity: 1;
+}
+
+.edgeControl {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 0.35rem 0.55rem;
+  align-items: end;
+  min-width: min(100%, 16rem);
+  padding: 0.45rem 0.65rem 0.45rem;
+  border: 1px solid #3a342c;
+  background: #100e0c;
+  box-shadow: inset 0 0 0 1px #000;
+}
+
+.edgeLabel {
+  grid-column: 1 / -1;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #8a7f70;
+}
+
+.edgeSelect {
+  appearance: none;
+  min-width: 0;
+  border: 1px solid #5a4038;
+  background: #07060a;
+  color: #f4ead5;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.82rem;
+  padding: 0.4rem 0.55rem;
+}
+
+.edgeToggle {
+  font-size: 0.95rem;
+  padding: 0.35rem 0.7rem 0.28rem;
+  box-shadow:
+    3px 3px 0 #1a0a00,
+    inset 0 0 0 2px #140800;
+}
+
+.body {
+  display: grid;
+  grid-template-columns: 336px 1fr;
+  gap: 16px;
+  min-height: 0;
+}
+
+.rail {
+  display: grid;
+  /* Five equal plates (STE-52 Wahl peek). Fixed min-height — no STE-42 feedback growth. */
+  grid-template-rows: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+  min-height: 420px;
+  /* Cap rail height so a 5th plate never stretches the canvas host (STE-42). */
+  max-height: 100%;
+  overflow: hidden;
+}
+
+.plate {
+  border: 1px solid #3a342c;
+  background: #100e0c;
+  box-shadow: inset 0 0 0 1px #000;
+  padding: 14px 16px 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+}
+
+.plateAlert {
+  border-color: #ff3080;
+  box-shadow:
+    inset 0 0 0 1px #000,
+    0 0 24px rgba(255, 48, 128, 0.22);
+}
+
+.plateFlash {
+  animation: plateFlash 1.5s ease-out 1;
+}
+
+.plateHeartbeat {
+  animation: plateHeartbeat 0.45s ease-out 1;
+}
+
+@keyframes plateFlash {
+  0% {
+    box-shadow:
+      inset 0 0 0 1px #000,
+      0 0 28px rgba(255, 208, 0, 0.55);
+    border-color: #ffd000;
+  }
+  100% {
+    box-shadow: inset 0 0 0 1px #000;
+    border-color: #3a342c;
+  }
+}
+
+@keyframes plateHeartbeat {
+  0% {
+    border-color: #9dff4a;
+    box-shadow:
+      inset 0 0 0 1px #000,
+      0 0 18px rgba(157, 255, 74, 0.35);
+  }
+  100% {
+    border-color: #3a342c;
+    box-shadow: inset 0 0 0 1px #000;
+  }
+}
+
+.plateLabel {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: #8a7f70;
+}
+
+.plateValue {
+  margin-top: 4px;
+  font-family: Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
+  font-size: clamp(2.4rem, 4.5vw, 3.4rem);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  transform: scaleX(0.92);
+  transform-origin: left;
+}
+
+/* STE-52: compact decision peek — same plate chrome, quieter type. */
+.plateCompact .plateValue {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: clamp(1.55rem, 2.8vw, 2.1rem);
+  letter-spacing: 0.04em;
+  transform: none;
+}
+
+.toneBone {
+  color: #f4ead5;
+}
+
+.plateNote {
+  margin-top: 8px;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 10.5px;
+  line-height: 1.5;
+  letter-spacing: 0.02em;
+  color: #8a7f70;
+  display: flex;
+  flex-direction: column;
+}
+
+.plateNoteLine {
+  display: block;
+}
+
+.toneGold {
+  color: #ffd000;
+}
+
+.toneGreen {
+  color: #9dff4a;
+}
+
+.toneCyan {
+  color: #19d7ff;
+}
+
+.toneMagenta {
+  color: #ff3080;
+}
+
+.frame {
+  position: relative;
+  min-height: 420px;
+  height: 100%;
+  border: 1px solid #2a241c;
+  background:
+    linear-gradient(180deg, rgba(255, 61, 0, 0.06), transparent 28%),
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 3px,
+      rgba(255, 255, 255, 0.015) 3px,
+      rgba(255, 255, 255, 0.015) 4px
+    ),
+    #0b0a0e;
+  overflow: hidden;
+}
+
+.frameAlert {
+  border-color: #6d1636;
+}
+
+/* Absolute fill host for Three.js; WebGL canvas CSS box is pinned in JS (STE-42). */
+.canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  cursor: grab;
+}
+
+.foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem 1.75rem;
+  margin: 0;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.05em;
+  color: #8a7f70;
+}
+
+.swatch {
+  display: inline-block;
+  width: 0.85rem;
+  height: 0.35rem;
+  margin-right: 0.45rem;
+  vertical-align: middle;
+}
+
+.swatchTrail {
+  background: #19d7ff;
+  box-shadow: 0 0 8px #19d7ff;
+}
+
+.swatchBest {
+  background: #ffd000;
+  box-shadow: 0 0 8px #ffd000;
+}
+
+.swatchBlocked {
+  height: 0.12rem;
+  border-top: 2px dashed #ff3080;
+  background: transparent;
+  box-shadow: 0 0 8px #ff3080;
+}
+
+/* Quiet read-only genome (STE-46). Never inputs — params stay display-only. */
+.params {
+  color: #8a7f70;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.chain {
+  margin-left: auto;
+  color: #cbbda6;
+}
+
+.chainStrong {
+  color: #ffd000;
+  font-weight: 700;
+}
+
+.event {
+  margin-left: auto;
+  color: #ff8fb2;
+}
+
+.eventStrong {
+  color: #ff3080;
+  font-weight: 700;
+}
+
+.homeLink {
+  color: #ff7a18;
+  text-decoration: none;
+}
+
+.homeLink:hover {
+  color: #ffd000;
+}
+
+@media (max-width: 900px) {
+  .body {
+    grid-template-columns: 1fr;
+  }
+
+  .rail {
+    grid-template-rows: none;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    min-height: 0;
+  }
+}
+
+@media (max-width: 720px) {
+  .mast {
+    grid-template-columns: 1fr;
+  }
+
+  .toggle {
+    justify-self: start;
+    transform: none;
+  }
+
+  .edgeControl {
+    grid-template-columns: 1fr;
+  }
+
+  .rail {
+    grid-template-columns: 1fr;
+  }
+
+  .chain,
+  .event {
+    margin-left: 0;
+  }
+}

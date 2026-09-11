@@ -22,6 +22,7 @@ cd "$REPO" || exit 2
 
 pass=0
 fail=0
+skipped=0
 
 # run <expected_exit> <label> [args...]
 run() {
@@ -204,7 +205,9 @@ if [ -z "$(git diff --cached --name-only)" ]; then
     git rm --cached -q --force "$staged_leak" 2>/dev/null || true
     rm -f "$staged_leak"
 else
-    echo "  skip staged-mode test (index is not empty; commit or reset first)"
+    # Not silent: a skipped guard is how a check quietly stops checking.
+    echo "  SKIP staged-mode test (index is not empty; run this test before staging, or commit)"
+    skipped=$((skipped + 1))
 fi
 
 # --- 10. identity restored, tree passes again ------------------------------
@@ -213,5 +216,6 @@ run 0 "identity restored, tree passes again"
 rm -rf "$tmpdir"
 
 echo
-echo "guard self-test: $pass passed, $fail failed"
+echo "guard self-test: $pass passed, $fail failed, $skipped skipped"
 [ "$fail" -eq 0 ] || exit 1
+[ "$skipped" -eq 0 ] || echo "  note: $skipped case(s) did not run"

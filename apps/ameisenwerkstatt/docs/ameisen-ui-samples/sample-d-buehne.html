@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8" />
+<title>Ameisenfabrik — Sample D · Bühne</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; width: 1440px; height: 900px; overflow: hidden; }
+  body { -webkit-font-smoothing: antialiased; }
+  .poster { font-family: Inter, sans-serif; font-weight: 800; letter-spacing: -0.02em; }
+  .mono { font-family: "JetBrains Mono", "DejaVu Sans Mono", monospace; }
+  .raw { text-transform: none !important; }
+  svg.stage { display: block; width: 100%; height: 100%; }
+
+  body { background: #07060a; color: #f4ead5; }
+  .wrap { position: relative; width: 1440px; height: 900px; overflow: hidden; }
+  .stagewrap { position: absolute; inset: 0; background:
+      radial-gradient(1100px 700px at 20% 0%, #3a1208 0%, transparent 58%),
+      radial-gradient(900px 620px at 105% 15%, #123528 0%, transparent 52%), #07060a; }
+  .vig { position: absolute; inset: 0; background: radial-gradient(120% 90% at 50% 45%, transparent 45%, rgba(0,0,0,0.72) 100%); }
+  .lock { position: absolute; top: 26px; left: 34px; }
+  .lock .k { font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase; color: #ff7a18; }
+  .lock .t { font-family: Inter, sans-serif; font-weight: 800; font-size: 34px; letter-spacing: 0.03em; text-transform: uppercase; margin-top: 3px; transform: scaleX(0.92); transform-origin: left; color: #f4ead5; }
+  .ghost { position: absolute; top: 26px; right: 34px; display: flex; gap: 10px; }
+  .ghost span { font-family: Inter, sans-serif; font-weight: 800; font-size: 15px; letter-spacing: 0.12em; text-transform: uppercase;
+    padding: 9px 17px; border: 2px solid rgba(244,234,213,0.28); color: rgba(244,234,213,0.72); background: rgba(7,6,10,0.4); backdrop-filter: blur(2px); }
+  .ghost span.on { border-color: #ffd000; color: #ffd000; }
+  .ghost span.hot { border-color: #ff3080; color: #ff6ea0; }
+  .banner { position: absolute; top: 96px; left: 50%; transform: translateX(-50%); display: inline-flex; align-items: baseline; gap: 16px; white-space: nowrap;
+    padding: 11px 22px 10px; background: rgba(255,48,128,0.14); border: 2px solid #ff3080; box-shadow: 0 0 34px rgba(255,48,128,0.35); }
+  .banner .dot { width: 9px; height: 9px; background: #ff3080; box-shadow: 0 0 12px #ff3080; }
+  .banner .t { font-family: Inter, sans-serif; font-weight: 800; font-size: 18px; letter-spacing: 0.14em; text-transform: uppercase; color: #ffd0dc; }
+  .banner .s { font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: #ff9dbc; }
+  .hero { position: absolute; right: 44px; bottom: 52px; text-align: right; padding: 18px 10px 6px 60px; background: radial-gradient(120% 150% at 85% 60%, rgba(7,6,10,0.88) 0%, rgba(7,6,10,0.72) 45%, transparent 78%); }
+  .hero .k { font-size: 11px; letter-spacing: 0.3em; text-transform: uppercase; color: #cbbda6; }
+  .hero .v { font-family: Inter, sans-serif; font-weight: 800; font-size: 104px; line-height: 0.88; color: #ffd000; transform: scaleX(0.9); transform-origin: right;
+    text-shadow: 0 0 46px rgba(255,208,0,0.42); }
+  .hero .d { margin-top: 6px; font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: #ff8fb2; }
+  .hero .s { display: flex; justify-content: flex-end; margin-top: 8px; opacity: 0.85; }
+  .panel { position: absolute; left: 34px; bottom: 34px; width: 424px; padding: 15px 17px 13px;
+    background: rgba(10,8,12,0.62); border: 1px solid rgba(244,234,213,0.16); backdrop-filter: blur(3px); }
+  .panel .h { font-size: 10px; letter-spacing: 0.24em; text-transform: uppercase; color: #ff7a18; }
+  .panel .h b { color: #f4ead5; font-weight: 400; }
+  .panel .eq { margin: 7px 0 11px; font-size: 12.5px; color: #cbbda6; }
+  .panel .eq b { color: #19d7ff; font-weight: 400; }
+  table { width: 100%; border-collapse: collapse; font-size: 11.5px; }
+  th { text-align: left; font-weight: 400; font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; color: #8a7f70; padding-bottom: 5px; }
+  td { padding: 3px 0; color: #f4ead5; }
+  td.num { text-align: right; padding-right: 9px; color: #cbbda6; }
+  td.bar { width: 96px; }
+  td.bar i { display: block; height: 7px; background: #19d7ff; box-shadow: 0 0 10px rgba(25,215,255,0.6); }
+  tr.dead td { color: #6a5f55; text-decoration: line-through; }
+  tr.dead td.bar i { background: #4a3b44; box-shadow: none; }
+  .strip { position: absolute; left: 34px; top: 168px; display: grid; gap: 9px; }
+  .chip { padding: 8px 13px 7px; background: rgba(10,8,12,0.55); border-left: 3px solid #9dff4a; }
+  .chip .k { font-size: 9px; letter-spacing: 0.22em; text-transform: uppercase; color: #8a7f70; }
+  .chip .v { font-family: Inter, sans-serif; font-weight: 800; font-size: 21px; color: #9dff4a; margin-top: 1px; }
+  .chip.cyan { border-left-color: #19d7ff; } .chip.cyan .v { color: #19d7ff; }
+  .chip.mag { border-left-color: #ff3080; } .chip.mag .v { color: #ff6ea0; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+    <div class="stagewrap"><svg class="stage" viewBox="0 0 1440 900" width="1440" height="900" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="glowGold" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="8.666666666666666" flood-color="#ffd000" flood-opacity="0.75" />
+    </filter>
+    <filter id="glowAnt" x="-80%" y="-80%" width="260%" height="260%">
+      <feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="#ff3b00" flood-opacity="0.9" />
+    </filter>
+    <filter id="glowBlocked" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="#ff3080" flood-opacity="0.7" />
+    </filter>
+  </defs>
+  <line x1="283.1" y1="561.8" x2="415.2" y2="206.2" stroke="rgba(25,215,255,0.224)" stroke-width="2.19" stroke-linecap="round" />
+  <line x1="283.1" y1="561.8" x2="1116.2" y2="328.1" stroke="rgba(25,215,255,0.129)" stroke-width="1.12" stroke-linecap="round" />
+  <line x1="283.1" y1="561.8" x2="516.8" y2="470.3" stroke="rgba(25,215,255,0.667)" stroke-width="7.18" stroke-linecap="round" />
+  <line x1="283.1" y1="561.8" x2="344.1" y2="704.0" stroke="rgba(25,215,255,0.824)" stroke-width="8.94" stroke-linecap="round" />
+  <line x1="415.2" y1="206.2" x2="638.7" y2="297.6" stroke="rgba(25,215,255,0.633)" stroke-width="6.80" stroke-linecap="round" />
+  <line x1="415.2" y1="206.2" x2="892.7" y2="196.0" stroke="rgba(25,215,255,0.266)" stroke-width="2.66" stroke-linecap="round" />
+  <line x1="415.2" y1="206.2" x2="1035.0" y2="531.3" stroke="rgba(25,215,255,0.180)" stroke-width="1.69" stroke-linecap="round" />
+  <line x1="415.2" y1="206.2" x2="1156.9" y2="683.7" stroke="rgba(25,215,255,0.146)" stroke-width="1.31" stroke-linecap="round" />
+  <line x1="415.2" y1="206.2" x2="750.5" y2="663.4" stroke="rgba(25,215,255,0.184)" stroke-width="1.75" stroke-linecap="round" />
+  <line x1="415.2" y1="206.2" x2="516.8" y2="470.3" stroke="rgba(25,215,255,0.390)" stroke-width="4.06" stroke-linecap="round" />
+  <line x1="415.2" y1="206.2" x2="344.1" y2="704.0" stroke="rgba(25,215,255,0.211)" stroke-width="2.05" stroke-linecap="round" />
+  <line x1="638.7" y1="297.6" x2="892.7" y2="196.0" stroke="rgba(25,215,255,0.582)" stroke-width="6.23" stroke-linecap="round" />
+  <line x1="638.7" y1="297.6" x2="516.8" y2="470.3" stroke="rgba(25,215,255,0.532)" stroke-width="5.66" stroke-linecap="round" />
+  <line x1="892.7" y1="196.0" x2="1116.2" y2="328.1" stroke="rgba(25,215,255,0.793)" stroke-width="8.59" stroke-linecap="round" />
+  <line x1="892.7" y1="196.0" x2="1156.9" y2="683.7" stroke="rgba(25,215,255,0.132)" stroke-width="1.15" stroke-linecap="round" />
+  <line x1="892.7" y1="196.0" x2="516.8" y2="470.3" stroke="rgba(25,215,255,0.145)" stroke-width="1.31" stroke-linecap="round" />
+  <line x1="892.7" y1="196.0" x2="344.1" y2="704.0" stroke="rgba(25,215,255,0.130)" stroke-width="1.13" stroke-linecap="round" />
+  <line x1="1116.2" y1="328.1" x2="1035.0" y2="531.3" stroke="rgba(25,215,255,0.627)" stroke-width="6.73" stroke-linecap="round" />
+  <line x1="1116.2" y1="328.1" x2="1156.9" y2="683.7" stroke="rgba(25,215,255,0.256)" stroke-width="2.55" stroke-linecap="round" />
+  <line x1="1116.2" y1="328.1" x2="750.5" y2="663.4" stroke="rgba(25,215,255,0.128)" stroke-width="1.12" stroke-linecap="round" />
+  <line x1="1035.0" y1="531.3" x2="1156.9" y2="683.7" stroke="rgba(25,215,255,0.747)" stroke-width="8.07" stroke-linecap="round" />
+  <line x1="1035.0" y1="531.3" x2="750.5" y2="663.4" stroke="rgba(25,215,255,0.236)" stroke-width="2.33" stroke-linecap="round" />
+  <line x1="1035.0" y1="531.3" x2="344.1" y2="704.0" stroke="rgba(25,215,255,0.158)" stroke-width="1.45" stroke-linecap="round" />
+  <line x1="1156.9" y1="683.7" x2="750.5" y2="663.4" stroke="rgba(25,215,255,0.662)" stroke-width="7.12" stroke-linecap="round" />
+  <line x1="750.5" y1="663.4" x2="516.8" y2="470.3" stroke="rgba(25,215,255,0.212)" stroke-width="2.06" stroke-linecap="round" />
+  <g stroke="#ff3080" stroke-width="3.1" filter="url(#glowBlocked)"><line x1="750.48" y1="663.36" x2="344.08000000000004" y2="704" stroke-dasharray="8 6" /><line x1="539.28" y1="675.6800000000001" x2="555.28" y2="691.6800000000001" /><line x1="555.28" y1="675.6800000000001" x2="539.28" y2="691.6800000000001" /></g>
+  <path d="M516.8,470.3 L283.1,561.8 L344.1,704.0 L415.2,206.2 L638.7,297.6 L892.7,196.0 L1116.2,328.1 L1035.0,531.3 L1156.9,683.7 L750.5,663.4 Z" fill="none" stroke="#ffd000" stroke-width="4.5" stroke-linejoin="round" filter="url(#glowGold)" />
+  <circle cx="283.1" cy="561.8" r="11" fill="#140800" stroke="#ff7a18" stroke-width="2" />
+  <text x="283.1" y="544.8" fill="#f4ead5" font-family="JetBrains Mono, DejaVu Sans Mono, monospace" font-size="15" font-weight="700" text-anchor="middle">Guss</text>
+  <circle cx="415.2" cy="206.2" r="11" fill="#140800" stroke="#ff7a18" stroke-width="2" />
+  <text x="415.2" y="189.2" fill="#f4ead5" font-family="JetBrains Mono, DejaVu Sans Mono, monospace" font-size="15" font-weight="700" text-anchor="middle">Herd</text>
+  <circle cx="638.7" cy="297.6" r="11" fill="#140800" stroke="#ff7a18" stroke-width="2" />
+  <text x="638.7" y="280.6" fill="#f4ead5" font-family="JetBrains Mono, DejaVu Sans Mono, monospace" font-size="15" font-weight="700" text-anchor="middle">Presse</text>
+  <circle cx="892.7" cy="196.0" r="11" fill="#140800" stroke="#ff7a18" stroke-width="2" />
+  <text x="892.7" y="179.0" fill="#f4ead5" font-family="JetBrains Mono, DejaVu Sans Mono, monospace" font-size="15" font-weight="700" text-anchor="middle">Walz</text>
+  <circle cx="1116.2" cy="328.1" r="11" fill="#140800" stroke="#ff7a18" stroke-width="2" />
+  <text x="1116.2" y="311.1" fill="#f4ead5" font-family="JetBrains Mono, DejaVu Sans Mono, monospace" font-size="15" font-weight="700" text-anchor="middle">Kran</text>
+  <circle cx="1035.0" cy="531.3" r="11" fill="#140800" stroke="#ff7a18" stroke-width="2" />
+  <text x="1035.0" y="514.3" fill="#f4ead5" font-family="JetBrains Mono, DejaVu Sans Mono, monospace" font-size="15" font-weight="700" text-anchor="middle">Säge</text>
+  <circle cx="1156.9" cy="683.7" r="11" fill="#140800" stroke="#ff7a18" stroke-width="2" />
+  <text x="1156.9" y="666.7" fill="#f4ead5" font-family="JetBrains Mono, DejaVu Sans Mono, monospace" font-size="15" font-weight="700" text-anchor="middle">Lack</text>
+  <circle cx="750.5" cy="663.4" r="11" fill="#140800" stroke="#ff7a18" stroke-width="2" />
+  <text x="750.5" y="646.4" fill="#f4ead5" font-family="JetBrains Mono, DejaVu Sans Mono, monospace" font-size="15" font-weight="700" text-anchor="middle">Dock</text>
+  <circle cx="516.8" cy="470.3" r="11" fill="#140800" stroke="#ff7a18" stroke-width="2" />
+  <text x="516.8" y="453.3" fill="#f4ead5" font-family="JetBrains Mono, DejaVu Sans Mono, monospace" font-size="15" font-weight="700" text-anchor="middle">Ofen</text>
+  <circle cx="344.1" cy="704.0" r="11" fill="#140800" stroke="#ff7a18" stroke-width="2" />
+  <text x="344.1" y="687.0" fill="#f4ead5" font-family="JetBrains Mono, DejaVu Sans Mono, monospace" font-size="15" font-weight="700" text-anchor="middle">Tor</text>
+  <g transform="translate(325.8,661.3) rotate(-113.2) scale(1.25)" filter="url(#glowAnt)"><path d="M10,0 L-7,5.5 L-4,0 L-7,-5.5 Z" fill="#ff3b00" /></g>
+  <g transform="translate(407.0,513.3) rotate(158.6) scale(1.25)" filter="url(#glowAnt)"><path d="M10,0 L-7,5.5 L-4,0 L-7,-5.5 Z" fill="#ff3b00" /></g>
+  <g transform="translate(560.7,408.1) rotate(125.2) scale(1.25)" filter="url(#glowAnt)"><path d="M10,0 L-7,5.5 L-4,0 L-7,-5.5 Z" fill="#ff3b00" /></g>
+  <g transform="translate(332.5,677.0) rotate(66.8) scale(1.25)" filter="url(#glowAnt)"><path d="M10,0 L-7,5.5 L-4,0 L-7,-5.5 Z" fill="#ff3b00" /></g>
+  <g transform="translate(453.8,306.5) rotate(69.0) scale(1.25)" filter="url(#glowAnt)"><path d="M10,0 L-7,5.5 L-4,0 L-7,-5.5 Z" fill="#ff3b00" /></g>
+  <g transform="translate(1079.7,419.5) rotate(-68.2) scale(1.25)" filter="url(#glowAnt)"><path d="M10,0 L-7,5.5 L-4,0 L-7,-5.5 Z" fill="#ff3b00" /></g>
+  <g transform="translate(582.2,524.4) rotate(-140.4) scale(1.25)" filter="url(#glowAnt)"><path d="M10,0 L-7,5.5 L-4,0 L-7,-5.5 Z" fill="#ff3b00" /></g>
+  <g transform="translate(795.2,665.6) rotate(-177.1) scale(1.25)" filter="url(#glowAnt)"><path d="M10,0 L-7,5.5 L-4,0 L-7,-5.5 Z" fill="#ff3b00" /></g>
+  <g transform="translate(376.8,475.0) rotate(-81.9) scale(1.25)" filter="url(#glowAnt)"><path d="M10,0 L-7,5.5 L-4,0 L-7,-5.5 Z" fill="#ff3b00" /></g>
+  <g transform="translate(603.3,541.7) rotate(-140.4) scale(1.25)" filter="url(#glowAnt)"><path d="M10,0 L-7,5.5 L-4,0 L-7,-5.5 Z" fill="#ff3b00" /></g>
+</svg></div>
+    <div class="vig"></div>
+    <div class="lock">
+      <div class="k mono">Demo #1 · Chaos aktiv</div>
+      <div class="t">Ameisenfabrik</div>
+    </div>
+    <div class="ghost"><span class="on">Halt</span><span class="hot">Chaos</span><span>Frei</span></div>
+    <div class="banner">
+      <span class="dot"></span>
+      <span class="t">Kante gesperrt · Dock—Tor</span>
+      <span class="s mono">Iteration 60 · Gold verworfen</span>
+    </div>
+    <div class="strip">
+      <div class="chip"><div class="k mono">Iteration</div><div class="v">61</div></div>
+      <div class="chip cyan"><div class="k mono raw">τ auf Gold</div><div class="v">74%</div></div>
+      <div class="chip"><div class="k mono">Touren über Sperre</div><div class="v">4/10</div></div>
+      <div class="chip mag"><div class="k mono">Gesperrt</div><div class="v">1</div></div>
+    </div>
+    <div class="panel">
+      <div class="h mono">Ameise 00 bei <b>Guss</b> · Hop 5/10</div>
+      <div class="eq mono raw">nächster Schritt ∝ <b>τ^1 · η^5</b> über offene Nachbarn</div>
+      <table class="mono">
+        <thead><tr><th class="raw">Ziel</th><th class="num raw">τ</th><th class="num">Distanz</th><th class="num raw">p</th><th></th></tr></thead>
+        <tbody><tr class="">
+      <td>Kran</td>
+      <td class="num">0.036</td>
+      <td class="num">852</td>
+      <td class="num">87.5%</td>
+      <td class="bar"><i style="width:87.5%"></i></td>
+    </tr>
+      <tr class="">
+      <td>Lack</td>
+      <td class="num">0.006</td>
+      <td class="num">868</td>
+      <td class="num">12.3%</td>
+      <td class="bar"><i style="width:12.3%"></i></td>
+    </tr>
+      <tr class="">
+      <td>Säge</td>
+      <td class="num">0.000</td>
+      <td class="num">741</td>
+      <td class="num">0.1%</td>
+      <td class="bar"><i style="width:0.1%"></i></td>
+    </tr>
+      <tr class="">
+      <td>Dock</td>
+      <td class="num">0.000</td>
+      <td class="num">471</td>
+      <td class="num">0.0%</td>
+      <td class="bar"><i style="width:0.0%"></i></td>
+    </tr>
+      <tr class="">
+      <td>Walz</td>
+      <td class="num">0.000</td>
+      <td class="num">700</td>
+      <td class="num">0.0%</td>
+      <td class="bar"><i style="width:0.0%"></i></td>
+    </tr></tbody>
+      </table>
+    </div>
+    <div class="hero">
+      <div class="k mono">Beste Tour</div>
+      <div class="v">2763.1</div>
+      <div class="d mono">vor Chaos 2650.4 · neu aufgebaut in 1 Iteration · +112.7</div>
+    </div>
+  </div>
+</body>
+</html>

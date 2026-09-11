@@ -1,0 +1,98 @@
+{
+  "schema": "factory.run.v1",
+  "goldens_version": "2026-09-07-factory-docs-b",
+  "goldens_ref": "docs/eval/goldens-b.jsonl",
+  "n_prompts": 16,
+  "date": null,
+  "label": null,
+  "scorer": "Human",
+  "notes": null,
+  "rows": [
+    {
+      "id": "B01",
+      "pass": null,
+      "notes": null
+    },
+    {
+      "id": "B02",
+      "pass": null,
+      "notes": null
+    },
+    {
+      "id": "B03",
+      "pass": null,
+      "notes": null
+    },
+    {
+      "id": "B04",
+      "pass": null,
+      "notes": null
+    },
+    {
+      "id": "B05",
+      "pass": null,
+      "notes": null
+    },
+    {
+      "id": "B06",
+      "pass": null,
+      "notes": null
+    },
+    {
+      "id": "B07",
+      "pass": null,
+      "notes": null
+    },
+    {
+      "id": "B08",
+      "pass": null,
+      "notes": null
+    },
+    {
+      "id": "B21",
+      "pass": null,
+      "notes": null
+    },
+    {
+      "id": "B22",
+      "pass": null,
+      "notes": null
+    },
+    {
+      "id": "B23",
+      "pass": null,
+      "notes": null
+    },
+    {
+      "id": "B24",
+      "pass": null,
+      "notes": null
+    },
+    {
+      "id": "B25",
+      "pass": null,
+      "notes": null
+    },
+    {
+      "id": "B26",
+      "pass": null,
+      "notes": null
+    },
+    {
+      "id": "B27",
+      "pass": null,
+      "notes": null
+    },
+    {
+      "id": "B28",
+      "pass": null,
+      "notes": null
+    }
+  ],
+  "aggregate": {
+    "prompts_scored": null,
+    "passes": null,
+    "fails": null,
+    "pass_rate": null
+  }
+}

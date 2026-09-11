@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8" />
+<title>Ameisenfabrik — Sample A2 · Werkstatt, Chaos-Moment</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; width: 1440px; height: 900px; overflow: hidden; }
+  body { -webkit-font-smoothing: antialiased; }
+  .poster { font-family: Inter, sans-serif; font-weight: 800; letter-spacing: -0.02em; }
+  .mono { font-family: "JetBrains Mono", "DejaVu Sans Mono", monospace; }
+  .raw { text-transform: none !important; }
+  svg.stage { display: block; width: 100%; height: 100%; }
+
+  body { background: radial-gradient(1200px 700px at 12% -10%, #3a1208 0%, transparent 55%),
+    radial-gradient(900px 600px at 110% 10%, #123528 0%, transparent 50%), #07060a; color: #f4ead5; }
+  .wrap { display: grid; grid-template-rows: auto 1fr auto; height: 900px; padding: 22px 32px 18px; gap: 14px; }
+  .mast { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 24px; }
+  .kicker { margin: 0 0 6px; font-size: 11px; letter-spacing: 0.28em; text-transform: uppercase; color: #ff7a18; }
+  .kicker.hot { color: #ff3080; }
+  h1 { margin: 0; font-size: 86px; line-height: 0.82; text-transform: uppercase; transform: scaleX(0.9); transform-origin: left;
+       background: linear-gradient(92deg, #ff3b00 0%, #ffd000 48%, #9dff4a 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .sub { margin: 10px 0 0; max-width: 560px; font-family: Inter, sans-serif; font-weight: 400; font-size: 13.5px; line-height: 1.45; color: #cbbda6; }
+  .controls { display: flex; gap: 10px; align-items: end; }
+  .btn { font-family: Inter, sans-serif; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; border: 3px solid #ffd000;
+         background: #ff3b00; color: #140800; font-size: 26px; padding: 10px 24px 8px; box-shadow: 6px 6px 0 #1a0a00, inset 0 0 0 2px #140800; transform: rotate(-2deg); }
+  .btn.chaos { background: #ff3080; border-color: #ff3080; font-size: 20px; padding: 9px 18px 7px; transform: none; box-shadow: 5px 5px 0 #1a0a00, inset 0 0 0 2px #140800; }
+  .btn.chaos.hot { box-shadow: 5px 5px 0 #1a0a00, inset 0 0 0 2px #140800, 0 0 26px rgba(255,48,128,0.55); }
+  .btn.frei { background: #1a120c; color: #ffd0dc; border-color: #ff3080; font-size: 20px; padding: 9px 18px 7px; transform: none; opacity: 0.45; box-shadow: 5px 5px 0 #1a0a00, inset 0 0 0 2px #140800; }
+  .btn.frei.on { opacity: 1; }
+  .body { display: grid; grid-template-columns: 336px 1fr; gap: 16px; min-height: 0; }
+  .rail { display: grid; grid-template-rows: repeat(4, 1fr); gap: 12px; }
+  .plate { border: 1px solid #3a342c; background: #100e0c; box-shadow: inset 0 0 0 1px #000; padding: 14px 16px 12px; display: flex; flex-direction: column; justify-content: center; }
+  .plate.alert { border-color: #ff3080; box-shadow: inset 0 0 0 1px #000, 0 0 24px rgba(255,48,128,0.22); }
+  .plate .l { font-size: 10.5px; letter-spacing: 0.24em; text-transform: uppercase; color: #8a7f70; }
+  .plate .v { font-family: Inter, sans-serif; font-weight: 800; font-size: 54px; line-height: 1; margin-top: 4px; transform: scaleX(0.92); transform-origin: left; }
+  .plate .n { margin-top: 8px; font-size: 10.5px; line-height: 1.5; letter-spacing: 0.02em; color: #8a7f70; }
+  .gold { color: #ffd000; } .green { color: #9dff4a; } .cyan { color: #19d7ff; } .magenta { color: #ff3080; }
+  .frame { position: relative; border: 1px solid #2a241c; overflow: hidden;
+    background: linear-gradient(180deg, rgba(255,61,0,0.06), transparent 28%),
+      repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(255,255,255,0.015) 3px, rgba(255,255,255,0.015) 4px), #0b0a0e; }
+  .frame.alert { border-color: #6d1636; }
+  .foot { display: flex; align-items: center; gap: 28px; font-size: 11px; letter-spacing: 0.05em; color: #8a7f70; }
+  .sw { display: inline-block; width: 14px; height: 6px; margin-right: 7px; vertical-align: middle; }
+  .chain { margin-left: auto; color: #cbbda6; }
+  .chain b { color: #ffd000; font-weight: 700; }
+  .event { margin-left: auto; color: #ff8fb2; }
+  .event b { color: #ff3080; font-weight: 700; }
+</style>
+</head>
+<body>
+<div class="wrap">
+    <div class="mast">
+      <div>
+        <p class="kicker mono hot">Demo #1 · chaos aktiv · no LLM</p>
+        <h1 class="poster">Ameisenfabrik</h1>
+        <p class="sub">Kante <b>Dock—Tor</b> gesperrt. Sie lag auf der Gold-Tour, also ist Gold verworfen — die Kolonie läuft weiter und baut die beste gültige Tour neu auf.</p>
+      </div>
+      <div class="controls">
+        <div class="btn">Halt</div>
+        <div class="btn chaos hot">Chaos</div>
+        <div class="btn frei on">Frei</div>
+      </div>
+    </div>
+    <div class="body">
+      <div class="rail">
+        <div class="plate alert">
+          <div class="l mono">Beste Tour</div>
+          <div class="v magenta">—</div>
+          <div class="n mono">Gold verworfen · die Sperre lag auf der Tour<br/>zuletzt 2650.4 in Iteration 60</div>
+        </div>
+        <div class="plate">
+          <div class="l mono">Iteration</div>
+          <div class="v green">60</div>
+          <div class="n mono">10 von 10 Ameisen unterwegs<br/>weiteste Ameise bei Hop 6/10</div>
+        </div>
+        <div class="plate">
+          <div class="l mono">Pheromon · Masse</div>
+          <div class="v cyan">16.6</div>
+          <div class="n mono">Anteil auf Gold ruht, bis neues Gold steht<br/>vor der Sperre 18.3 · Spitze 0.92</div>
+        </div>
+        <div class="plate alert">
+          <div class="l mono">Gesperrt</div>
+          <div class="v magenta">1</div>
+          <div class="n mono">Dock—Tor · seit Iteration 60<br/>Touren über die Sperre werden verworfen</div>
+        </div>
+      </div>
+      <div class="frame alert"><svg class="stage" viewBox="0 0 1026 618" width="1026" height="618" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="glowGold" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="4" flood-color="#ffd000" flood-opacity="0.75" />
+    </filter>
+    <filter id="glowAnt" x="-80%" y="-80%" width="260%" height="260%">
+      <feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="#ff3b00" flood-opacity="0.9" />
+    </filter>
+    <filter id="glowBlocked" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="#ff3080" flood-opacity="0.7" />
+    </filter>
+  </defs>
+  <line x1="112.2" y1="411.5" x2="233.4" y2="85.3" stroke="rgba(25,215,255,0.228)" stroke-width="2.14" stroke-linecap="round" />
+  <line x1="112.2" y1="411.5" x2="326.6" y2="327.6" stroke="rgba(25,215,255,0.580)" stroke-width="5.81" stroke-linecap="round" />
+  <line x1="112.2" y1="411.5" x2="168.2" y2="542.0" stroke="rgba(25,215,255,0.739)" stroke-width="7.47" stroke-linecap="round" />
+  <line x1="233.4" y1="85.3" x2="438.4" y2="169.2" stroke="rgba(25,215,255,0.473)" stroke-width="4.70" stroke-linecap="round" />
+  <line x1="233.4" y1="85.3" x2="671.4" y2="76.0" stroke="rgba(25,215,255,0.295)" stroke-width="2.84" stroke-linecap="round" />
+  <line x1="233.4" y1="85.3" x2="876.5" y2="197.2" stroke="rgba(25,215,255,0.105)" stroke-width="0.86" stroke-linecap="round" />
+  <line x1="233.4" y1="85.3" x2="801.9" y2="383.6" stroke="rgba(25,215,255,0.164)" stroke-width="1.47" stroke-linecap="round" />
+  <line x1="233.4" y1="85.3" x2="913.8" y2="523.4" stroke="rgba(25,215,255,0.155)" stroke-width="1.38" stroke-linecap="round" />
+  <line x1="233.4" y1="85.3" x2="541.0" y2="504.7" stroke="rgba(25,215,255,0.173)" stroke-width="1.57" stroke-linecap="round" />
+  <line x1="233.4" y1="85.3" x2="326.6" y2="327.6" stroke="rgba(25,215,255,0.344)" stroke-width="3.35" stroke-linecap="round" />
+  <line x1="233.4" y1="85.3" x2="168.2" y2="542.0" stroke="rgba(25,215,255,0.102)" stroke-width="0.83" stroke-linecap="round" />
+  <line x1="438.4" y1="169.2" x2="671.4" y2="76.0" stroke="rgba(25,215,255,0.500)" stroke-width="4.97" stroke-linecap="round" />
+  <line x1="438.4" y1="169.2" x2="326.6" y2="327.6" stroke="rgba(25,215,255,0.585)" stroke-width="5.86" stroke-linecap="round" />
+  <line x1="671.4" y1="76.0" x2="876.5" y2="197.2" stroke="rgba(25,215,255,0.732)" stroke-width="7.39" stroke-linecap="round" />
+  <line x1="671.4" y1="76.0" x2="326.6" y2="327.6" stroke="rgba(25,215,255,0.100)" stroke-width="0.81" stroke-linecap="round" />
+  <line x1="876.5" y1="197.2" x2="801.9" y2="383.6" stroke="rgba(25,215,255,0.570)" stroke-width="5.71" stroke-linecap="round" />
+  <line x1="876.5" y1="197.2" x2="913.8" y2="523.4" stroke="rgba(25,215,255,0.228)" stroke-width="2.14" stroke-linecap="round" />
+  <line x1="801.9" y1="383.6" x2="913.8" y2="523.4" stroke="rgba(25,215,255,0.707)" stroke-width="7.13" stroke-linecap="round" />
+  <line x1="801.9" y1="383.6" x2="541.0" y2="504.7" stroke="rgba(25,215,255,0.195)" stroke-width="1.80" stroke-linecap="round" />
+  <line x1="913.8" y1="523.4" x2="541.0" y2="504.7" stroke="rgba(25,215,255,0.533)" stroke-width="5.31" stroke-linecap="round" />
+  <line x1="541.0" y1="504.7" x2="326.6" y2="327.6" stroke="rgba(25,215,255,0.106)" stroke-width="0.87" stroke-linecap="round" />
+  <g stroke="#ff3080" stroke-width="3.1" filter="url(#glowBlocked)"><line x1="540.96" y1="504.72" x2="168.15999999999997" y2="542.0000000000001" stroke-dasharray="8 6" /><line x1="346.56" y1="515.3600000000001" x2="362.56" y2="531.3600000000001" /><line x1="362.56" y1="515.3600000000001" x2="346.56" y2="531.3600000000001" /></g>
+  <circle cx="112.2" cy="411.5" r="9" fill="#140800" stroke="#ff7a18" stroke-width="2" />
+  <text x="112.2" y="396.5" fill="#f4ead5" font-family="JetBrains Mono, DejaVu Sans Mono, monospace" font-size="12" font-weight="700" text-anchor="middle">Guss</text>
+  <circle cx="233.4" cy="85.3" r="9" fill="#140800" stroke="#ff7a18" stroke-width="2" />
+  <text x="233.4" y="70.3" fill="#f4ead5" font-family="JetBrains Mono, DejaVu Sans Mono, monospace" font-size="12" font-weight="700" text-anchor="middle">Herd</text>
+  <circle cx="438.4" cy="169.2" r="9" fill="#140800" stroke="#ff7a18" stroke-width="2" />
+  <text x="438.4" y="154.2" fill="#f4ead5" font-family="JetBrains Mono, DejaVu Sans Mono, monospace" font-size="12" font-weight="700" text-anchor="middle">Presse</text>
+  <circle cx="671.4" cy="76.0" r="9" fill="#140800" stroke="#ff7a18" stroke-width="2" />
+  <text x="671.4" y="61.0" fill="#f4ead5" font-family="JetBrains Mono, DejaVu Sans Mono, monospace" font-size="12" font-weight="700" text-anchor="middle">Walz</text>
+  <circle cx="876.5" cy="197.2" r="9" fill="#140800" stroke="#ff7a18" stroke-width="2" />
+  <text x="876.5" y="182.2" fill="#f4ead5" font-family="JetBrains Mono, DejaVu Sans Mono, monospace" font-size="12" font-weight="700" text-anchor="middle">Kran</text>
+  <circle cx="801.9" cy="383.6" r="9" fill="#140800" stroke="#ff7a18" stroke-width="2" />
+  <text x="801.9" y="368.6" fill="#f4ead5" font-family="JetBrains Mono, DejaVu Sans Mono, monospace" font-size="12" font-weight="700" text-anchor="middle">Säge</text>
+  <circle cx="913.8" cy="523.4" r="9" fill="#140800" stroke="#ff7a18" stroke-width="2" />
+  <text x="913.8" y="508.4" fill="#f4ead5" font-family="JetBrains Mono, DejaVu Sans Mono, monospace" font-size="12" font-weight="700" text-anchor="middle">Lack</text>
+  <circle cx="541.0" cy="504.7" r="9" fill="#140800" stroke="#ff7a18" stroke-width="2" />
+  <text x="541.0" y="489.7" fill="#f4ead5" font-family="JetBrains Mono, DejaVu Sans Mono, monospace" font-size="12" font-weight="700" text-anchor="middle">Dock</text>
+  <circle cx="326.6" cy="327.6" r="9" fill="#140800" stroke="#ff7a18" stroke-width="2" />
+  <text x="326.6" y="312.6" fill="#f4ead5" font-family="JetBrains Mono, DejaVu Sans Mono, monospace" font-size="12" font-weight="700" text-anchor="middle">Ofen</text>
+  <circle cx="168.2" cy="542.0" r="9" fill="#140800" stroke="#ff7a18" stroke-width="2" />
+  <text x="168.2" y="527.0" fill="#f4ead5" font-family="JetBrains Mono, DejaVu Sans Mono, monospace" font-size="12" font-weight="700" text-anchor="middle">Tor</text>
+  <g transform="translate(404.9,216.7) rotate(125.2) scale(1)" filter="url(#glowAnt)"><path d="M10,0 L-7,5.5 L-4,0 L-7,-5.5 Z" fill="#ff3b00" /></g>
+  <g transform="translate(547.9,125.4) rotate(-21.8) scale(1)" filter="url(#glowAnt)"><path d="M10,0 L-7,5.5 L-4,0 L-7,-5.5 Z" fill="#ff3b00" /></g>
+  <g transform="translate(189.4,381.3) rotate(158.6) scale(1)" filter="url(#glowAnt)"><path d="M10,0 L-7,5.5 L-4,0 L-7,-5.5 Z" fill="#ff3b00" /></g>
+  <g transform="translate(892.5,496.8) rotate(51.3) scale(1)" filter="url(#glowAnt)"><path d="M10,0 L-7,5.5 L-4,0 L-7,-5.5 Z" fill="#ff3b00" /></g>
+  <g transform="translate(369.1,267.4) rotate(-54.8) scale(1)" filter="url(#glowAnt)"><path d="M10,0 L-7,5.5 L-4,0 L-7,-5.5 Z" fill="#ff3b00" /></g>
+  <g transform="translate(763.7,130.5) rotate(-149.4) scale(1)" filter="url(#glowAnt)"><path d="M10,0 L-7,5.5 L-4,0 L-7,-5.5 Z" fill="#ff3b00" /></g>
+  <g transform="translate(381.0,145.7) rotate(22.2) scale(1)" filter="url(#glowAnt)"><path d="M10,0 L-7,5.5 L-4,0 L-7,-5.5 Z" fill="#ff3b00" /></g>
+  <g transform="translate(582.0,506.8) rotate(-177.1) scale(1)" filter="url(#glowAnt)"><path d="M10,0 L-7,5.5 L-4,0 L-7,-5.5 Z" fill="#ff3b00" /></g>
+  <g transform="translate(896.6,373.3) rotate(-96.5) scale(1)" filter="url(#glowAnt)"><path d="M10,0 L-7,5.5 L-4,0 L-7,-5.5 Z" fill="#ff3b00" /></g>
+  <g transform="translate(191.6,380.5) rotate(158.6) scale(1)" filter="url(#glowAnt)"><path d="M10,0 L-7,5.5 L-4,0 L-7,-5.5 Z" fill="#ff3b00" /></g>
+</svg></div>
+    </div>
+    <div class="foot mono">
+      <span><span class="sw" style="background:#19d7ff;box-shadow:0 0 8px #19d7ff"></span>Pheromon</span>
+      <span><span class="sw" style="background:#ffd000;box-shadow:0 0 8px #ffd000"></span>Beste Tour</span>
+      <span><span class="sw" style="border-top:2px dashed #ff3080;height:2px;box-shadow:0 0 8px #ff3080"></span>Gesperrte Kante</span>
+      <span class="event">Iteration 60 · Kante <b>Dock—Tor</b> gesperrt · Gold verworfen</span>
+    </div>
+  </div>
+</body>
+</html>
