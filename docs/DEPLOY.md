@@ -148,6 +148,52 @@ all, and the pre-push hook is the only thing that notices. `git push --no-verify
 
 ---
 
+# Public mirror on GitHub
+
+Origin is the working repository and the only place anything is written. The GitHub repository is
+a **public window**, published one-way from here:
+
+```
+https://github.com/hermitokatt/gocklkatz
+```
+
+Origin repositories cannot be made public on this account — the API accepts `visibility=internal`
+and `visibility=private` but rejects `visibility=public`, which is why the public copy lives on
+GitHub instead.
+
+## Publishing
+
+```bash
+bash tools/mirror-to-github.sh          # dry run: report what would change
+bash tools/mirror-to-github.sh --push   # publish
+```
+
+The script refuses to publish from a dirty tree, so what is published is always a state that has
+passed the local gate. It pushes the `main` branch explicitly rather than using `--mirror`,
+because `--mirror` would also publish Origin's internal pull-request refs, which are not part of
+the public history.
+
+## Why one-way, and why a script rather than a workflow
+
+**One-way matters.** Origin's history is the one that carries the gated commits; publishing from
+the public copy back into Origin would let ungated commits in through the back door. Nothing is
+ever committed to GitHub directly, so the public copy cannot drift from the gated copy.
+
+**A GitHub Actions workflow would defeat itself.** This repository is mirrored in full, so a
+workflow published here also exists in the GitHub repository and would attempt to mirror GitHub
+into itself. Running the publication from the trusted copy removes that problem entirely.
+
+## Verify
+
+```bash
+git ls-remote https://github.com/hermitokatt/gocklkatz.git
+```
+
+Expect a single `refs/heads/main`, matching the local `main`. No `refs/pull/*` should appear: if
+one does, something published more than the branch.
+
+---
+
 ## Vercel ↔ Origin
 
 Vercel connects to the Origin repository. Code source of truth is Origin; Vercel is the
