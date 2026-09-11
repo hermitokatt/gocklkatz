@@ -24,6 +24,16 @@ import re
 import sys
 from pathlib import Path
 
+# Files whose bytes are not text carry no reviewable content, so they are skipped rather than
+# read. Reporting them as "could not read" made the scan fail on ordinary PNG assets, which would
+# have trained everyone to ignore the failure — the opposite of what a fail-closed check is for.
+BINARY_SUFFIXES = {
+    ".png", ".jpg", ".jpeg", ".gif", ".webp", ".avif", ".ico", ".bmp",
+    ".woff", ".woff2", ".ttf", ".otf", ".eot",
+    ".pdf", ".zip", ".gz", ".tgz", ".tar", ".mp4", ".webm", ".mp3", ".wav",
+    ".sqlite", ".db", ".wasm",
+}
+
 
 def main(argv: list[str]) -> int:
     if len(argv) < 2:
@@ -50,6 +60,8 @@ def main(argv: list[str]) -> int:
 
     unreadable = []
     for name in files:
+        if Path(name).suffix.lower() in BINARY_SUFFIXES:
+            continue
         try:
             text = Path(name).read_text(encoding="utf-8", errors="replace")
         except OSError as exc:

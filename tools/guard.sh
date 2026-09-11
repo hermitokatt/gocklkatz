@@ -39,6 +39,7 @@ cd "$REPO" || exit 2
 
 PATTERNS_FILE="tools/pii-patterns.txt"
 ALLOWLIST_FILE="tools/commit-identity-allowlist.txt"
+SECRET_ALLOWLIST_FILE="tools/secret-allowlist.txt"
 DIGESTS_FILE="tools/identity-digests.txt"
 IDENTITY_NAME="Hermito Katt"
 IDENTITY_EMAIL="gocklkatz@gmail.com"
@@ -197,6 +198,11 @@ case "$MODE" in
         secret_hits="$(git diff --cached -U0 | grep -E '^\+' | grep -Ei "$SECRET_RE" || true)"
         ;;
 esac
+# Known test fixtures are dropped before reporting; see the allow-list for why a line belongs
+# there and why adding one is a reviewable act.
+if [ -n "$secret_hits" ] && [ -f "$SECRET_ALLOWLIST_FILE" ]; then
+    secret_hits="$(printf '%s\n' "$secret_hits" | grep -Evf "$SECRET_ALLOWLIST_FILE" || true)"
+fi
 if [ -n "$secret_hits" ]; then
     echo "guard: secret-shaped value detected:" >&2
     printf '%s\n' "$secret_hits" | sed 's/^/    /' >&2

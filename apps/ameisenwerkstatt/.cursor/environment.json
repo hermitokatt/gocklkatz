@@ -1,0 +1,10 @@
+{
+  "install": "npm ci",
+  "terminals": [
+    {
+      "name": "demo-shell",
+      "command": "npm run dev",
+      "description": "Next.js demo shell on port 43123"
+    }
+  ]
+}
