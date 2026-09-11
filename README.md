@@ -11,7 +11,7 @@ demo's dependency or build breakage cannot take down another's.
 | Path | Demo | What it is |
 | --- | --- | --- |
 | *(root)* | Landing page | The portfolio home. One card per demo; a card links to its deployment only once that deployment is live. |
-| `apps/ameisenwerkstatt` | Ameisenwerkstatt | Ant colony optimization on a fixed TSP, with a live 3D workspace. |
+| `apps/ameisenwerkstatt` | [Ameisenwerkstatt](https://gocklkatz-ameisenwerkstatt.vercel.app) | Ant colony optimization on a fixed TSP, with a live 3D workspace. |
 | `apps/bienenstock` | Bienenstock | Bee colony simulation — hive and foraging, rendered in 3D. |
 | `apps/simplified` | Simplified | Learning and practising simplified Chinese characters (汉字). |
 | `apps/arbeitsmarkt` | Arbeitsmarkt | Relevance-ranked IT job listings from public APIs. |
@@ -26,8 +26,8 @@ built, shared and rolled back on its own.
 
 | Vercel project | Root Directory | Live URL |
 | --- | --- | --- |
-| `gocklkatz` | `.` | — |
-| `gocklkatz-ameisenwerkstatt` | `apps/ameisenwerkstatt` | — |
+| `gocklkatz` | `.` | <https://gocklkatz.vercel.app> |
+| `gocklkatz-ameisenwerkstatt` | `apps/ameisenwerkstatt` | <https://gocklkatz-ameisenwerkstatt.vercel.app> |
 | `gocklkatz-bienenstock` | `apps/bienenstock` | — |
 | `gocklkatz-simplified` | `apps/simplified` | — |
 | `gocklkatz-arbeitsmarkt` | `apps/arbeitsmarkt` | — |
