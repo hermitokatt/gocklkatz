@@ -260,11 +260,12 @@ if [ "$MODE" = "audit" ]; then
             echo "       committer: $cn <$ce>" >&2
             bad_commits=$((bad_commits + 1))
         fi
-    # --no-merges: a pull-request check is run against a synthetic merge commit that the hosting
-    # platform creates and attributes to itself. That commit is an artefact of review, not part of
-    # any branch's history, so auditing it reports the platform as a foreign identity and fails on
-    # every pull request. The substantive commits are what carry authorship, and those are checked.
-    done < <(git log --no-merges --all --format='%h|%an|%ae|%cn|%ce' 2>/dev/null || true)
+    # Merge commits are included on purpose. Excluding them was a hole: a merge performed through
+    # the hosting platform is attributed to the ACCOUNT THAT MERGED, so a personal identity can
+    # arrive as a merge commit and be invisible to a check that skips merges. That is exactly how
+    # one reached main. The synthetic merge commits the platform creates for review are covered by
+    # the allow-list instead, which is a much narrower exemption than skipping a commit type.
+    done < <(git log --all --format='%h|%an|%ae|%cn|%ce' 2>/dev/null || true)
 
     if [ "$bad_commits" -gt 0 ]; then
         echo "guard: $bad_commits commit(s) carry an identity other than $IDENTITY_NAME <$IDENTITY_EMAIL>" >&2

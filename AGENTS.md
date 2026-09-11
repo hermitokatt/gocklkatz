@@ -137,3 +137,25 @@ nobody can retro-fit a requirement to whatever got built. Schema:
   it does not inherit the orchestrator's assumptions.
 
 Only a human merges. AI authors no commits.
+
+## 11. Merging — squash only, and why
+
+`main` accepts changes through a pull request and nothing else, and the repository is configured
+to allow **squash merges only**.
+
+That is not a style preference. A pull request merged with a merge commit is attributed to the
+**account that performed the merge**, not to git config and not to the author of the commits. A
+merge commit therefore arrives carrying somebody's identity, and this repository requires every
+commit to be authored and committed by `Hermito Katt <gocklkatz@gmail.com>`. A squash merge
+produces a single-parent commit and does not have that problem.
+
+So:
+
+* **Squash merge the pull request.** The merge button is the only route into `main`; there is no
+  local shortcut, because direct updates are blocked by a ruleset.
+* **Never re-enable merge commits** on the repository. Doing so reopens the hole silently: the
+  resulting commit looks ordinary and is only visible in commit metadata.
+* `tools/guard.sh --audit-commits` checks the author **and committer** of every commit, merges
+  included. It runs in `tools/gate.sh`, so a merge commit carrying a foreign identity fails the
+  gate. Excluding merge commits from that audit was itself a hole — one such merge reached `main`
+  while the audit reported everything clean.
