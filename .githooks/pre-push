@@ -20,6 +20,7 @@ cd "$REPO" || exit 0
 
 TREE="$(git rev-parse HEAD^{tree} 2>/dev/null || exit 0)"
 REPORT="var/gate/report-${TREE}.txt"
+DEFAULT_CONFIG="repo.config"
 
 if [ ! -f "$REPORT" ] || ! grep -q '^GATE: PASS' "$REPORT"; then
     echo "pre-push: no passing gate report for tree $TREE." >&2
@@ -32,6 +33,24 @@ if [ ! -f "$REPORT" ] || ! grep -q '^GATE: PASS' "$REPORT"; then
     fi
     echo "pre-push: run: bash tools/gate.sh" >&2
     echo "pre-push: then commit any change it makes and push again." >&2
+    exit 1
+fi
+
+# A report only means something if the run behind it was the real gate. `GATE_CONFIG` can point
+# at a config with an app disabled, and `GATE_SKIP_SELF_TESTS=1` suppresses the guard self-tests;
+# either produces a report that says PASS while checking less than the gate claims to. The report
+# records both, so require the default of each. Both were demonstrated before this was fixed.
+config_used="$(sed -n 's/^config: //p' "$REPORT" | head -1)"
+if [ "$config_used" != "$DEFAULT_CONFIG" ]; then
+    echo "pre-push: refusing a report produced with config '$config_used' (expected '$DEFAULT_CONFIG')." >&2
+    echo "pre-push: run the real gate: bash tools/gate.sh" >&2
+    exit 1
+fi
+
+selftests_used="$(sed -n 's/^self-tests: //p' "$REPORT" | head -1)"
+if [ "$selftests_used" != "ran" ]; then
+    echo "pre-push: refusing a report whose self-tests were '$selftests_used'." >&2
+    echo "pre-push: the guard self-tests must run: bash tools/gate.sh" >&2
     exit 1
 fi
 

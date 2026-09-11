@@ -10,7 +10,7 @@ demo's dependency or build breakage cannot take down another's.
 
 | Path | Demo | What it is |
 | --- | --- | --- |
-| *(root)* | Landing page | The portfolio home. One card per demo, each linking to its live deployment. |
+| *(root)* | Landing page | The portfolio home. One card per demo; a card links to its deployment only once that deployment is live. |
 | `apps/ameisenwerkstatt` | Ameisenwerkstatt | Ant colony optimization on a fixed TSP, with a live 3D workspace. |
 | `apps/bienenstock` | Bienenstock | Bee colony simulation — hive and foraging, rendered in 3D. |
 | `apps/simplified` | Simplified | Learning and practising simplified Chinese characters (汉字). |
@@ -42,6 +42,21 @@ bash tools/gate.sh          # content guard, identity, hygiene, every app, all s
 ```
 
 The gate is bound to the git tree and enforced again on push. See [`AGENTS.md`](./AGENTS.md).
+
+### The landing page
+
+The root of this repository is the landing page application. Its own gates:
+
+```bash
+npm ci                      # once, from the lockfile
+npm run dev                 # http://127.0.0.1:43124
+bash scripts/ci.sh          # format, lint, typecheck, tests, build
+bash scripts/verify.sh      # builds it, serves it, fetches every route and every link
+```
+
+`scripts/verify.sh` is the one that can tell you the page is *wrong*: it asserts that a card marked
+`live` links to a URL that answers `200`, and that a card marked `in-development` renders no link
+at all. It needs outbound network access, because it fetches the links the page publishes.
 
 ## License
 

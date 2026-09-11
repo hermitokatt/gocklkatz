@@ -140,6 +140,20 @@ That is what `verify_cmd` in `repo.config` is for: it must start the app, probe 
 surface, and exit non-zero on failure. An app with no `verify_cmd` is reported as a `skip` by the
 gate, by name, rather than silently passing.
 
+### Verify ports
+
+Each app's `scripts/verify.sh` starts a real server, so the ports must not collide: the gate runs
+the apps one after another, but a stray server from an interrupted run would break the next one.
+Every `verify.sh` refuses to run when its port is already bound, rather than probing a server it
+did not start.
+
+| App | Verify port |
+| --- | --- |
+| landing page (root) | 43124 |
+| `apps/ameisenwerkstatt` | 43123 |
+
+Claim the next free port in this table when you add an app.
+
 ## Known gap
 
 Nothing re-runs the local gate later. A report that passed at tree `X` says nothing about tree

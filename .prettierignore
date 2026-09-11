@@ -1,0 +1,15 @@
+# Prettier formats the landing page, not the repository harness or its documents.
+.depot/
+.github/
+.githooks/
+.next/
+apps/
+docs/
+node_modules/
+tests/
+tools/
+var/
+*.md
+LICENSE
+package-lock.json
+repo.config

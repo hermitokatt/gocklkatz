@@ -113,6 +113,9 @@ CFG
 out="$(GATE_CONFIG="$tmp/lock.config" GATE_SKIP_SELF_TESTS=1 GIT_AUTHOR_NAME='Hermito Katt' GIT_AUTHOR_EMAIL='gocklkatz@gmail.com' bash tools/gate.sh 2>&1)"; rc=$?
 expect "manifest without lockfile fails" 1 "without package-lock.json" "$out" "$rc"
 rm -rf "apps/_gatetest"
+# The gate reports a bare apps/ directory as a manifest without a lockfile, so leaving one behind
+# makes the next real gate run fail with a message about a fixture nobody can find.
+rmdir "apps" 2>/dev/null || true
 
 rm -rf "$tmp"
 

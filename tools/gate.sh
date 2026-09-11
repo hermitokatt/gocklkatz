@@ -32,16 +32,41 @@ mkdir -p "$REPORT_DIR"
 
 fail=0
 
-step()  { printf '\n==> %s\n' "$1"; }
-ok()    { printf '    ok    %s\n' "$1"; }
-bad()   { printf '    FAIL  %s\n' "$1"; fail=1; }
-skip()  { printf '    skip  %s\n' "$1"; }
+# Every line the gate prints is also recorded in the report. The report is the artefact
+# .githooks/pre-push trusts, so it has to say what actually ran — a report holding only a verdict
+# can be produced by a run that checked nothing, and the reviewer demonstrated exactly that by
+# pointing GATE_CONFIG at a config with the one app disabled.
+#
+# A nested run (GATE_SKIP_SELF_TESTS=1, which tests/gate.test.sh uses) must not write the report
+# at all: it runs with a fixture config, and letting it write would leave the real tree's report
+# claiming a config that was never used. That happened, and it made the next honest gate run fail.
+WRITE_REPORT=1
+[ "${GATE_SKIP_SELF_TESTS:-0}" = "1" ] && WRITE_REPORT=0
 
-printf 'gate: local pre-flight\ntree: %s\ncommit: %s\nbranch: %s\ndate: %s\n' \
-    "$TREE" \
-    "$(git rev-parse HEAD 2>/dev/null || echo none)" \
-    "$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo none)" \
-    "$(date -u '+%Y-%m-%dT%H:%M:%SZ')" | tee "$REPORT"
+say() {
+    if [ "$WRITE_REPORT" = "1" ]; then
+        printf '%s\n' "$*" | tee -a "$REPORT"
+    else
+        printf '%s\n' "$*"
+    fi
+}
+step()  { say ""; say "==> $1"; }
+ok()    { say "    ok    $1"; }
+bad()   { say "    FAIL  $1"; fail=1; }
+skip()  { say "    skip  $1"; }
+
+if [ "$WRITE_REPORT" = "1" ]; then
+    : >"$REPORT"
+    {
+        printf 'gate: local pre-flight\n'
+        printf 'tree: %s\n' "$TREE"
+        printf 'commit: %s\n' "$(git rev-parse HEAD 2>/dev/null || echo none)"
+        printf 'branch: %s\n' "$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo none)"
+        printf 'date: %s\n' "$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
+        printf 'config: %s\n' "$CONFIG"
+        printf 'self-tests: %s\n' "$([ "${GATE_SKIP_SELF_TESTS:-0}" = "1" ] && echo skipped || echo ran)"
+    } | tee -a "$REPORT"
+fi
 
 # ---------------------------------------------------------------------------
 step "content guard (personal identifiers, machine-local paths, secrets, identity)"
@@ -208,9 +233,9 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-echo
+say ""
 if [ "$fail" -ne 0 ]; then
-    printf 'GATE: FAIL\n' | tee -a "$REPORT"
+    say "GATE: FAIL"
     exit 1
 fi
-printf 'GATE: PASS (tree %s, %s app block(s))\n' "$TREE" "$app_count" | tee -a "$REPORT"
+say "GATE: PASS (tree $TREE, $app_count app block(s))"

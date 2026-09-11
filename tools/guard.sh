@@ -97,10 +97,24 @@ fi
 # pair, hashes each, and compares against tools/identity-digests.txt. Storing digests means the
 # plaintext identity is nowhere in the repository, while detection still works.
 report_identity_hits() {
-    local label="$1" files_list="$2" hits=""
+    local label="$1" files_list="$2" hits rc=""
     [ -s "$files_list" ] || return 0
-    [ -f "$DIGESTS_FILE" ] || return 0
-    hits="$(tr '\n' '\0' <"$files_list" | xargs -0 python3 "$REPO/tools/identity_scan.py" "$DIGESTS_FILE" 2>/dev/null || true)"
+    # A missing digest list used to return silently, which turned the identity check into a no-op
+    # that still reported the tree clean. If the list is absent, that is a failure.
+    if [ ! -f "$DIGESTS_FILE" ]; then
+        echo "guard: $DIGESTS_FILE is missing — the identity scan cannot run, refusing to" >&2
+        echo "       report the tree clean." >&2
+        fail=1
+        return 0
+    fi
+    hits="$(tr '\n' '\0' <"$files_list" | xargs -0 python3 "$REPO/tools/identity_scan.py" "$DIGESTS_FILE" 2>/dev/null)"
+    rc=$?
+    if [ "$rc" -gt 1 ]; then
+        echo "guard: the identity scanner could not run (xargs/python exit $rc) — refusing to" >&2
+        echo "       report the tree clean when nothing was scanned." >&2
+        fail=1
+        return 0
+    fi
     if [ -n "$hits" ]; then
         echo "guard: forbidden identity ($label):" >&2
         printf '%s\n' "$hits" | sed 's/^/    /' >&2
@@ -110,9 +124,19 @@ report_identity_hits() {
 
 report_content_hits() {
     # $1 = label, $2 = path to a file listing files, $3 = path holding the text to scan
-    local label="$1" files_list="$2" content="$3" hits
+    local label="$1" files_list="$2" content="$3" hits rc
     [ -s "$files_list" ] || return 0
-    hits="$(tr '\n' '\0' <"$files_list" | xargs -0 grep -InEi "$PATTERN" 2>/dev/null || true)"
+    hits="$(tr '\n' '\0' <"$files_list" | xargs -0 grep -InEi "$PATTERN" 2>/dev/null)"
+    rc=$?
+    # grep exits 1 for "ran, found nothing" and 0 for a match; anything else means the scan itself
+    # failed. `|| true` used to fold that into a clean report, which is the exact failure this
+    # guard exists to prevent: a scanner that cannot run reporting the tree clean.
+    if [ "$rc" -gt 1 ]; then
+        echo "guard: the content scanner could not run (grep/xargs exit $rc) — refusing to" >&2
+        echo "       report the tree clean when nothing was scanned." >&2
+        fail=1
+        return 0
+    fi
     if [ -n "$hits" ]; then
         echo "guard: forbidden content ($label):" >&2
         printf '%s\n' "$hits" | sed 's/^/    /' >&2
