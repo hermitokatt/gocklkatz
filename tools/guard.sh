@@ -9,8 +9,9 @@
 #   tools/guard.sh              scan all tracked files
 #   tools/guard.sh --staged     scan the staged index, and check the commit identity
 #   tools/guard.sh --paths F..  scan named files
-#   tools/guard.sh --identity            check identity; report but do not fail if unset
+#   tools/guard.sh --identity            report the configured identity; absent is not a failure
 #   tools/guard.sh --require-identity    check identity; an unset identity is a failure
+#   tools/guard.sh --audit-commits       check the AUTHOR and COMMITTER of every non-merge commit
 #
 # The commit-identity check is deliberately NOT part of --tracked. A bare CI checkout has no git
 # identity at all, so asserting one there fails every run for a condition that cannot hold. The
@@ -37,6 +38,7 @@ REPO="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$REPO" || exit 2
 
 PATTERNS_FILE="tools/pii-patterns.txt"
+ALLOWLIST_FILE="tools/commit-identity-allowlist.txt"
 DIGESTS_FILE="tools/identity-digests.txt"
 IDENTITY_NAME="Hermito Katt"
 IDENTITY_EMAIL="gocklkatz@gmail.com"
@@ -52,8 +54,9 @@ REQUIRE_IDENTITY=0
 TARGETS=""
 case "${1:-}" in
     --staged)           MODE="staged";   CHECK_IDENTITY=1; REQUIRE_IDENTITY=1 ;;
-    --identity)         MODE="identity"; CHECK_IDENTITY=1 ;;
+    --identity)         MODE="identity"; CHECK_IDENTITY=1 ;;  # absent is a note, wrong is fatal
     --require-identity) MODE="identity"; CHECK_IDENTITY=1; REQUIRE_IDENTITY=1 ;;
+    --audit-commits)    MODE="audit" ;;
     --paths)            MODE="paths"; shift; TARGETS="$*" ;;
     "")                 ;;
     *)                  echo "guard: unknown argument '$1'" >&2; exit 2 ;;
@@ -61,6 +64,17 @@ esac
 if [ "$MODE" = "paths" ] && [ -z "$TARGETS" ]; then
     echo "guard: --paths requires at least one path" >&2
     exit 2
+fi
+
+# Pipe-delimited so a whole `Name <email>` can be matched exactly rather than by substring.
+ALLOWED_IDENTITIES="|"
+if [ -f "$ALLOWLIST_FILE" ]; then
+    while IFS= read -r entry; do
+        case "$entry" in
+            ""|"#"*) continue ;;
+        esac
+        ALLOWED_IDENTITIES="$ALLOWED_IDENTITIES$entry|"
+    done <"$ALLOWLIST_FILE"
 fi
 
 fail=0
@@ -133,8 +147,8 @@ case "$MODE" in
         report_content_hits "paths" "$list.path" "$list.path"
         report_identity_hits "paths" "$list.path"
         ;;
-    identity)
-        # nothing to scan; the identity assertion below is the whole check
+    identity|audit)
+        # nothing to scan; the identity assertions below are the whole check
         ;;
 esac
 
@@ -178,7 +192,8 @@ if [ "$CHECK_IDENTITY" = "1" ]; then
         email="$(git config user.email 2>/dev/null || true)"
     fi
     if [ -z "$name" ] && [ -z "$email" ]; then
-        # No identity configured. Normal in a CI checkout; a defect when a commit is being made.
+        # No identity configured. Normal in a CI checkout, so only --require-identity and
+        # --staged treat it as a defect: those are the paths where a commit is being created.
         if [ "$REQUIRE_IDENTITY" = "1" ]; then
             echo "guard: no commit identity is configured." >&2
             echo "       expected: $IDENTITY_NAME <$IDENTITY_EMAIL>" >&2
@@ -193,6 +208,44 @@ if [ "$CHECK_IDENTITY" = "1" ]; then
         echo "       fix with: git config --local user.name '$IDENTITY_NAME'" >&2
         echo "                 git config --local user.email '$IDENTITY_EMAIL'" >&2
         fail=1
+    fi
+fi
+
+# ---------------------------------------------------------------------------
+# 3. Commit audit — the AUTHOR and COMMITTER of every reachable commit
+# ---------------------------------------------------------------------------
+# The checks above inspect files. They cannot see commit metadata, and commit metadata is where
+# this repository has twice been caught out: a server-side merge is attributed to the account
+# that performed the merge, not to git config and not to the commit's original author. A commit
+# can therefore carry a foreign identity while every file in it is spotless.
+if [ "$MODE" = "audit" ]; then
+    bad_commits=0
+    while IFS='|' read -r sha an ae cn ce; do
+        [ -n "$sha" ] || continue
+        ac="$(printf '%s <%s>' "$an" "$ae")"
+        cc="$(printf '%s <%s>' "$cn" "$ce")"
+        # Allow-listed automation identities are accepted; see that file for why only one is.
+        case "$ALLOWED_IDENTITIES" in *"|$ac|"*) ac="$IDENTITY_NAME <$IDENTITY_EMAIL>" ;; esac
+        case "$ALLOWED_IDENTITIES" in *"|$cc|"*) cc="$IDENTITY_NAME <$IDENTITY_EMAIL>" ;; esac
+        if [ "$ac" != "$IDENTITY_NAME <$IDENTITY_EMAIL>" ] ||
+           [ "$cc" != "$IDENTITY_NAME <$IDENTITY_EMAIL>" ]; then
+            echo "guard: commit with a foreign identity: $sha" >&2
+            echo "       author:    $an <$ae>" >&2
+            echo "       committer: $cn <$ce>" >&2
+            bad_commits=$((bad_commits + 1))
+        fi
+    # --no-merges: a pull-request check is run against a synthetic merge commit that the hosting
+    # platform creates and attributes to itself. That commit is an artefact of review, not part of
+    # any branch's history, so auditing it reports the platform as a foreign identity and fails on
+    # every pull request. The substantive commits are what carry authorship, and those are checked.
+    done < <(git log --no-merges --all --format='%h|%an|%ae|%cn|%ce' 2>/dev/null || true)
+
+    if [ "$bad_commits" -gt 0 ]; then
+        echo "guard: $bad_commits commit(s) carry an identity other than $IDENTITY_NAME <$IDENTITY_EMAIL>" >&2
+        echo "       a server-side merge is attributed to the merging account: merge locally instead" >&2
+        fail=1
+    else
+        echo "guard: commit audit ok — every commit is $IDENTITY_NAME <$IDENTITY_EMAIL>"
     fi
 fi
 

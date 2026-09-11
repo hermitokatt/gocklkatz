@@ -57,8 +57,22 @@ fi
 # absent identity as fatal. In a bare checkout it is advisory: name the condition, do not fail
 # the gate. A wrong identity is still fatal, because that is a real misconfiguration.
 step "commit identity"
+# Audit commit metadata, not just the configured identity: a server-side merge is attributed to
+# the account that performed the merge, so a commit can carry a foreign identity even when the
+# working tree and the local configuration are both clean.
+audit_out="$(tools/guard.sh --audit-commits 2>&1)"; audit_rc=$?
+if [ "$audit_rc" -eq 0 ]; then
+    ok "every commit carries the company identity"
+else
+    printf '%s\n' "$audit_out" | sed 's/^/       /'
+    bad "commit audit failed — a commit carries an identity other than the company one"
+fi
+
 ident_out="$(tools/guard.sh --identity 2>&1)"; ident_rc=$?
-if printf '%s\n' "$ident_out" | grep -q 'no commit identity configured'; then
+# This pattern must match the guard's wording exactly. A substring mismatch silently turns the CI
+# case into a failure: the audit step above reports ok, and this step reports FAIL, for a checkout
+# that simply has no identity configured — which is normal in CI and cannot be otherwise.
+if printf '%s\n' "$ident_out" | grep -q 'no commit identity is configured'; then
     skip "no identity configured (expected in CI; .githooks/pre-push enforces it where it matters)"
 elif [ "$ident_rc" -eq 0 ]; then
     ok "identity is the company identity"
