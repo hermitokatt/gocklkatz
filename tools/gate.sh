@@ -69,7 +69,10 @@ else
 fi
 
 ident_out="$(tools/guard.sh --identity 2>&1)"; ident_rc=$?
-if printf '%s\n' "$ident_out" | grep -q 'no commit identity configured'; then
+# This pattern must match the guard's wording exactly. A substring mismatch silently turns the CI
+# case into a failure: the audit step above reports ok, and this step reports FAIL, for a checkout
+# that simply has no identity configured — which is normal in CI and cannot be otherwise.
+if printf '%s\n' "$ident_out" | grep -q 'no commit identity is configured'; then
     skip "no identity configured (expected in CI; .githooks/pre-push enforces it where it matters)"
 elif [ "$ident_rc" -eq 0 ]; then
     ok "identity is the company identity"

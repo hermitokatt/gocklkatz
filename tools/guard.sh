@@ -9,7 +9,7 @@
 #   tools/guard.sh              scan all tracked files
 #   tools/guard.sh --staged     scan the staged index, and check the commit identity
 #   tools/guard.sh --paths F..  scan named files
-#   tools/guard.sh --identity            check identity; report but do not fail if unset
+#   tools/guard.sh --identity            report the configured identity; absent is not a failure
 #   tools/guard.sh --require-identity    check identity; an unset identity is a failure
 #   tools/guard.sh --audit-commits       check the AUTHOR and COMMITTER of every non-merge commit
 #
@@ -54,9 +54,9 @@ REQUIRE_IDENTITY=0
 TARGETS=""
 case "${1:-}" in
     --staged)           MODE="staged";   CHECK_IDENTITY=1; REQUIRE_IDENTITY=1 ;;
-    --identity)         MODE="identity"; CHECK_IDENTITY=1 ;;
+    --identity)         MODE="identity"; CHECK_IDENTITY=1 ;;  # absent is a note, wrong is fatal
     --require-identity) MODE="identity"; CHECK_IDENTITY=1; REQUIRE_IDENTITY=1 ;;
-    --audit-commits)    MODE="audit";   CHECK_IDENTITY=1; REQUIRE_IDENTITY=1 ;;
+    --audit-commits)    MODE="audit" ;;
     --paths)            MODE="paths"; shift; TARGETS="$*" ;;
     "")                 ;;
     *)                  echo "guard: unknown argument '$1'" >&2; exit 2 ;;
@@ -192,7 +192,8 @@ if [ "$CHECK_IDENTITY" = "1" ]; then
         email="$(git config user.email 2>/dev/null || true)"
     fi
     if [ -z "$name" ] && [ -z "$email" ]; then
-        # No identity configured. Normal in a CI checkout; a defect when a commit is being made.
+        # No identity configured. Normal in a CI checkout, so only --require-identity and
+        # --staged treat it as a defect: those are the paths where a commit is being created.
         if [ "$REQUIRE_IDENTITY" = "1" ]; then
             echo "guard: no commit identity is configured." >&2
             echo "       expected: $IDENTITY_NAME <$IDENTITY_EMAIL>" >&2
