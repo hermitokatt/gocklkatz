@@ -36,7 +36,7 @@ const DEMOS = [
     name: "Ameisenwerkstatt",
     description: "Ant colony optimization on a fixed TSP, with a live 3D workspace.",
     url: "https://gocklkatz-ameisenwerkstatt.vercel.app",
-    status: "in-development",
+    status: "live",
   },
   {
     slug: "bienenstock",

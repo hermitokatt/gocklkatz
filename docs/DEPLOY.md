@@ -267,6 +267,34 @@ domains in the table above, not the generated deployment URLs.
 that no deployment is currently aliased as the project's live production in the way the API
 reports it. The URL above is the evidence that matters.
 
+### Creating an application project
+
+Each application is its own Vercel project pointing at its own root directory. Created with the
+Vercel MCP `create_git_project`, which takes the repository, the provider and the root directory:
+
+| Project | Root Directory | Live URL |
+| --- | --- | --- |
+| `gocklkatz` | `.` | <https://gocklkatz.vercel.app> |
+| `gocklkatz-ameisenwerkstatt` | `apps/ameisenwerkstatt` | <https://gocklkatz-ameisenwerkstatt.vercel.app> |
+
+`provider: cursor-origin` links the project to the Origin repository directly, so a merge to `main`
+is what deploys.
+
+### A generated deployment URL is not a public one
+
+Vercel's generated URLs — `gocklkatz-ameisenwerkstatt-<hash>-gocklkatz.vercel.app`, and the
+`-git-main-` alias — answer `302` to `vercel.com/sso-api`. That is the team's `ssoProtection`,
+which is set to `all_except_custom_domains`, and generated URLs are not custom domains.
+
+So a project is reachable publicly **only** through a custom domain, and attaching one is a UI
+step. Until it is attached, the deployment works but no visitor can see it: fetched through Vercel's
+authenticated API the app answers `{"ok":true,"service":"demo-shell"}`, while the same URL fetched
+anonymously redirects to a login.
+
+This is why a demo's card stays `in-development` until its custom domain answers anonymously.
+`scripts/verify.sh` fetches every anchor a `live` card publishes, so promoting a card early fails
+the gate — correctly, because a card linking to an SSO wall is not a live demo.
+
 ## Vercel ↔ Origin
 
 Vercel connects to the Origin repository. Code source of truth is Origin; Vercel is the
