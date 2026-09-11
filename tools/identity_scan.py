@@ -2,7 +2,7 @@
 """Find forbidden identities in files, by digest.
 
 Usage:
-    identity_scan.py <digests-file> <file> [file...]
+    identity_scan.py <digests-file>            # file paths, one per line, on stdin
 
 Reads SHA-256 digests (one per line, `#` comments allowed) and prints one line per match:
 
@@ -52,11 +52,12 @@ def digests_of(text: str) -> set[str]:
 
 
 def main(argv: list[str]) -> int:
-    if len(argv) < 3:
+    if len(argv) < 2:
         print(__doc__.strip(), file=sys.stderr)
         return 2
 
-    digests_path, files = argv[1], argv[2:]
+    digests_path = argv[1]
+    files = [line.strip() for line in sys.stdin.read().splitlines() if line.strip()]
     wanted = load_digests(digests_path)
     if not wanted:
         return 0
@@ -65,8 +66,9 @@ def main(argv: list[str]) -> int:
     for name in files:
         try:
             text = Path(name).read_text(encoding="utf-8", errors="replace")
-        except (OSError, IsADirectoryError):
-            continue
+        except OSError as exc:
+            print(f"identity_scan: cannot read {name}: {exc.strerror}", file=sys.stderr)
+            return 2
         for line_no, line in enumerate(text.splitlines(), start=1):
             tokens = [t.lower() for t in WORD.findall(line)]
             windows = list(tokens)

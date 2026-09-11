@@ -107,11 +107,12 @@ report_identity_hits() {
         fail=1
         return 0
     fi
-    # identity_scan.py always exits 0 when it runs; only a genuine failure is above 1.
-    hits="$(tr '\n' '\0' <"$files_list" | xargs -0 python3 "$REPO/tools/identity_scan.py" "$DIGESTS_FILE" 2>/dev/null)"
+    # One process for the whole list, like content_scan.py, so there is no batch boundary whose
+    # exit code could be misread.
+    hits="$(python3 "$REPO/tools/identity_scan.py" "$DIGESTS_FILE" <"$files_list" 2>/dev/null)"
     rc=$?
-    if [ "$rc" -gt 1 ]; then
-        echo "guard: the identity scanner could not run (xargs/python exit $rc) — refusing to" >&2
+    if [ "$rc" -ne 0 ]; then
+        echo "guard: the identity scanner could not run (exit $rc) — refusing to" >&2
         echo "       report the tree clean when nothing was scanned." >&2
         fail=1
         return 0
@@ -127,16 +128,13 @@ report_content_hits() {
     # $1 = label, $2 = path to a file listing files, $3 = path holding the text to scan
     local label="$1" files_list="$2" content="$3" hits rc
     [ -s "$files_list" ] || return 0
-    # The scanner runs in batches, and grep exits 1 when a batch has no match, which makes xargs
-    # exit 123 even though nothing is wrong. So the reader distinguishes the exit codes instead:
-    # 0 means hits were found (they were printed), 1 means a batch matched nothing, and anything
-    # else is the scanner itself failing. `|| true` used to fold all of that into a clean report,
-    # which is the exact failure this guard exists to prevent.
-    hits="$(tr '\n' '\0' <"$files_list" | xargs -0 sh -c \
-        'grep -InEi "$1" "$@" || [ $? -eq 1 ]' _ "$PATTERN" 2>/dev/null)"
+    # Scanned by tools/content_scan.py rather than grep/xargs: their exit codes differ between BSD
+    # and GNU, and distinguishing "matched nothing" from "could not run" across both platforms is
+    # what broke this check on CI after it had passed locally. One process, explicit exit codes.
+    hits="$(python3 "$REPO/tools/content_scan.py" "$PATTERNS_FILE" <"$files_list" 2>/dev/null)"
     rc=$?
-    if [ "$rc" -gt 1 ]; then
-        echo "guard: the content scanner could not run (grep/xargs exit $rc) — refusing to" >&2
+    if [ "$rc" -ne 0 ]; then
+        echo "guard: the content scanner could not run (exit $rc) — refusing to" >&2
         echo "       report the tree clean when nothing was scanned." >&2
         fail=1
         return 0
