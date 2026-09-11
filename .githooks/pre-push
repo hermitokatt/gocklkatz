@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+# Pre-push gate.
+#
+# Origin offers no required status check for this repository until Depot CI reports one, so the
+# last honest place to stop bad code is here. This hook refuses to push unless the working tree
+# has passed tools/gate.sh.
+#
+# Enable once per clone:
+#   git config core.hooksPath .githooks
+#
+# Because the report is keyed by git TREE hash, the report cannot silently describe a different
+# tree than the one being pushed. Commit your work, run `bash tools/gate.sh`, then push.
+#
+# Bypass (deliberate and visible): git push --no-verify
+
+set -uo pipefail
+
+REPO="$(git rev-parse --show-toplevel 2>/dev/null)" || exit 0
+cd "$REPO" || exit 0
+
+TREE="$(git rev-parse HEAD^{tree} 2>/dev/null || exit 0)"
+REPORT="var/gate/report-${TREE}.txt"
+
+if [ ! -f "$REPORT" ] || ! grep -q '^GATE: PASS' "$REPORT"; then
+    echo "pre-push: no passing gate report for tree $TREE." >&2
+    if [ -f "$REPORT" ]; then
+        echo "pre-push:   the report for this tree exists but did not pass:" >&2
+        sed 's/^/pre-push:     /' "$REPORT" >&2
+    else
+        echo "pre-push:   no report exists for this tree — the gate has not run since the last" >&2
+        echo "pre-push:   change to it." >&2
+    fi
+    echo "pre-push: run: bash tools/gate.sh" >&2
+    echo "pre-push: then commit any change it makes and push again." >&2
+    exit 1
+fi
+
+# The gate checks identity too, but a push is the last chance to catch a mis-set identity.
+if ! tools/guard.sh --require-identity >/dev/null 2>&1; then
+    echo "pre-push: commit identity is not the company identity; refusing to push." >&2
+    tools/guard.sh --require-identity >&2 || true
+    exit 1
+fi
+
+echo "pre-push: gate report present and passing for tree $TREE"
+exit 0
