@@ -37,6 +37,7 @@ CLEANED=0
 LEAKED=0
 FAILED=0
 LOG="$(mktemp "${TMPDIR:-/tmp}/ameisen-verify.XXXXXX")" || exit 2
+TRACE="${TRACE:-}"
 
 say() { printf '%s\n' "$*"; }
 step() { printf '\n==> %s\n' "$*"; }
@@ -62,6 +63,14 @@ port_is_free() {
 cleanup() {
     [ "$CLEANED" = "1" ] && return 0
     CLEANED=1
+
+    # On failure, say how far the script got before it stopped. Without this, a CI-only failure
+    # reports only the step's consequence and the reader cannot tell which step produced it.
+    if [ "${FAILED:-0}" != "0" ] || [ "${LEAKED:-0}" != "0" ]; then
+        say ""
+        say "verify: FAILED after the step marked above. Server log follows in full:"
+        sed 's/^/    | /' "$LOG"
+    fi
 
     if [ -n "$SERVER_PID" ]; then
         step "shutting the server down"

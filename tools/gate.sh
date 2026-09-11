@@ -208,7 +208,7 @@ run_app_checks() {
         ok "$name — runs and serves (verify)"
     else
         bad "$name — verify failed: the app does not run correctly when served"
-        sed 's/^/          /' "$app_log" | tail -40
+        sed 's/^/          /' "$app_log" | tail -80
     fi
 
     rm -f "$app_log"
