@@ -38,6 +38,7 @@ REPO="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$REPO" || exit 2
 
 PATTERNS_FILE="tools/pii-patterns.txt"
+ALLOWLIST_FILE="tools/commit-identity-allowlist.txt"
 DIGESTS_FILE="tools/identity-digests.txt"
 IDENTITY_NAME="Hermito Katt"
 IDENTITY_EMAIL="gocklkatz@gmail.com"
@@ -63,6 +64,17 @@ esac
 if [ "$MODE" = "paths" ] && [ -z "$TARGETS" ]; then
     echo "guard: --paths requires at least one path" >&2
     exit 2
+fi
+
+# Pipe-delimited so a whole `Name <email>` can be matched exactly rather than by substring.
+ALLOWED_IDENTITIES="|"
+if [ -f "$ALLOWLIST_FILE" ]; then
+    while IFS= read -r entry; do
+        case "$entry" in
+            ""|"#"*) continue ;;
+        esac
+        ALLOWED_IDENTITIES="$ALLOWED_IDENTITIES$entry|"
+    done <"$ALLOWLIST_FILE"
 fi
 
 fail=0
@@ -209,8 +221,13 @@ if [ "$MODE" = "audit" ]; then
     bad_commits=0
     while IFS='|' read -r sha an ae cn ce; do
         [ -n "$sha" ] || continue
-        if [ "$an" != "$IDENTITY_NAME" ] || [ "$ae" != "$IDENTITY_EMAIL" ] ||
-           [ "$cn" != "$IDENTITY_NAME" ] || [ "$ce" != "$IDENTITY_EMAIL" ]; then
+        ac="$(printf '%s <%s>' "$an" "$ae")"
+        cc="$(printf '%s <%s>' "$cn" "$ce")"
+        # Allow-listed automation identities are accepted; see that file for why only one is.
+        case "$ALLOWED_IDENTITIES" in *"|$ac|"*) ac="$IDENTITY_NAME <$IDENTITY_EMAIL>" ;; esac
+        case "$ALLOWED_IDENTITIES" in *"|$cc|"*) cc="$IDENTITY_NAME <$IDENTITY_EMAIL>" ;; esac
+        if [ "$ac" != "$IDENTITY_NAME <$IDENTITY_EMAIL>" ] ||
+           [ "$cc" != "$IDENTITY_NAME <$IDENTITY_EMAIL>" ]; then
             echo "guard: commit with a foreign identity: $sha" >&2
             echo "       author:    $an <$ae>" >&2
             echo "       committer: $cn <$ce>" >&2
