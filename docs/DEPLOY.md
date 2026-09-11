@@ -1,0 +1,158 @@
+# Deploy and CI
+
+Each app is a separate Vercel project pointing at its own root directory in this repository.
+
+| Vercel project | Root Directory | Live URL |
+| --- | --- | --- |
+| `gocklkatz` | `.` | — |
+| `gocklkatz-ameisenwerkstatt` | `apps/ameisenwerkstatt` | — |
+| `gocklkatz-bienenstock` | `apps/bienenstock` | — |
+| `gocklkatz-simplified` | `apps/simplified` | — |
+| `gocklkatz-arbeitsmarkt` | `apps/arbeitsmarkt` | — |
+
+A URL is recorded here only once it has been fetched and returned `200`.
+
+## Why one project per app
+
+One build per app, so a broken demo cannot take down the landing page, and each demo can be
+shared, rolled back, and rebuilt on its own. This requires setting **Root Directory** and
+**Ignored Build Step** per project in the Vercel UI, so that a commit touching only
+`apps/simplified` does not rebuild the other four.
+
+---
+
+# The quality gate
+
+There are three layers. They are not redundant: each catches something the others cannot.
+
+## 1. Local pre-flight gate — `bash tools/gate.sh`
+
+Runs on the machine before code leaves it. Checks the content guard, repository hygiene, and
+every app declared in `repo.config` (its `scripts/ci.sh`, and its `verify_cmd` where declared).
+Writes `var/gate/report-<tree>.txt`.
+
+**It is bound to the git tree, not to a commit message.** The report is keyed by
+`git rev-parse HEAD^{tree}`, and `.githooks/pre-push` refuses to push unless a passing report
+exists for the exact tree being pushed. Commit, run the gate, push.
+
+`.githooks/pre-push` is the enforcement point, because until Depot reports a check on Origin
+there is no server-side rule that can stop a bad push.
+
+Enable the hooks once per clone:
+
+```bash
+git config core.hooksPath .githooks
+```
+
+The gate has self-tests for the guards themselves, because a guard that passes by doing nothing
+looks identical to a guard that passes:
+
+```bash
+bash tests/guard.test.sh    # 13 cases, five of them must-fail
+bash tests/gate.test.sh     # 8 cases, five of them must-fail
+```
+
+## 2. Depot CI — the enforced server-side check
+
+This repository is **Origin-hosted**, not a GitHub mirror. A GitHub Actions workflow committed
+here does not execute. [Depot CI's Origin integration](https://depot.dev/docs/ci/integrations/origin)
+runs Actions-format workflows on Depot compute, triggered by Origin pushes and pull requests,
+and **reports job results back onto the Origin pull request**, where a branch-protection rule can
+require them. It is in early beta.
+
+Connected organization: **Gocklkatz** (`p8js5cbzbp`). Preflight confirmed access:
+
+```bash
+depot ci migrate preflight --forge=origin --org p8js5cbzbp
+# Detected repository: origin.cursor.com/gocklkatz/gocklkatz
+# Cursor Origin repository is available to this Depot organization.
+```
+
+The executing workflow is `.depot/workflows/ci.yml`. It is generated from
+`.github/workflows/ci.yml` by:
+
+```bash
+depot ci migrate workflows --forge=origin --org p8js5cbzbp --overwrite --yes
+```
+
+`.github/workflows/ci.yml` is the **source** for the Depot copy, not a gate of its own. Depot
+generates `.depot/workflows/ci.yml` from it, so edit the `.github/` file and regenerate. Nothing
+runs from `.github/` on this host.
+
+### Required setup
+
+- [ ] In Origin **Settings → Rules and Protections**, on the `main` **merging** ruleset, enable
+      **Require status checks** and select the **`Gate`** check. Until this is done, Depot
+      *reports* but does not *block*.
+
+### The check identity is scoped to the trigger — this is the trap
+
+**A check is not matched by name alone.** Origin identifies it by name *and* the event that
+produced it. Read the required check back with:
+
+```bash
+origin api /repos/gocklkatz/gocklkatz/rulesets
+```
+
+It must contain:
+
+```json
+{"name":"Gate","actorId":"app_01kxpr1vv7e1yvr5trn777f800","groupKey":"pull_request:ci.yml"}
+```
+
+**The group MUST be `pull_request:ci.yml`.** This workflow triggers on both `push` and
+`pull_request`, so it reports two distinct checks that both display as a bare `Gate` with a Depot
+icon. They are indistinguishable in the picker. The `push:ci.yml` one is the wrong choice:
+
+```
+"message": "Required status checks are missing.",
+"checkNames": ["Gate (app/app_01kxpr1vv7e1yvr5trn777f800/push:ci.yml)"]
+```
+
+That message appears while `origin pr checks` shows the check passing — the gate is green and the
+merge is still blocked, with no bypass actor to override it. To tell the entries apart, look at a
+run's detail: the correct one is `Trigger: pull_request`, `Path: ci.yml`; the wrong one is
+`Trigger: push`.
+
+### Other traps in this area
+
+**Stale `CI` entries in the picker.** The picker lists checks from the last 30 days. An earlier
+revision of this workflow was named `CI`, so `CI` entries can still appear. Never select them.
+
+**Never use `depot ci run --workflow` on this repository.** It dispatches through the API, which
+registers a check with no workflow path — a phantom check under the workflow's name. That is how
+two identically named `CI` checks appeared in the first place. To test the workflow, push a
+branch or open a pull request.
+
+**Keep a bypass actor.** With `require_status_checks` active and no bypass, a check that never
+reports makes `main` permanently unmergeable, and only a settings change can recover it. This has
+already happened once here.
+
+**Reporting is not enforcing.** A check that appears on a pull request but is not required by a
+ruleset is decoration.
+
+## 3. Application-level verification
+
+`scripts/ci.sh` inside an app proves it builds, lints, typechecks and passes unit tests. It does
+**not** prove the app works. A build passes with a card linking to a 404.
+
+That is what `verify_cmd` in `repo.config` is for: it must start the app, probe its real HTTP
+surface, and exit non-zero on failure. An app with no `verify_cmd` is reported as a `skip` by the
+gate, by name, rather than silently passing.
+
+## Known gap
+
+Nothing re-runs the local gate later. A report that passed at tree `X` says nothing about tree
+`Y`, which is why the report is keyed by tree — but a tree that was never gated has no report at
+all, and the pre-push hook is the only thing that notices. `git push --no-verify` bypasses it.
+
+---
+
+## Vercel ↔ Origin
+
+Vercel connects to the Origin repository. Code source of truth is Origin; Vercel is the
+production runtime and not a second source of truth.
+
+Human-only steps (account and project linking, Root Directory, Ignored Build Step,
+environment variables) are done in the Vercel and Origin UIs. No tokens, org IDs, project IDs,
+or `.vercel` directories are ever committed to this repository.

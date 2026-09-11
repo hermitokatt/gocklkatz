@@ -1,0 +1,41 @@
+# Depot CI Migration
+# Source: .github/workflows/ci.yml
+#
+# Changes made:
+# - Changed GitHub runs-on labels to their Depot equivalents
+
+# Quality gate for the gocklkatz monorepo.
+#
+# NOTE: this file is the *source* for Depot CI, not an executing gate. This repository is
+# Origin-hosted; GitHub Actions do not run here. The migrated copy lives in
+# `.depot/workflows/ci.yml` and is what Depot CI executes, reporting checks back onto Origin
+# pull requests. Keep the two in sync by re-running:
+#
+#   depot ci migrate workflows --forge=origin --org p8js5cbzbp --overwrite
+#
+# See docs/DEPLOY.md. Do not delete `.depot/` without replacing the gate.
+name: Gate
+on:
+  push:
+    branches: [main]
+  pull_request:
+jobs:
+  gate:
+    name: pre-flight gate
+    runs-on: depot-ubuntu-latest # was: ubuntu-latest. Mapped standard GitHub runner to Depot equivalent.
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Content guard
+        run: bash tools/guard.sh
+      - name: Dependency allowlist
+        run: node tools/check-deps.mjs
+      - name: Self-tests
+        run: |
+          bash tests/guard.test.sh
+          bash tests/gate.test.sh
+          node tests/dependency-allowlist.test.mjs
+      - name: Pre-flight gate
+        run: bash tools/gate.sh
