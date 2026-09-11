@@ -1,0 +1,12 @@
+# Forbidden patterns for the content guard (`tools/guard.sh`).
+#
+# One extended-regular-expression per line. Lines starting with '#' are comments.
+# Patterns are matched case-insensitively with `grep -Ei`, against every tracked file.
+#
+# Why: this repository is public and is authored by Gocklkatz Inc. Every commit is
+# `Hermito Katt <gocklkatz@gmail.com>` and nothing else may appear as the author, the
+# committer, or a contact address.
+#
+# Path patterns only. Personal identities are NOT listed here — they are matched by digest in
+# tools/identity-digests.txt, so that no tracked file has to contain the forbidden text.
+/Users/katz

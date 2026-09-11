@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# Pre-commit gate. Blocks a commit that would leak forbidden content or wrong identity.
+#
+# Enable once per clone:
+#   git config core.hooksPath .githooks
+#
+# Bypass (deliberate, visible, and it should be explained in the PR): git commit --no-verify
+
+set -uo pipefail
+REPO="$(git rev-parse --show-toplevel 2>/dev/null)" || exit 0
+cd "$REPO" || exit 0
+
+[ -x tools/guard.sh ] || { echo "pre-commit: tools/guard.sh missing or not executable" >&2; exit 1; }
+
+exec tools/guard.sh --staged

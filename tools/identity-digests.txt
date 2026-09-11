@@ -1,0 +1,20 @@
+# SHA-256 digests of identities that must never appear in this repository.
+#
+# One 64-character lowercase hex digest per line. Lines starting with '#' are comments.
+#
+# Why digests rather than the strings themselves: a file that names the forbidden text in
+# plaintext is itself a trace of it. A digest detects the same identity in a file's content
+# while storing nothing that can be read back. To add an identity:
+#
+#   python3 - <<'PY'
+#   import hashlib
+#   for s in ("exact string one", "two words as one token pair"):
+#       print(hashlib.sha256(s.lower().encode()).hexdigest())
+#   PY
+#
+# tools/guard.sh lowercases every word token in a file, plus every adjacent token pair, and
+# compares each digest. Single tokens catch addresses and identifiers; token pairs catch a
+# given-name surname across a space.
+54e0e75281482736e27cffc4a3f5f1f4951da6d7dcc290150f1b705ae8059295
+c76530ff880d5e309244fd0d76e0b995658c8a50a261b6161831300055878228
+f8f8291470d11530791eae447dbcbe6080c79f12713a3486d4174fba5751b021
