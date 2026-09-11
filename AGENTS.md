@@ -138,24 +138,43 @@ nobody can retro-fit a requirement to whatever got built. Schema:
 
 Only a human merges. AI authors no commits.
 
-## 11. Merging — squash only, and why
+## 11. Merging — and why the platform's merge button cannot be used
 
-`main` accepts changes through a pull request and nothing else, and the repository is configured
-to allow **squash merges only**.
+`main` accepts changes only through a pull request. This section records why the merge itself has
+to happen outside the platform, because getting this wrong puts a foreign identity into published
+history — and it has, twice.
 
-That is not a style preference. A pull request merged with a merge commit is attributed to the
-**account that performed the merge**, not to git config and not to the author of the commits. A
-merge commit therefore arrives carrying somebody's identity, and this repository requires every
-commit to be authored and committed by `Hermito Katt <gocklkatz@gmail.com>`. A squash merge
-produces a single-parent commit and does not have that problem.
+**A pull request merged through the hosting platform produces a commit attributed to the account
+that pressed the button.** Not to git config, and not to the author of the commits. Both
+strategies behave this way, and this was measured rather than assumed:
 
-So:
+* Merged as a **merge commit**: the new commit is authored and committed by the merging account.
+* Merged as a **squash**: the platform writes a *new* commit with its own message (`… (#12)`) and
+  attributes it to the merging account. The branch's original commits and their authorship are
+  discarded.
 
-* **Squash merge the pull request.** The merge button is the only route into `main`; there is no
-  local shortcut, because direct updates are blocked by a ruleset.
-* **Never re-enable merge commits** on the repository. Doing so reopens the hole silently: the
-  resulting commit looks ordinary and is only visible in commit metadata.
-* `tools/guard.sh --audit-commits` checks the author **and committer** of every commit, merges
-  included. It runs in `tools/gate.sh`, so a merge commit carrying a foreign identity fails the
-  gate. Excluding merge commits from that audit was itself a hole — one such merge reached `main`
-  while the audit reported everything clean.
+So disabling merge commits changes the shape of the history and fixes nothing about attribution.
+Every pull request merged in the UI carries somebody else's identity, and the audit catches it —
+which means the gate fails on `main` after each merge.
+
+**Therefore: merge locally, and push to `main`.** A local `git merge --no-ff` or a fast-forward
+uses the configured identity and keeps the real commit message:
+
+```bash
+git checkout main && git pull --ff-only
+git merge --no-ff <branch>        # or: git merge --ff-only <branch>
+git push origin main
+```
+
+The repository runs the same gate either way: the branch carries the `Gate` check before merge,
+and `tools/gate.sh` plus `.githooks/pre-push` run on the way out.
+
+Two consequences to keep in mind:
+
+* **`block_direct_updates` on `main` must be disabled** for this to be possible. The pull-request
+  rule is what provides review; the direct-push block is what forces merges through the platform
+  and therefore into the wrong identity.
+* **`tools/guard.sh --audit-commits` checks the author and committer of every commit, merges
+  included.** It runs in `tools/gate.sh`, so a commit carrying a foreign identity fails the gate.
+  Excluding merge commits from that audit was itself a hole: one such merge reached `main` while
+  the audit reported everything clean.

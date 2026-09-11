@@ -208,6 +208,65 @@ one does, something published more than the branch.
 
 ---
 
+### The framework preset, and why it is declared in the repository
+
+The `gocklkatz` Vercel project was created with **no framework preset**, which Vercel represents as
+`"framework": null` — the `Other` preset. With no preset, Vercel does not know a Next.js app emits
+`.next/`, so it expects a static `dist/` directory and fails the deployment *after* a successful
+build:
+
+```
+✓ Generating static pages using 1 worker (4/4) in 135ms
+Error: No Output Directory named "dist" found after the Build completed.
+```
+
+The build was never the problem. The preset was.
+
+`vercel.json` at the repository root declares it, per Vercel's own documented example for
+overriding a framework preset:
+
+```json
+{ "$schema": "https://openapi.vercel.sh/vercel.json", "framework": "nextjs" }
+```
+
+This lives in the repository rather than only in the project settings because the repository is the
+source of truth for how the app builds: a recreated Vercel project is then configured by the same
+commit that configures the app, and the setting is reviewable in a pull request.
+
+The settings-side equivalent is `vercel project update --framework nextjs`.
+
+### Deployment protection covers generated URLs, not the custom domain
+
+Read back from the Vercel API:
+
+```json
+"domains": ["gocklkatz.vercel.app", "gocklkatz-gocklkatz.vercel.app", "gocklkatz-git-main-gocklkatz.vercel.app"],
+"ssoProtection": { "enabled": true, "deploymentType": "all_except_custom_domains" }
+```
+
+`all_except_custom_domains` means exactly that. Production is reached through the **custom domain**
+`gocklkatz.vercel.app`, which is excluded from the protection and answers `200` to an anonymous
+request:
+
+```
+$ curl -s -o /dev/null -w '%{http_code}' https://gocklkatz.vercel.app/
+200
+$ curl -s https://gocklkatz.vercel.app/api/health
+{"ok":true,"service":"gocklkatz"}
+```
+
+The **generated** URLs — `gocklkatz-gocklkatz.vercel.app` and any preview deployment — are covered
+and answer `302` to `vercel.com/sso-api`. That is the intended behaviour for previews, and it is
+recorded here so that a `302` on a preview URL is not mistaken for a broken deployment.
+
+The check that keeps this honest is `GOC-46`: fetch every **published** URL anonymously and treat a
+`302` to an authentication host as failure rather than following it. Published means the custom
+domains in the table above, not the generated deployment URLs.
+
+`live: false` on the project is a separate flag and does not mean the site is down — it reflects
+that no deployment is currently aliased as the project's live production in the way the API
+reports it. The URL above is the evidence that matters.
+
 ## Vercel ↔ Origin
 
 Vercel connects to the Origin repository. Code source of truth is Origin; Vercel is the
