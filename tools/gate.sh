@@ -185,22 +185,33 @@ run_app_checks() {
         bad "$name — path '$path' does not exist"
         return 0
     fi
+    # The app's own output is kept and shown on failure. Discarding it is how a CI-only failure
+    # becomes undiagnosable: the gate reports that something did not work, and the evidence that
+    # would say why has already been thrown away.
+    local app_log
+    app_log="$(mktemp)"
+
     if [ ! -f "$path/scripts/ci.sh" ]; then
         bad "$name — no scripts/ci.sh; the app has no quality gate"
-    elif ( cd "$path" && bash scripts/ci.sh >/dev/null 2>&1 ); then
+    elif ( cd "$path" && bash scripts/ci.sh ) >"$app_log" 2>&1; then
         ok "$name — scripts/ci.sh (lint, typecheck, test, build)"
     else
         bad "$name — scripts/ci.sh failed (run it in $path)"
+        sed 's/^/          /' "$app_log" | tail -30
     fi
+
     if [ -z "$verify_cmd" ]; then
         skip "$name — no verify_cmd; nothing proves it RUNS (AGENTS.md section 7)"
     elif [ ! -f "$path/scripts/verify.sh" ]; then
         bad "$name — verify_cmd set but $path/scripts/verify.sh is missing"
-    elif ( cd "$path" && eval "$verify_cmd" >/dev/null 2>&1 ); then
+    elif ( cd "$path" && eval "$verify_cmd" ) >"$app_log" 2>&1; then
         ok "$name — runs and serves (verify)"
     else
         bad "$name — verify failed: the app does not run correctly when served"
+        sed 's/^/          /' "$app_log" | tail -40
     fi
+
+    rm -f "$app_log"
 }
 
 app_count=0
