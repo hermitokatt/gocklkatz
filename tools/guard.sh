@@ -11,6 +11,7 @@
 #   tools/guard.sh --paths F..  scan named files
 #   tools/guard.sh --identity            check identity; report but do not fail if unset
 #   tools/guard.sh --require-identity    check identity; an unset identity is a failure
+#   tools/guard.sh --audit-commits       check the AUTHOR and COMMITTER of every commit
 #
 # The commit-identity check is deliberately NOT part of --tracked. A bare CI checkout has no git
 # identity at all, so asserting one there fails every run for a condition that cannot hold. The
@@ -54,6 +55,7 @@ case "${1:-}" in
     --staged)           MODE="staged";   CHECK_IDENTITY=1; REQUIRE_IDENTITY=1 ;;
     --identity)         MODE="identity"; CHECK_IDENTITY=1 ;;
     --require-identity) MODE="identity"; CHECK_IDENTITY=1; REQUIRE_IDENTITY=1 ;;
+    --audit-commits)    MODE="audit";   CHECK_IDENTITY=1; REQUIRE_IDENTITY=1 ;;
     --paths)            MODE="paths"; shift; TARGETS="$*" ;;
     "")                 ;;
     *)                  echo "guard: unknown argument '$1'" >&2; exit 2 ;;
@@ -133,8 +135,8 @@ case "$MODE" in
         report_content_hits "paths" "$list.path" "$list.path"
         report_identity_hits "paths" "$list.path"
         ;;
-    identity)
-        # nothing to scan; the identity assertion below is the whole check
+    identity|audit)
+        # nothing to scan; the identity assertions below are the whole check
         ;;
 esac
 
@@ -193,6 +195,35 @@ if [ "$CHECK_IDENTITY" = "1" ]; then
         echo "       fix with: git config --local user.name '$IDENTITY_NAME'" >&2
         echo "                 git config --local user.email '$IDENTITY_EMAIL'" >&2
         fail=1
+    fi
+fi
+
+# ---------------------------------------------------------------------------
+# 3. Commit audit — the AUTHOR and COMMITTER of every reachable commit
+# ---------------------------------------------------------------------------
+# The checks above inspect files. They cannot see commit metadata, and commit metadata is where
+# this repository has twice been caught out: a server-side merge is attributed to the account
+# that performed the merge, not to git config and not to the commit's original author. A commit
+# can therefore carry a foreign identity while every file in it is spotless.
+if [ "$MODE" = "audit" ]; then
+    bad_commits=0
+    while IFS='|' read -r sha an ae cn ce; do
+        [ -n "$sha" ] || continue
+        if [ "$an" != "$IDENTITY_NAME" ] || [ "$ae" != "$IDENTITY_EMAIL" ] ||
+           [ "$cn" != "$IDENTITY_NAME" ] || [ "$ce" != "$IDENTITY_EMAIL" ]; then
+            echo "guard: commit with a foreign identity: $sha" >&2
+            echo "       author:    $an <$ae>" >&2
+            echo "       committer: $cn <$ce>" >&2
+            bad_commits=$((bad_commits + 1))
+        fi
+    done < <(git log --all --format='%h|%an|%ae|%cn|%ce' 2>/dev/null || true)
+
+    if [ "$bad_commits" -gt 0 ]; then
+        echo "guard: $bad_commits commit(s) carry an identity other than $IDENTITY_NAME <$IDENTITY_EMAIL>" >&2
+        echo "       a server-side merge is attributed to the merging account: merge locally instead" >&2
+        fail=1
+    else
+        echo "guard: commit audit ok — every commit is $IDENTITY_NAME <$IDENTITY_EMAIL>"
     fi
 fi
 
