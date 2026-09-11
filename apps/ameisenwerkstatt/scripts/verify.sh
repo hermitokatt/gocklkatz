@@ -30,7 +30,10 @@ cd "$APP_DIR" || exit 2
 PORT="${VERIFY_PORT:-43123}"
 HOST="127.0.0.1"
 BASE="http://$HOST:$PORT"
-READY_TIMEOUT_S="${VERIFY_READY_TIMEOUT_S:-90}"
+READY_TIMEOUT_S="${VERIFY_READY_TIMEOUT_S:-180}"
+# Generous on purpose. On a cold CI runner the first start can take far longer than on a
+# developer machine, and a timeout that is too tight produces a failure that looks like a
+# broken app. The wait reports progress every 15s, so a genuinely hung start is visible.
 
 SERVER_PID=""
 CLEANED=0
