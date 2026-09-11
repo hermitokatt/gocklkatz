@@ -1,0 +1,38 @@
+# dependencies
+node_modules/
+.pnp
+.pnp.*
+
+# next.js
+.next/
+out/
+build/
+
+# testing
+coverage/
+
+# python (apps/arbeitsmarkt tooling)
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+
+# secrets — never commit
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# a worktree setup script would run arbitrary project commands at worktree creation
+.cursor/worktrees.json
+
+# worker scratch space
+var/
+
+# os / editor
+.DS_Store
+.idea/
+*.tsbuildinfo
+next-env.d.ts
