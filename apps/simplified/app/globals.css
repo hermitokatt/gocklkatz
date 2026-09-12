@@ -1,0 +1,914 @@
+:root {
+  --ink: #1c2a2e;
+  --ink-soft: #3d4f55;
+  --mist: #e8f0ef;
+  --paper: #f7faf9;
+  --jade: #2f6f64;
+  --jade-deep: #1f4f47;
+  --wash-a: #d5e8e4;
+  --wash-b: #c5d4e8;
+  --wash-c: #eef3f1;
+  color-scheme: light;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  font-family: var(--font-body), "Noto Serif", Georgia, serif;
+  color: var(--ink);
+  background: var(--paper);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: inherit;
+}
+
+.home {
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 90% 70% at 12% 18%, var(--wash-a) 0%, transparent 55%),
+    radial-gradient(ellipse 80% 60% at 88% 12%, var(--wash-b) 0%, transparent 50%),
+    linear-gradient(165deg, var(--wash-c) 0%, var(--paper) 48%, #e4ecea 100%);
+}
+
+.home::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(47, 111, 100, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(47, 111, 100, 0.035) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 40%, black 20%, transparent 75%);
+  pointer-events: none;
+  animation: grid-drift 28s linear infinite;
+}
+
+.home::after {
+  content: "";
+  position: absolute;
+  width: min(52vw, 420px);
+  height: min(52vw, 420px);
+  right: -6%;
+  top: 18%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, rgba(47, 111, 100, 0.18), transparent 68%);
+  animation: wash-pulse 9s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.home__inner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 100vh;
+  max-width: 44rem;
+  padding: clamp(2rem, 6vw, 4.5rem);
+}
+
+.brand {
+  font-family: var(--font-display), "Avenir Next", sans-serif;
+  font-size: clamp(3.2rem, 10vw, 5.6rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 0.95;
+  margin: 0 0 1.25rem;
+  color: var(--ink);
+  animation: rise-in 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.brand__hanzi {
+  display: block;
+  margin-top: 0.35rem;
+  font-family: var(--font-hanzi), "PingFang SC", "Hiragino Sans GB", sans-serif;
+  font-size: 0.28em;
+  font-weight: 500;
+  letter-spacing: 0.28em;
+  color: var(--jade);
+  text-indent: 0.28em;
+  animation: fade-up 1s 0.15s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.headline {
+  font-family: var(--font-display), "Avenir Next", sans-serif;
+  font-size: clamp(1.35rem, 3.4vw, 1.85rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+  margin: 0 0 0.85rem;
+  max-width: 18ch;
+  animation: fade-up 0.9s 0.2s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.lede {
+  margin: 0 0 1.75rem;
+  max-width: 34ch;
+  font-size: 1.05rem;
+  color: var(--ink-soft);
+  animation: fade-up 0.9s 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.85rem 1rem;
+  animation: fade-up 0.9s 0.44s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.cta__primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.75rem;
+  padding: 0.65rem 1.25rem;
+  font-family: var(--font-display), "Avenir Next", sans-serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  text-decoration: none;
+  border-radius: 0.35rem;
+  background: var(--jade);
+  color: #f5fbf9;
+  transition:
+    transform 160ms ease,
+    background-color 160ms ease;
+}
+
+.cta__primary:hover,
+.cta__primary:focus-visible {
+  background: var(--jade-deep);
+  transform: translateY(-1px);
+}
+
+.cta__secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.75rem;
+  padding: 0.65rem 1.15rem;
+  font-family: var(--font-display), "Avenir Next", sans-serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  text-decoration: none;
+  border-radius: 0.35rem;
+  color: var(--jade-deep);
+  background: transparent;
+  border: 1px solid rgba(47, 111, 100, 0.35);
+  transition:
+    transform 160ms ease,
+    background-color 160ms ease,
+    border-color 160ms ease;
+}
+
+.cta__secondary:hover,
+.cta__secondary:focus-visible {
+  background: rgba(47, 111, 100, 0.08);
+  border-color: rgba(47, 111, 100, 0.55);
+  transform: translateY(-1px);
+}
+
+/* Study surfaces — quieter than home, same jade/mist language */
+.study {
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 70% 50% at 8% 0%, var(--wash-a) 0%, transparent 55%),
+    linear-gradient(168deg, var(--wash-c) 0%, var(--paper) 42%, var(--mist) 100%);
+}
+
+.study::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(47, 111, 100, 0.028) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(47, 111, 100, 0.028) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse 65% 55% at 40% 20%, black 15%, transparent 70%);
+  pointer-events: none;
+}
+
+.study__inner {
+  position: relative;
+  z-index: 1;
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: clamp(1.75rem, 5vw, 3.5rem) clamp(1.25rem, 4vw, 2.5rem)
+    clamp(3rem, 8vw, 5rem);
+}
+
+.study__inner--detail {
+  max-width: 36rem;
+}
+
+.study__header {
+  margin-bottom: 2rem;
+  animation: fade-up 0.75s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.study__brand {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.55rem 0.85rem;
+  margin: 0 0 1.35rem;
+  font-family: var(--font-display), "Avenir Next", sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.study__brand a {
+  text-decoration: none;
+  color: var(--ink);
+}
+
+.study__brand a:hover,
+.study__brand a:focus-visible {
+  color: var(--jade-deep);
+}
+
+.study__brand-hanzi {
+  font-family: var(--font-hanzi), "PingFang SC", "Hiragino Sans GB", sans-serif;
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  color: var(--jade);
+  text-indent: 0.22em;
+}
+
+.study__title {
+  font-family: var(--font-display), "Avenir Next", sans-serif;
+  font-size: clamp(2.15rem, 6vw, 3rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  margin: 0 0 0.7rem;
+}
+
+.study__lede {
+  margin: 0;
+  max-width: 36ch;
+  font-size: 1.05rem;
+  color: var(--ink-soft);
+}
+
+.study__crumb {
+  margin: 0;
+  font-family: var(--font-display), "Avenir Next", sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+.study__crumb a {
+  color: var(--jade-deep);
+  text-decoration: none;
+}
+
+.study__crumb a:hover,
+.study__crumb a:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+.study__inner--practice {
+  max-width: 32rem;
+}
+
+.study__header--compact {
+  margin-bottom: 1.25rem;
+}
+
+.study__practice-link {
+  margin: 1.1rem 0 0;
+  font-family: var(--font-display), "Avenir Next", sans-serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.study__practice-link a {
+  color: var(--jade-deep);
+  text-decoration: none;
+}
+
+.study__practice-link a:hover,
+.study__practice-link a:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+.study__nav {
+  margin: 2.5rem 0 0;
+  font-family: var(--font-display), "Avenir Next", sans-serif;
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.study__nav a {
+  color: var(--jade-deep);
+  text-decoration: none;
+}
+
+.study__nav a:hover,
+.study__nav a:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+/* Readable index — links, not decorative cards */
+.radical-index {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid rgba(47, 111, 100, 0.16);
+}
+
+.radical-index__item {
+  animation: fade-up 0.65s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.radical-index__link {
+  display: grid;
+  grid-template-columns: 3.25rem 1fr;
+  gap: 0.85rem 1.25rem;
+  align-items: baseline;
+  padding: 0.95rem 0.35rem;
+  border-bottom: 1px solid rgba(47, 111, 100, 0.14);
+  text-decoration: none;
+  outline: none;
+  transition:
+    background-color 160ms ease,
+    padding-left 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.radical-index__link:hover {
+  background: rgba(47, 111, 100, 0.06);
+  padding-left: 0.55rem;
+}
+
+.radical-index__link:focus-visible {
+  background: rgba(47, 111, 100, 0.08);
+  padding-left: 0.55rem;
+  box-shadow: inset 0 0 0 2px rgba(47, 111, 100, 0.45);
+}
+
+.radical-index__primary {
+  font-family: var(--font-hanzi), "PingFang SC", "Hiragino Sans GB", sans-serif;
+  font-size: 1.85rem;
+  font-weight: 500;
+  line-height: 1.1;
+  color: var(--ink);
+}
+
+.radical-index__gloss {
+  font-size: 1rem;
+  color: var(--ink-soft);
+}
+
+/* Detail — one composition */
+.radical-detail {
+  animation: rise-in 0.85s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.radical-detail__forms {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.55rem 1.1rem;
+  margin: 0 0 1rem;
+  font-family: var(--font-hanzi), "PingFang SC", "Hiragino Sans GB", sans-serif;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.radical-detail__primary {
+  font-size: clamp(4.5rem, 18vw, 7rem);
+  color: var(--ink);
+}
+
+.radical-detail__variant {
+  font-size: clamp(2rem, 8vw, 3.25rem);
+  color: var(--jade-deep);
+}
+
+.radical-detail__gloss {
+  margin: 0 0 1.25rem;
+  font-family: var(--font-display), "Avenir Next", sans-serif;
+  font-size: clamp(1.25rem, 3.2vw, 1.55rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+  max-width: 28ch;
+}
+
+.radical-detail__pinyin {
+  display: inline-block;
+  margin-left: 0.65rem;
+  font-family: var(--font-body), "Noto Serif", Georgia, serif;
+  font-size: 0.72em;
+  font-weight: 500;
+  color: var(--jade);
+}
+
+.radical-detail__note {
+  margin: 0 0 2rem;
+  max-width: 42ch;
+  font-size: 1.02rem;
+  color: var(--ink-soft);
+}
+
+.radical-detail__examples {
+  padding-top: 0.35rem;
+  border-top: 1px solid rgba(47, 111, 100, 0.16);
+}
+
+.radical-detail__examples-title {
+  margin: 1.35rem 0 0.85rem;
+  font-family: var(--font-display), "Avenir Next", sans-serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--jade-deep);
+}
+
+.example-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.example-list__item {
+  display: grid;
+  grid-template-columns: 2.75rem 1fr;
+  gap: 0.65rem 1rem;
+  align-items: baseline;
+  padding: 0.7rem 0;
+  border-bottom: 1px solid rgba(47, 111, 100, 0.1);
+}
+
+.example-list__char {
+  font-family: var(--font-hanzi), "PingFang SC", "Hiragino Sans GB", sans-serif;
+  font-size: 1.85rem;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.example-list__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.65rem;
+}
+
+.example-list__pinyin {
+  font-size: 0.95rem;
+  color: var(--jade);
+}
+
+.example-list__gloss {
+  font-size: 1rem;
+  color: var(--ink-soft);
+}
+
+/* Recognition practice — interactive surface */
+.practice {
+  animation: fade-up 0.75s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.practice-panel {
+  padding: 0.15rem 0 0.5rem;
+}
+
+.practice-panel--quiz {
+  padding: 1.15rem 1.1rem 1.35rem;
+  border: 1px solid rgba(47, 111, 100, 0.18);
+  border-radius: 0.4rem;
+  background: rgba(247, 250, 249, 0.72);
+}
+
+.practice__title {
+  font-family: var(--font-display), "Avenir Next", sans-serif;
+  font-size: clamp(1.85rem, 5vw, 2.45rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  margin: 0 0 0.7rem;
+}
+
+.practice__lede {
+  margin: 0 0 1rem;
+  max-width: 36ch;
+  font-size: 1.05rem;
+  color: var(--ink-soft);
+}
+
+.practice__meta,
+.practice__stats {
+  margin: 0 0 0.55rem;
+  font-size: 0.92rem;
+  color: var(--ink-soft);
+}
+
+.practice__stats {
+  margin-bottom: 1.25rem;
+}
+
+.practice__error {
+  margin: 0 0 0.85rem;
+  max-width: 36ch;
+  font-size: 0.95rem;
+  color: #8a3d3d;
+}
+
+.practice__cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.65rem;
+  margin-top: 0.85rem;
+  padding: 0.55rem 1.2rem;
+  font-family: var(--font-display), "Avenir Next", sans-serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  border: none;
+  border-radius: 0.35rem;
+  background: var(--jade);
+  color: #f5fbf9;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    transform 160ms ease,
+    background-color 160ms ease;
+}
+
+.practice__cta:hover,
+.practice__cta:focus-visible {
+  background: var(--jade-deep);
+  transform: translateY(-1px);
+}
+
+.practice__progress {
+  margin: 0 0 0.65rem;
+  font-family: var(--font-display), "Avenir Next", sans-serif;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--jade-deep);
+}
+
+.practice__mode {
+  margin: 0 0 0.85rem;
+  font-size: 0.98rem;
+  color: var(--ink-soft);
+}
+
+.practice__prompt {
+  margin: 0 0 1.25rem;
+  line-height: 1.15;
+}
+
+.practice__prompt--glyph {
+  font-family: var(--font-hanzi), "PingFang SC", "Hiragino Sans GB", sans-serif;
+  font-size: clamp(3.5rem, 14vw, 5.25rem);
+  font-weight: 500;
+}
+
+.practice__prompt--gloss {
+  font-family: var(--font-display), "Avenir Next", sans-serif;
+  font-size: clamp(1.35rem, 4vw, 1.75rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  max-width: 22ch;
+}
+
+.practice__prompt--settled {
+  margin-bottom: 0.55rem;
+  opacity: 0.92;
+}
+
+.practice__result {
+  margin: 0 0 0.75rem;
+  font-family: var(--font-display), "Avenir Next", sans-serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  animation: practice-feedback 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.practice__result--ok {
+  color: var(--jade-deep);
+}
+
+.practice__result--miss {
+  color: #8a3d3d;
+}
+
+.practice__answer-line {
+  margin: 0 0 1.15rem;
+  font-size: 1.05rem;
+  color: var(--ink);
+}
+
+.practice__answer-line [lang="zh-Hans"] {
+  font-family: var(--font-hanzi), "PingFang SC", "Hiragino Sans GB", sans-serif;
+  font-size: 1.35rem;
+  font-weight: 500;
+}
+
+.practice-choices {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.55rem;
+}
+
+.practice-choices__btn {
+  width: 100%;
+  min-height: 2.85rem;
+  padding: 0.7rem 0.95rem;
+  text-align: left;
+  font-family: inherit;
+  font-size: 1.02rem;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(47, 111, 100, 0.22);
+  border-radius: 0.35rem;
+  cursor: pointer;
+  transition:
+    background-color 140ms ease,
+    border-color 140ms ease,
+    transform 140ms ease;
+}
+
+.practice-choices__btn[lang="zh-Hans"] {
+  font-family: var(--font-hanzi), "PingFang SC", "Hiragino Sans GB", sans-serif;
+  font-size: 1.55rem;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.practice-choices__btn:hover,
+.practice-choices__btn:focus-visible {
+  background: rgba(47, 111, 100, 0.08);
+  border-color: rgba(47, 111, 100, 0.4);
+  transform: translateY(-1px);
+  outline: none;
+}
+
+.practice-aids {
+  margin: 0 0 0.35rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid rgba(47, 111, 100, 0.14);
+  animation: fade-up 0.4s ease both;
+}
+
+.practice-aids__note {
+  margin: 0 0 0.75rem;
+  font-size: 0.98rem;
+  color: var(--ink-soft);
+}
+
+.practice-aids__examples {
+  list-style: none;
+  margin: 0 0 0.75rem;
+  padding: 0;
+}
+
+.practice-aids__examples li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.75rem;
+  align-items: baseline;
+  padding: 0.25rem 0;
+  font-size: 0.98rem;
+}
+
+.practice-aids__examples [lang="zh-Hans"] {
+  font-family: var(--font-hanzi), "PingFang SC", "Hiragino Sans GB", sans-serif;
+  font-size: 1.25rem;
+  font-weight: 500;
+}
+
+.practice-aids__example-gloss {
+  color: var(--ink-soft);
+}
+
+.practice-aids__study {
+  margin: 0;
+  font-family: var(--font-display), "Avenir Next", sans-serif;
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.practice-aids__study a {
+  color: var(--jade-deep);
+  text-decoration: none;
+}
+
+.practice-aids__study a:hover,
+.practice-aids__study a:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+.practice__summary-score {
+  margin: 0 0 0.85rem;
+  font-family: var(--font-display), "Avenir Next", sans-serif;
+  font-size: clamp(1.35rem, 3.5vw, 1.7rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--jade-deep);
+}
+
+.practice-review {
+  list-style: none;
+  margin: 1.25rem 0 0.5rem;
+  padding: 0;
+  border-top: 1px solid rgba(47, 111, 100, 0.14);
+}
+
+.practice-review__item {
+  display: grid;
+  grid-template-columns: 3.25rem 1fr;
+  gap: 0.65rem 0.85rem;
+  align-items: baseline;
+  padding: 0.65rem 0;
+  border-bottom: 1px solid rgba(47, 111, 100, 0.1);
+}
+
+.practice-review__mark {
+  font-family: var(--font-display), "Avenir Next", sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.practice-review__mark--ok {
+  color: var(--jade-deep);
+}
+
+.practice-review__mark--miss {
+  color: #8a3d3d;
+}
+
+.practice-review__link {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.75rem;
+  align-items: baseline;
+  text-decoration: none;
+  color: inherit;
+}
+
+.practice-review__link [lang="zh-Hans"] {
+  font-family: var(--font-hanzi), "PingFang SC", "Hiragino Sans GB", sans-serif;
+  font-size: 1.35rem;
+  font-weight: 500;
+}
+
+.practice-review__link:hover,
+.practice-review__link:focus-visible {
+  color: var(--jade-deep);
+}
+
+.practice__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.85rem 1.25rem;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+
+.practice__secondary {
+  font-family: var(--font-display), "Avenir Next", sans-serif;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--jade-deep);
+  text-decoration: none;
+}
+
+.practice__secondary:hover,
+.practice__secondary:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+@keyframes practice-feedback {
+  from {
+    opacity: 0;
+    transform: translateY(0.4rem) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (max-width: 520px) {
+  .radical-index__link {
+    grid-template-columns: 1fr;
+    gap: 0.35rem;
+  }
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(1.1rem) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(0.75rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes wash-pulse {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 0.85;
+  }
+  50% {
+    transform: translateY(-12px) scale(1.04);
+    opacity: 1;
+  }
+}
+
+@keyframes grid-drift {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(48px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home::before,
+  .home::after,
+  .brand,
+  .brand__hanzi,
+  .headline,
+  .lede,
+  .cta,
+  .study__header,
+  .radical-index__item,
+  .radical-detail,
+  .practice,
+  .practice__result,
+  .practice-aids {
+    animation: none;
+  }
+
+  .radical-index__link:hover,
+  .radical-index__link:focus-visible {
+    padding-left: 0.15rem;
+  }
+
+  .cta__primary:hover,
+  .cta__primary:focus-visible,
+  .cta__secondary:hover,
+  .cta__secondary:focus-visible,
+  .practice__cta:hover,
+  .practice__cta:focus-visible,
+  .practice-choices__btn:hover,
+  .practice-choices__btn:focus-visible {
+    transform: none;
+  }
+}

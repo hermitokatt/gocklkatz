@@ -151,6 +151,7 @@ did not start.
 | --- | --- |
 | landing page (root) | 43124 |
 | `apps/ameisenwerkstatt` | 43123 |
+| `apps/simplified` | 43125 |
 
 Claim the next free port in this table when you add an app.
 
