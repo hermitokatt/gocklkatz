@@ -35,7 +35,7 @@ export default function HomePage() {
         <p className="factoryFoot">
           Health: <a href="/api/health">GET /api/health</a>
           {" · "}
-          <a href="https://cursor.com/codebase/gocklkatz/gocklkatz">Source</a>
+          <a href="https://github.com/hermitokatt/gocklkatz">Source</a>
         </p>
       </article>
     </main>
