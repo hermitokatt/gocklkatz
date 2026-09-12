@@ -216,4 +216,7 @@ Feature ideas grounded in the research above:
 
 ### Method notes
 - Search queries used: best practices for simplified hanzi; SRS/radicals/stroke order; HSK/frequency order; research on radicals/mnemonics/dual coding.
-- Scraped result caches live under `.firecrawl/` (local only; not part of the product).
+- Searches were run in September 2026 with a hosted web-scraping tool, outside this repository. Its result cache and credentials were never part of the app: the tool is not a dependency, no code imports it, and nothing under `.firecrawl/` is tracked here.
+
+### What this document is, and is not
+These are research notes: a summary in this project's own words, with each source linked inline. No page is reproduced, and no character data was taken from them — the dataset that ships with the app is described in [`../README.md`](../README.md) under "Data provenance".
