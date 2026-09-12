@@ -1034,15 +1034,28 @@ value was written for a single-app repository, then a commit changing only `src/
 stopped after `11:13:15Z`, and every `main` commit since touched only those paths. No error appears
 anywhere, because skipping is the configured behaviour.
 
-**That hypothesis was never confirmed.** No MCP tool exposes the Ignored Build Step, and a **manual
-deploy from the Vercel UI succeeded immediately** and published all four anchors. A manual deploy
-bypasses the trigger, so it does not discriminate between this hypothesis and any other trigger-side
-cause — it localises the fault to the trigger, and leaves the mechanism unidentified.
+**That hypothesis was wrong too, and the resolution is the useful part.** A **manual deploy from the
+Vercel UI succeeded**, published all four anchors, and — this is the finding — **the trigger has been
+healthy ever since.** The next merge to `main`, at `15:46:13Z`, produced a normal production
+deployment:
 
-Left as an open unknown deliberately. The cost of chasing it further was already higher than the
-value: the site is live, the four-hour hunt produced one confirmed negative (the quota) and one
-confirmed exclusion (the production branch), and the next occurrence is cheap to recognise now that
-the signature — previews build, production silently does not — is written down.
+```
+{"created":1789227744603,"target":null,         "state":"READY","ref":"docs/deploy-postmortem"}
+{"created":1789227610138,"target":"production", "state":"READY","ref":"main"}
+```
+
+If an Ignored Build Step had been skipping these commits, that merge would have been skipped too. It
+was not. So the fault was **the trigger itself being stuck for about four hours** — not a setting, a
+quota, a branch, or a difference between the projects — and a manual deploy cleared it.
+
+Nothing identified the cause, and that is now the honest state of this entry: the sequence is known,
+the mechanism is not. What is known is the **remedy**: when production deployments stop while previews
+keep working and the project's settings are correct, publish once from the UI. That unblocks the
+trigger, and it is a five-second action rather than a four-hour investigation.
+
+*Rule:* when a trigger stalls and every setting checks out, the cheapest next experiment is to
+perform the action manually once and observe whether normal operation resumes. Here that resolved it
+immediately, and it also falsified the hypothesis I had spent the longest defending.
 
 *Rule:* when "deployments stopped" is the symptom, split it by target before theorising. Preview and
 production are separate trigger paths, and here only one of them was broken — a single count of
