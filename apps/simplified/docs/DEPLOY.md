@@ -1,64 +1,53 @@
-# Deploy Simplified on Vercel
+# Deploy notes — Simplified
 
-MVP deploy notes for connecting this Next.js App Router repo to **Vercel**. No environment secrets are required for the radicals browse + practice MVP (health API, radicals API, and client-local practice progress).
+The repository's deploy and CI documentation is [`docs/DEPLOY.md`](../../../docs/DEPLOY.md) at the
+root: the project table, the settings every project uses, the ignored-build-step trap, how often to
+deploy, and the verification checks. This file records only what is specific to this application and
+deliberately restates none of it.
 
-## Prerequisites
+|                |                                           |
+| -------------- | ----------------------------------------- |
+| Vercel project | `gocklkatz-simplified`                    |
+| Root Directory | `apps/simplified`                         |
+| Custom domain  | <https://gocklkatz-simplified.vercel.app> |
+| Verify port    | 43125                                     |
 
-- A Vercel account with permission to create a project
-- Access to this Git repository (import via Vercel Git integration)
-- **Node.js 22+** locally if you verify the build before deploy (`package.json` `engines.node`)
+**The Root Directory is `apps/simplified`, not the repository root.** This is one of five projects in
+the monorepo and each builds only its own directory. A project configured with `.` builds the landing
+page instead, which looks like a successful deployment of the wrong application.
 
-## Connect the repo
+## No environment variables
 
-1. Open [Vercel Dashboard](https://vercel.com/dashboard) → **Add New…** → **Project**.
-2. Import this Git repository.
-3. Confirm framework settings (Vercel usually auto-detects Next.js):
+The radicals browse and practice surfaces require no secrets: the dataset is a checked-in seed, the
+API routes read it, and practice progress stays in the browser. Do not commit tokens, org IDs or
+project IDs to satisfy a deploy.
 
-| Setting          | Value                                                   |
-| ---------------- | ------------------------------------------------------- |
-| Framework Preset | **Next.js**                                             |
-| Node.js Version  | **22.x** (Project Settings → General → Node.js Version) |
-| Build Command    | `next build` (default for Next.js)                      |
-| Output Directory | leave default (Next.js handles this)                    |
-| Install Command  | `npm install` (default)                                 |
-| Root Directory   | `.` (repo root)                                         |
+## Smoke after a deployment
 
-4. **Environment Variables:** leave empty for MVP. Do **not** commit tokens, org IDs, or project IDs to the repo.
-5. Click **Deploy**.
+Replace `<host>` with the custom domain above.
 
-After the first production deploy succeeds, copy the production URL into [`README.md`](../README.md) (replace the pending placeholder).
+| Check    | URL                                                                     |
+| -------- | ----------------------------------------------------------------------- |
+| Home     | `https://<host>/`                                                       |
+| Health   | `https://<host>/api/health` → `{ "ok": true, "service": "simplified" }` |
+| Learn    | `https://<host>/learn/radicals`                                         |
+| Detail   | `https://<host>/learn/radicals/person`                                  |
+| Practice | `https://<host>/learn/radicals/practice`                                |
 
-## Smoke after deploy
-
-Open these on the production host (replace `<host>`):
-
-| Check    | URL                                                                          |
-| -------- | ---------------------------------------------------------------------------- |
-| Home     | `https://<host>/`                                                            |
-| Health   | `https://<host>/api/health` → JSON `{ "ok": true, "service": "simplified" }` |
-| Learn    | `https://<host>/learn/radicals`                                              |
-| Practice | `https://<host>/learn/radicals/practice`                                     |
-
-Done when a Human can browse radicals and complete one practice round on the public URL.
-
-## CLI (optional)
-
-If you use the Vercel CLI instead of the dashboard:
+The repository-wide checks are what keep this honest, and neither one triggers a deployment:
 
 ```bash
-npx vercel link          # once per machine / project
-npx vercel               # preview
-npx vercel --prod        # production
+bash tools/verify-live.sh            # every published URL answers 200 anonymously
+bash tools/verify-deployments.sh     # every route serves what this app renders
 ```
 
-Authenticate with your own account. Never paste a Vercel token into git, `docs/`, or PR descriptions.
+## What this app requires locally
 
-## Custom domains
+`package.json` declares `engines.node: ">=22"` and `.nvmrc` pins `22` for a local checkout. The
+Node version the **Vercel project** runs is a project setting, not a repository file; the root
+[`docs/DEPLOY.md`](../../../docs/DEPLOY.md) is where those settings are recorded.
 
-Out of scope for SIM-006. The `*.vercel.app` production URL is enough for MVP smoke. Add a custom domain later in Vercel Project Settings → Domains if desired.
+## Deploying is a human step
 
-## Troubleshooting
-
-- **Wrong Node version:** set the project to Node 22.x and redeploy.
-- **Build fails locally too:** run `bash scripts/ci.sh` and fix before redeploying.
-- **Health not JSON / 404:** confirm the deployment used this repo’s `app/api/health` route and finished successfully.
+The delivery loop in [`AGENTS.md`](../../../AGENTS.md) §12 ends at the public mirror and does not
+wait on a deployment. Deploy from the Vercel UI when you choose to.

@@ -16,8 +16,10 @@ demo's dependency or build breakage cannot take down another's.
 | `apps/simplified` | [Simplified](https://gocklkatz-simplified.vercel.app) | Learning and practising simplified Chinese characters (汉字). |
 | `apps/arbeitsmarkt` | [Arbeitsmarkt](https://gocklkatz-arbeitsmarkt.vercel.app) | A relevance-ranked job-listing pipeline, demonstrated on synthetic data. |
 
-Source of truth for code: <https://cursor.com/codebase/gocklkatz/gocklkatz>.
-This repository is public — read [`AGENTS.md`](./AGENTS.md) before contributing.
+The public repository is <https://github.com/hermitokatt/gocklkatz>. The working repository lives on
+Origin, which requires an account, so no Origin address is published here — a link a visitor cannot
+open is worse than no link. Read [`AGENTS.md`](./AGENTS.md) before contributing: this repository is
+public, and everything committed here is readable permanently.
 
 ## Deploy
 
@@ -33,7 +35,8 @@ built, shared and rolled back on its own.
 | `gocklkatz-arbeitsmarkt` | `apps/arbeitsmarkt` | <https://gocklkatz-arbeitsmarkt.vercel.app> |
 
 A URL is recorded here only once it has been fetched and returned `200`. Details, the CI gate and
-the shared quality bar: [`docs/DEPLOY.md`](./docs/DEPLOY.md).
+the shared quality bar: [`docs/DEPLOY.md`](./docs/DEPLOY.md). Legal and terms-of-service position:
+[`docs/LEGAL.md`](./docs/LEGAL.md).
 
 ## Working on this repository
 

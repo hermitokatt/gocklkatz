@@ -140,6 +140,31 @@ else
     bad "tools/check-deps.mjs"
 fi
 
+step "dependency licences"
+licences_out="$(node tools/audit-licences.mjs 2>&1)"; licences_rc=$?
+if [ "$licences_rc" -eq 0 ]; then
+    ok "tools/audit-licences.mjs"
+else
+    printf '%s\n' "$licences_out" | sed 's/^/       /'
+    bad "tools/audit-licences.mjs"
+fi
+
+# The published audits are kept current here rather than left to whoever remembers to re-run them.
+# Both `--check` modes are git and filesystem only — they fetch nothing and read no node_modules —
+# so they are safe to run before the applications have installed. A new link, or a new published
+# number, in any tracked document fails the gate until the audit is regenerated. That is the point:
+# an audit only run when someone chooses to run it goes stale without anyone noticing.
+step "published audits are current"
+for audit in tools/audit-published-links.mjs tools/audit-published-claims.mjs; do
+    audit_out="$(node "$audit" --check 2>&1)"; audit_rc=$?
+    if [ "$audit_rc" -eq 0 ]; then
+        ok "$audit --check"
+    else
+        printf '%s\n' "$audit_out" | sed 's/^/       /'
+        bad "$audit --check — regenerate with --write and commit the result"
+    fi
+done
+
 # The guard's own must-fail proof runs in the gate too. Running only the check would exercise the
 # passing path forever, so a regression that broke the failure path would go unnoticed — and a
 # guard that has never been seen to fail is not a guard (AGENTS.md section 6).
@@ -180,6 +205,8 @@ else
         run_selftest "$t" env GATE_SKIP_SELF_TESTS=1 bash "$t"
     done
     run_selftest "tests/dependency-allowlist.test.mjs" node tests/dependency-allowlist.test.mjs
+    run_selftest "tests/licence-audit.test.mjs" node tests/licence-audit.test.mjs
+    run_selftest "tests/published-audits.test.mjs" node tests/published-audits.test.mjs
     rm -f "$selftest_log"
 fi
 

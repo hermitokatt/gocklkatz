@@ -70,4 +70,5 @@ Runs lint, typecheck, Vitest, and production build.
 
 ## Agents
 
-See [`AGENT.md`](AGENT.md) for Linear workflow and delivery rules.
+See [`AGENTS.md`](AGENTS.md) for this app's contract, and the repository's
+[`AGENTS.md`](../../AGENTS.md) for the standing rules that govern it.

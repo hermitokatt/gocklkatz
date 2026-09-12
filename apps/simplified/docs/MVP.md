@@ -1,8 +1,6 @@
 # Simplified MVP charter
 
-Product charter for the first shippable slice of **Simplified** — a website for learning simplified Chinese characters (汉字). Research SoT: [`hanzi_research.md`](./hanzi_research.md). Ticket-generation SoT: [`ROADMAP.md`](./ROADMAP.md). Parent ticket: Linear **STE-72** (SIM-001).
-
-Tech stack reference (rewrite, do not copy files): [software-factory-demo](https://cursor.com/codebase/gocklkatz/software-factory-demo).
+Product charter for the first shippable slice of **Simplified** — a website for learning simplified Chinese characters (汉字). Research: [`hanzi_research.md`](./hanzi_research.md). Plan: [`ROADMAP.md`](./ROADMAP.md). Work is tracked in Linear, project **Portfolio**, team **GOC**.
 
 ## Vision
 
@@ -32,10 +30,12 @@ Proof: health API green, Vitest covering domain/API schemas, `bash scripts/ci.sh
 | Domain                | Pure modules under `lib/<feature>/`                                                          |
 | UI                    | CSS-first (globals + CSS modules); no Tailwind/shadcn unless a later STE + allowlist says so |
 | Tests                 | **Vitest** under `tests/`; quality gate `bash scripts/ci.sh` (lint, typecheck, test, build)  |
-| Deploy                | **Vercel** (SIM-006); public after merge                                                     |
+| Deploy                | **Vercel**; see the repository's [`docs/DEPLOY.md`](../../../docs/DEPLOY.md)                 |
 | Explicitly not in MVP | Auth, database/ORM, AI SDK, Playwright, full SRS engine                                      |
 
-Pack-review: habits from software-factory-demo may be **rewritten** for this repo. Do not paste demo product code (`/ameisen`, DualAB, three.js) into Simplified.
+Pack-review: do not paste another application's product code into Simplified. Shared habits — the App
+Router layout, Zod-validated route handlers, a `scripts/ci.sh` gate — are conventions to follow, not
+files to copy.
 
 ## Phases
 
@@ -114,11 +114,10 @@ scripts/ci.sh
 - Graded reading passages
 - Traditional characters as a first-class track
 - AI chat tutors / AI SDK
-- Copying software-factory-demo product surfaces
+- Copying another application's product surfaces
 
 ## Related
 
 - Research: [`hanzi_research.md`](./hanzi_research.md)
-- Roadmap / next STEs: [`ROADMAP.md`](./ROADMAP.md)
-- Agent workflow: [`../AGENT.md`](../AGENT.md)
-- Stack golden path: [software-factory-demo](https://cursor.com/codebase/gocklkatz/software-factory-demo)
+- Plan: [`ROADMAP.md`](./ROADMAP.md)
+- App contract: [`../AGENTS.md`](../AGENTS.md)

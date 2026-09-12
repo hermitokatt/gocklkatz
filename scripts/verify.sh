@@ -38,6 +38,11 @@ LOG="$(mktemp "${TMPDIR:-/tmp}/gocklkatz-verify.XXXXXX")" || exit 2
 
 say() { printf '%s\n' "$*"; }
 step() { printf '\n==> %s\n' "$*"; }
+# The four application verify scripts all define this and this one did not, while calling it twice —
+# so a full-build run printed `scripts/verify.sh: line 139: ok: command not found` and carried on,
+# because `set -uo pipefail` has no `-e`. A step that reports success through a missing function is
+# the kind of thing that stops being noticed.
+ok() { printf '    ok    %s\n' "$*"; }
 
 dump_log() {
     say "    ---- last 40 lines of the server log ----"
@@ -138,7 +143,6 @@ else
     fi
     ok "build"
 fi
-say "    ok    build"
 
 # ---------------------------------------------------------------------------
 step "start (next start on $PORT)"

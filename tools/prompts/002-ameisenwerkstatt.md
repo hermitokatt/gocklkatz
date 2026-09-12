@@ -10,20 +10,14 @@ authors the commit. Read these first:
 3. `docs/tickets/001-landing-page.md` — the landing page is the app already in this repository, so
    it is the pattern to follow for `scripts/ci.sh`, `scripts/verify.sh` and `repo.config`.
 
-The application to bring in is a separate checkout on this machine:
+This brief is kept as the historical work order for `GOC-14`. The application it describes lives in
+`apps/ameisenwerkstatt` in this repository, and the checkout it was originally read from is not part
+of the workflow any more; its identity is recorded in the Linear issue, not here.
 
-```
-$HOME/Repos/software-factory-demo
-```
-
-Read from it. **Do not modify it.** Import from its tracked file list:
-
-```bash
-git -C "$HOME/Repos/software-factory-demo" ls-files
-```
-
-Never copy its working directory — it contains `node_modules/`, `.next/`, `.idea/` and other
-ignored artefacts (24,019 files, most of them noise).
+The rule it recorded still governs any future import of an application: **import from a tracked file
+list, never copy a working directory.** An untracked working directory carries `node_modules/`,
+`.next/`, `.idea/` and other ignored artefacts — in this case 24,019 files, most of them noise, and a
+worker that copied one dragged all of them into the repository.
 
 ## Hard rules
 
