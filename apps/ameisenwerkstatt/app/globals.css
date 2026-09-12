@@ -27,8 +27,7 @@ body {
   background:
     radial-gradient(1100px 640px at 8% -12%, #3a1208 0%, transparent 58%),
     radial-gradient(900px 560px at 108% 8%, #123528 0%, transparent 52%),
-    radial-gradient(700px 480px at 50% 110%, #2a1800 0%, transparent 55%),
-    #07060a;
+    radial-gradient(700px 480px at 50% 110%, #2a1800 0%, transparent 55%), #07060a;
 }
 
 .homeAtmosphere::after {

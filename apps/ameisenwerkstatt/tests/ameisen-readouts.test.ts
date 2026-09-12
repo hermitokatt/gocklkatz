@@ -54,9 +54,7 @@ describe("iterationSpread", () => {
     expect(tor).toBeGreaterThanOrEqual(0);
     const withBlock = blockEdge(building, dock, tor);
     const blockedSpread = iterationSpread(withBlock);
-    expect(blockedSpread.discardedCount + blockedSpread.validCount).toBe(
-      withBlock.params.antCount,
-    );
+    expect(blockedSpread.discardedCount + blockedSpread.validCount).toBe(withBlock.params.antCount);
     expect(blockedSpread.discardedCount).toBeGreaterThan(0);
   });
 

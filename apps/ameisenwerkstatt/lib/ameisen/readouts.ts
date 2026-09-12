@@ -1,10 +1,6 @@
 import { edgeWeight } from "./choose";
 import { antUnvisited, isAntDone } from "./colony";
-import {
-  candidatesAvoidingBlocked,
-  parseEdgeKey,
-  tourUsesBlockedEdge,
-} from "./edges";
+import { candidatesAvoidingBlocked, parseEdgeKey, tourUsesBlockedEdge } from "./edges";
 import { maxPheromone, pheromoneMass } from "./pheromone";
 import { isCompleteTour, tourLength } from "./tour";
 import type { AcoParams, Colony } from "./types";

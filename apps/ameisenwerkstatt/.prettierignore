@@ -4,3 +4,8 @@ out
 build
 coverage
 package-lock.json
+
+# Frozen design renders. `docs/ameisen-ui-samples/README.md` calls these "frozen renders from the
+# design study, kept as the record of what was considered" — reformatting them would edit the
+# record they exist to preserve. They are not source and nothing builds from them.
+docs/ameisen-ui-samples/*.html

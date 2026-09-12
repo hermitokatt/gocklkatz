@@ -12,9 +12,7 @@ export function generateStaticParams() {
   return listRadicals().radicals.map((radical) => ({ id: radical.id }));
 }
 
-export async function generateMetadata({
-  params,
-}: PageProps): Promise<Metadata> {
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id } = await params;
   const detail = getRadicalDetail(id);
   if (!detail) {

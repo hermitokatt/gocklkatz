@@ -46,6 +46,9 @@ if [ ! -f node_modules/.package-lock.json ]; then
 fi
 
 run "lint (eslint)" npm run --silent lint
+# Checked, not merely configured. This app had no formatter at all while its own `docs/MVP.md`
+# listed "ESLint/Prettier" as part of the harness — the scope said Prettier and nothing provided it.
+run "format (prettier --check)" npm run --silent format:check
 run "typecheck (tsc --noEmit)" npm run --silent typecheck
 run "tests (vitest run)" npm run --silent test
 run "build (next build)" npm run --silent build
@@ -55,4 +58,4 @@ if [ "$fail" -ne 0 ]; then
     printf 'ci: FAIL\n'
     exit 1
 fi
-printf 'ci: PASS (lint, typecheck, tests, build)\n'
+printf 'ci: PASS (format, lint, typecheck, tests, build)\n'

@@ -17,10 +17,7 @@ import { getSnapshot, resetSim } from "@/lib/ameisen/sim";
 
 const TEST_SECRET = "test-ameisen-mutate-secret";
 
-function jsonRequest(
-  body: unknown,
-  options?: { authorization?: string | null },
-): Request {
+function jsonRequest(body: unknown, options?: { authorization?: string | null }): Request {
   const headers: Record<string, string> = {
     "content-type": "application/json",
   };

@@ -46,8 +46,8 @@ fi
 
 run "lint (eslint)" npm run --silent lint
 # Formatting is checked here, not only configured. This app ships a .prettierrc.json and a
-# .prettierignore; without this step nothing ever ran them, so the config was decoration. The
-# previous two apps in this monorepo are in exactly that state and are not format-clean.
+# .prettierignore; without this step nothing ever ran them, so the config was decoration. Every app
+# in this monorepo now checks formatting, for the same reason.
 run "format (prettier --check)" npm run --silent format:check
 run "typecheck (tsc --noEmit)" npm run --silent typecheck
 run "tests (vitest run)" npm run --silent test

@@ -21,15 +21,15 @@ Product background, in reading order:
 
 ## Surface
 
-| Route | Method | Notes |
-| --- | --- | --- |
-| `/` | GET | The app's own card |
-| `/ameisen` | GET | The Werkstatt: canvas, 3D walk graph, chaos controls |
-| `/api/health` | GET | `{ "ok": true, "service": "demo-shell" }`, Zod-validated |
-| `/api/ameisen/snapshot` | GET | Read-only snapshot of the shared server colony |
-| `/api/ameisen/params` | POST | **Mutate-gated** |
-| `/api/ameisen/step` | POST | **Mutate-gated** |
-| `/api/ameisen/tools` | POST | **Mutate-gated**; allowlisted tools only |
+| Route                   | Method | Notes                                                    |
+| ----------------------- | ------ | -------------------------------------------------------- |
+| `/`                     | GET    | The app's own card                                       |
+| `/ameisen`              | GET    | The Werkstatt: canvas, 3D walk graph, chaos controls     |
+| `/api/health`           | GET    | `{ "ok": true, "service": "demo-shell" }`, Zod-validated |
+| `/api/ameisen/snapshot` | GET    | Read-only snapshot of the shared server colony           |
+| `/api/ameisen/params`   | POST   | **Mutate-gated**                                         |
+| `/api/ameisen/step`     | POST   | **Mutate-gated**                                         |
+| `/api/ameisen/tools`    | POST   | **Mutate-gated**; allowlisted tools only                 |
 
 Route paths and response shapes are a contract. Changing one is a product decision, not a cleanup.
 

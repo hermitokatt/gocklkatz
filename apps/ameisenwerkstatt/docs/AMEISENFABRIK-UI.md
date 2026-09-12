@@ -16,14 +16,14 @@ UI), `lib/ameisen/` (what the sim actually knows).
 Ameisenfabrik is **creation theater**, not a polite SaaS dashboard. It runs in a room, on a big screen,
 while somebody talks over it. That fixes the bar:
 
-| Rule | Test |
-| --- | --- |
-| **Room test** | The hero number and the moving trail read from ~4 m. If a number needs squinting, it is not the hero. |
-| **The stage is the product** | The graph gets the pixels. Chrome recedes: no box where a hairline works, no label where the thing can be labelled directly. |
-| **Show the mechanism, not just the score** | An OR audience wants to see *why* an ant went there — τ, distance, resulting probability — not only the final tour length. |
-| **Every pixel is traceable** | Each readout maps to a real field or an existing pure function over it. No invented metrics, no decorative fake telemetry. |
-| **Events get punctuation** | Chaos, gold invalidated, gold rebuilt are *events*. They deserve a visible transient; a number silently changing is not theater. |
-| **Quiet when nothing happens** | Between events the screen should be calm and legible, not blinking. Motion belongs to the ants and the trail. |
+| Rule                                       | Test                                                                                                                             |
+| ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------- |
+| **Room test**                              | The hero number and the moving trail read from ~4 m. If a number needs squinting, it is not the hero.                            |
+| **The stage is the product**               | The graph gets the pixels. Chrome recedes: no box where a hairline works, no label where the thing can be labelled directly.     |
+| **Show the mechanism, not just the score** | An OR audience wants to see _why_ an ant went there — τ, distance, resulting probability — not only the final tour length.       |
+| **Every pixel is traceable**               | Each readout maps to a real field or an existing pure function over it. No invented metrics, no decorative fake telemetry.       |
+| **Events get punctuation**                 | Chaos, gold invalidated, gold rebuilt are _events_. They deserve a visible transient; a number silently changing is not theater. |
+| **Quiet when nothing happens**             | Between events the screen should be calm and legible, not blinking. Motion belongs to the ants and the trail.                    |
 
 Prior art the rules are borrowed from — rewritten for this harness, not copied:
 real-time flight-test display guidance (limit the persistent readouts, reserve color for meaning, keep the
@@ -48,22 +48,22 @@ the pair that explains the algorithm).
 Everything below is on the client `Colony` today (`lib/ameisen/types.ts`), or is computed by a function
 already exported from `lib/ameisen/index.ts`. Nothing new is invented.
 
-| Field / function | Source | Shown today? |
-| --- | --- | --- |
-| `cities` (id, name, x, y) | `fixture.ts` | yes — nodes + labels; the 3D stage places them on a Fibonacci sphere for display only (ACO still uses `x,y`) |
-| `tau[i][j]` | `pheromone.ts` | yes — line opacity/width only |
-| `bestTour`, `bestLength` | `colony.ts` | yes — gold path, one number |
-| `iteration` | `colony.ts` | yes |
-| `blockedEdges` | `edges.ts` | yes — dashed edges + a count |
-| `ants[].tour` (partial) | `colony.ts` | only as crawling triangles |
-| `distances[i][j]`, `eta[i][j]` | `distance.ts` | **no** |
-| `params` α, β, ρ, Q, τ₀, antCount | `params.ts` | **no** (only named in prose) |
-| `pheromoneMass(tau)` | `pheromone.ts` | **no** — exported, unused by the UI |
-| `maxPheromone(tau)` | `pheromone.ts` | internal, for normalisation only |
-| `tourLength(tour, distances)` | `tour.ts` | **no** in the UI |
-| `edgeWeight(τ, η, α, β)` | `choose.ts` | **no** — the actual decision rule |
-| `isAntDone`, `antUnvisited`, `candidatesAvoidingBlocked` | `colony.ts`, `edges.ts` | **no** |
-| `tourUsesBlockedEdge`, `pickChaosEdge`, `blockedEdgeCount` | `edges.ts` | count only |
+| Field / function                                           | Source                  | Shown today?                                                                                                 |
+| ---------------------------------------------------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `cities` (id, name, x, y)                                  | `fixture.ts`            | yes — nodes + labels; the 3D stage places them on a Fibonacci sphere for display only (ACO still uses `x,y`) |
+| `tau[i][j]`                                                | `pheromone.ts`          | yes — line opacity/width only                                                                                |
+| `bestTour`, `bestLength`                                   | `colony.ts`             | yes — gold path, one number                                                                                  |
+| `iteration`                                                | `colony.ts`             | yes                                                                                                          |
+| `blockedEdges`                                             | `edges.ts`              | yes — dashed edges + a count                                                                                 |
+| `ants[].tour` (partial)                                    | `colony.ts`             | only as crawling triangles                                                                                   |
+| `distances[i][j]`, `eta[i][j]`                             | `distance.ts`           | **no**                                                                                                       |
+| `params` α, β, ρ, Q, τ₀, antCount                          | `params.ts`             | **no** (only named in prose)                                                                                 |
+| `pheromoneMass(tau)`                                       | `pheromone.ts`          | **no** — exported, unused by the UI                                                                          |
+| `maxPheromone(tau)`                                        | `pheromone.ts`          | internal, for normalisation only                                                                             |
+| `tourLength(tour, distances)`                              | `tour.ts`               | **no** in the UI                                                                                             |
+| `edgeWeight(τ, η, α, β)`                                   | `choose.ts`             | **no** — the actual decision rule                                                                            |
+| `isAntDone`, `antUnvisited`, `candidatesAvoidingBlocked`   | `colony.ts`, `edges.ts` | **no**                                                                                                       |
+| `tourUsesBlockedEdge`, `pickChaosEdge`, `blockedEdgeCount` | `edges.ts`              | count only                                                                                                   |
 
 ## 3. Measured before proposing
 
@@ -97,15 +97,15 @@ What the measurements were used for — which readouts move and which are dead w
 Ranked for a room demo. Everything is either stored state or an existing pure function over it — the
 “derived” rows add **no new sim math**.
 
-| # | Readout | Why it earns the space | Source |
-| --- | --- | --- | --- |
-| 1 | **Best tour length** + since which iteration it has stood | The payoff number; “compared to what?” needs the age, since it rarely changes | `bestLength`, `iteration` (stored); age from UI-local history |
-| 2 | **Iteration-best / mean / worst** of the current ten tours, against gold | The live signal — shows the colony searching, and the gap it is trying to close | derived: `tourLength(ant.tour, distances)` per ant, `tourUsesBlockedEdge` to drop invalid ones |
-| 3 | **τ concentration** — share of pheromone mass on the gold tour (+ total mass) | The one honest convergence metric; explains *why* the ants stop wandering | derived: `pheromoneMass(tau)`, `tau` on gold edges |
-| 4 | **Colony progress** — ants walking vs home, hop n/10 | Makes the iteration heartbeat and **Halt** legible; the canvas alone hides it | derived: `isAntDone`, `ant.tour.length` |
-| 5 | **Chaos state** — blocked edges by city name, and whether gold was discarded | Turns the operator’s click into a stated consequence instead of a count | `blockedEdges` + `cities[]` names, `parseEdgeKey`, `bestTour === null` |
-| 6 | **The decision rule** for one highlighted ant: candidates with τ, distance, resulting p | The mechanism made visible; the only readout that explains τ^α · η^β | derived: `antUnvisited`, `candidatesAvoidingBlocked`, `edgeWeight`, normalised |
-| 7 | **Parameters, read-only** — α, β, ρ, Q, τ₀, ant count | Cheap credibility for an OR audience; also states that they are fixed here | `params` (stored) |
+| #   | Readout                                                                                 | Why it earns the space                                                          | Source                                                                                         |
+| --- | --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| 1   | **Best tour length** + since which iteration it has stood                               | The payoff number; “compared to what?” needs the age, since it rarely changes   | `bestLength`, `iteration` (stored); age from UI-local history                                  |
+| 2   | **Iteration-best / mean / worst** of the current ten tours, against gold                | The live signal — shows the colony searching, and the gap it is trying to close | derived: `tourLength(ant.tour, distances)` per ant, `tourUsesBlockedEdge` to drop invalid ones |
+| 3   | **τ concentration** — share of pheromone mass on the gold tour (+ total mass)           | The one honest convergence metric; explains _why_ the ants stop wandering       | derived: `pheromoneMass(tau)`, `tau` on gold edges                                             |
+| 4   | **Colony progress** — ants walking vs home, hop n/10                                    | Makes the iteration heartbeat and **Halt** legible; the canvas alone hides it   | derived: `isAntDone`, `ant.tour.length`                                                        |
+| 5   | **Chaos state** — blocked edges by city name, and whether gold was discarded            | Turns the operator’s click into a stated consequence instead of a count         | `blockedEdges` + `cities[]` names, `parseEdgeKey`, `bestTour === null`                         |
+| 6   | **The decision rule** for one highlighted ant: candidates with τ, distance, resulting p | The mechanism made visible; the only readout that explains τ^α · η^β            | derived: `antUnvisited`, `candidatesAvoidingBlocked`, `edgeWeight`, normalised                 |
+| 7   | **Parameters, read-only** — α, β, ρ, Q, τ₀, ant count                                   | Cheap credibility for an OR audience; also states that they are fixed here      | `params` (stored)                                                                              |
 
 Deliberately **not** in the top seven: the raw τ matrix (the canvas already is the matrix), per-ant tour
 history, and anything requiring state the sim does not keep.
@@ -125,12 +125,12 @@ history, and anything requiring state the sim does not keep.
 
 Full-size images and captions: `docs/ameisen-ui-samples/README.md`.
 
-| | Direction | Thesis | Emphasis | Main tradeoff |
-| --- | --- | --- | --- | --- |
-| **A** | **Werkstatt** | Today’s poster identity, reorganised | One hero gold number + four enamel plates on a left rail | Rail costs canvas width; still box-heavy |
-| **B** | **Leitstand** | Instrument console | Maximum honest data: series, spread, ant roster, params | Reads as engineering, not theater; dense from 4 m |
-| **C** | **Blaupause** | Quiet, high data-ink | Near-monochrome; gold is the only saturated colour; no boxes | Chaos feels understated; less spectacle |
-| **D** | **Bühne** | Creation theater | Full-bleed stage, huge gold number, event banner, live τ^α · η^β decision panel | Overlays can occlude the graph; most work to get right |
+|       | Direction     | Thesis                               | Emphasis                                                                        | Main tradeoff                                          |
+| ----- | ------------- | ------------------------------------ | ------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| **A** | **Werkstatt** | Today’s poster identity, reorganised | One hero gold number + four enamel plates on a left rail                        | Rail costs canvas width; still box-heavy               |
+| **B** | **Leitstand** | Instrument console                   | Maximum honest data: series, spread, ant roster, params                         | Reads as engineering, not theater; dense from 4 m      |
+| **C** | **Blaupause** | Quiet, high data-ink                 | Near-monochrome; gold is the only saturated colour; no boxes                    | Chaos feels understated; less spectacle                |
+| **D** | **Bühne**     | Creation theater                     | Full-bleed stage, huge gold number, event banner, live τ^α · η^β decision panel | Overlays can occlude the graph; most work to get right |
 
 ### Picked: A — Werkstatt
 
@@ -162,12 +162,12 @@ Single page grid, `mast / body / foot`, 22px top and 18px bottom padding, `clamp
 
 ### What each plate shows
 
-| Plate | Normal | When Chaos is active |
-| --- | --- | --- |
-| 1 · **Beste Tour** | readout 1 — gold value, note: unchanged since iteration *n*, best valid run this iteration | `—` in magenta, alert border, note: “Gold verworfen · die Sperre lag auf der Tour”, plus the last value and the iteration it died in |
-| 2 · **Iteration** | readouts 4 — iteration count, note: ants walking, furthest ant’s hop | same |
-| 3 · **Pheromon** | readout 3 — τ-on-gold share, note: total mass and peak | **falls back** to `Pheromon · Masse` with total mass, because the share has no referent while `bestTour` is `null`; note keeps the pre-block mass for comparison |
-| 4 · **Gesperrt** | readout 5 — count (0), note carries readout 2, the spread of this iteration’s tours | count in magenta with an alert border, note names the edge by both city names and the iteration it was blocked in |
+| Plate              | Normal                                                                                     | When Chaos is active                                                                                                                                             |
+| ------------------ | ------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 · **Beste Tour** | readout 1 — gold value, note: unchanged since iteration _n_, best valid run this iteration | `—` in magenta, alert border, note: “Gold verworfen · die Sperre lag auf der Tour”, plus the last value and the iteration it died in                             |
+| 2 · **Iteration**  | readouts 4 — iteration count, note: ants walking, furthest ant’s hop                       | same                                                                                                                                                             |
+| 3 · **Pheromon**   | readout 3 — τ-on-gold share, note: total mass and peak                                     | **falls back** to `Pheromon · Masse` with total mass, because the share has no referent while `bestTour` is `null`; note keeps the pre-block mass for comparison |
+| 4 · **Gesperrt**   | readout 5 — count (0), note carries readout 2, the spread of this iteration’s tours        | count in magenta with an alert border, note names the edge by both city names and the iteration it was blocked in                                                |
 
 Plate 3’s fallback and plate 4’s two jobs are the only state-dependent content. Everything else keeps its
 slot so the rail never reflows — a number that moves between plates is unreadable in a room.
@@ -183,14 +183,14 @@ slot so the rail never reflows — a number that moves between plates is unreada
 
 ### File map
 
-| File | Change |
-| --- | --- |
-| `lib/ameisen/readouts.ts` *(new)* | Pure selectors over `Colony`: iteration spread, τ-on-gold share, colony progress, blocked-edge names, decision table. Only calls existing exports. |
-| `tests/ameisen-readouts.test.ts` *(new)* | Numeric assertions for each selector, in the style of `tests/ameisen.test.ts`. |
-| `app/ameisen/rail.tsx` *(new)* | Presentational rail of four plates; props only, no sim logic. |
-| `app/ameisen/colony-stage.tsx` | Keep the rAF loop and refs; feed the throttled snapshot to `<Rail />`. Controls unchanged. |
-| `app/ameisen/ameisen.module.css` | Rail grid, plate + alert styles, footer event slot. The existing `.hud` flex row is replaced by the rail. |
-| `lib/ameisen/index.ts` | Re-export the new selectors. |
+| File                                     | Change                                                                                                                                             |
+| ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `lib/ameisen/readouts.ts` _(new)_        | Pure selectors over `Colony`: iteration spread, τ-on-gold share, colony progress, blocked-edge names, decision table. Only calls existing exports. |
+| `tests/ameisen-readouts.test.ts` _(new)_ | Numeric assertions for each selector, in the style of `tests/ameisen.test.ts`.                                                                     |
+| `app/ameisen/rail.tsx` _(new)_           | Presentational rail of four plates; props only, no sim logic.                                                                                      |
+| `app/ameisen/colony-stage.tsx`           | Keep the rAF loop and refs; feed the throttled snapshot to `<Rail />`. Controls unchanged.                                                         |
+| `app/ameisen/ameisen.module.css`         | Rail grid, plate + alert styles, footer event slot. The existing `.hud` flex row is replaced by the rail.                                          |
+| `lib/ameisen/index.ts`                   | Re-export the new selectors.                                                                                                                       |
 
 ### Render-loop rules (non-negotiable)
 
@@ -213,13 +213,13 @@ means blocked.
 
 Werkstatt has no banner, so events are carried by the rail and the footer slot:
 
-| Event | Detected from | Treatment |
-| --- | --- | --- |
-| Edge blocked | `blockedEdges` grew | Plate 4 takes the alert border and names both cities; the footer slot switches from the gold chain to the event line; the edge flashes on canvas |
-| Gold discarded | `bestTour` became `null` | Plate 1 goes `—` in magenta with the alert border and a “verworfen” note; plate 3 falls back to total mass |
-| Gold rebuilt / improved | `bestLength` decreased | One-shot flash on plate 1; its note records the iteration and the delta |
-| Edges cleared (**Frei**) | `blockedEdges` emptied | Alert borders drop, footer returns to the gold chain |
-| All ants home | `allAntsDone` | Brief tick on plate 2 — the colony heartbeat |
+| Event                    | Detected from            | Treatment                                                                                                                                        |
+| ------------------------ | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Edge blocked             | `blockedEdges` grew      | Plate 4 takes the alert border and names both cities; the footer slot switches from the gold chain to the event line; the edge flashes on canvas |
+| Gold discarded           | `bestTour` became `null` | Plate 1 goes `—` in magenta with the alert border and a “verworfen” note; plate 3 falls back to total mass                                       |
+| Gold rebuilt / improved  | `bestLength` decreased   | One-shot flash on plate 1; its note records the iteration and the delta                                                                          |
+| Edges cleared (**Frei**) | `blockedEdges` emptied   | Alert borders drop, footer returns to the gold chain                                                                                             |
+| All ants home            | `allAntsDone`            | Brief tick on plate 2 — the colony heartbeat                                                                                                     |
 
 Alert borders persist while the condition holds; one-shot flashes last ~1.5 s. Both must be readable while
 paused with **Halt**.

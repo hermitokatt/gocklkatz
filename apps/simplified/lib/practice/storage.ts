@@ -1,7 +1,4 @@
-import {
-  PRACTICE_RECENT_LIMIT,
-  PRACTICE_STORAGE_KEY,
-} from "./constants";
+import { PRACTICE_RECENT_LIMIT, PRACTICE_STORAGE_KEY } from "./constants";
 import type { PracticeMode } from "./session";
 
 export type PracticeRecentEntry = {
@@ -80,12 +77,9 @@ export function parsePracticeProgress(raw: string | null): PracticeProgress {
     return {
       version: 1,
       sessionsCompleted: Math.max(0, data.sessionsCompleted),
-      lastCompletedAt:
-        typeof data.lastCompletedAt === "string" ? data.lastCompletedAt : null,
-      totalAnswered:
-        typeof data.totalAnswered === "number" ? Math.max(0, data.totalAnswered) : 0,
-      totalCorrect:
-        typeof data.totalCorrect === "number" ? Math.max(0, data.totalCorrect) : 0,
+      lastCompletedAt: typeof data.lastCompletedAt === "string" ? data.lastCompletedAt : null,
+      totalAnswered: typeof data.totalAnswered === "number" ? Math.max(0, data.totalAnswered) : 0,
+      totalCorrect: typeof data.totalCorrect === "number" ? Math.max(0, data.totalCorrect) : 0,
       recent: Array.isArray(data.recent)
         ? data.recent
             .filter(
@@ -116,9 +110,7 @@ export function loadPracticeProgress(): PracticeProgress {
     return emptyPracticeProgress();
   }
   try {
-    return parsePracticeProgress(
-      window.localStorage.getItem(PRACTICE_STORAGE_KEY),
-    );
+    return parsePracticeProgress(window.localStorage.getItem(PRACTICE_STORAGE_KEY));
   } catch {
     return emptyPracticeProgress();
   }
@@ -130,10 +122,7 @@ export function savePracticeProgress(progress: PracticeProgress): void {
     return;
   }
   try {
-    window.localStorage.setItem(
-      PRACTICE_STORAGE_KEY,
-      serializePracticeProgress(progress),
-    );
+    window.localStorage.setItem(PRACTICE_STORAGE_KEY, serializePracticeProgress(progress));
   } catch {
     // Quota / private mode — practice still works for the session.
   }

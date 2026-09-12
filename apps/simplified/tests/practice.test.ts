@@ -61,9 +61,7 @@ describe("buildOptions / buildPracticeSession", () => {
     expect(session.length).toBe(PRACTICE_SESSION_SIZE);
     expect(session[0]?.mode).toBe("glyph-to-gloss");
     expect(session[1]?.mode).toBe("gloss-to-glyph");
-    expect(session.every((item) => item.options.length === PRACTICE_OPTION_COUNT)).toBe(
-      true,
-    );
+    expect(session.every((item) => item.options.length === PRACTICE_OPTION_COUNT)).toBe(true);
   });
 
   it("uses primary glyph for glyph prompts and gloss prompts for the reverse mode", () => {

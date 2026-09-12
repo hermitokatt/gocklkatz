@@ -24,12 +24,12 @@ Rough literacy targets: ~2,500–3,000 characters for newspaper-level reading; t
 
 Key building-block model:
 
-| Level | What it is | Why it matters |
-| --- | --- | --- |
-| Strokes | Basic marks (横, 竖, 撇, 捺, 点, 提, 折, 钩, …) | Foundation of writing and recognition |
-| Components / radicals | Recurring graphic units (e.g. 氵 water, 女 woman) | Chunking; meaning/sound clues |
-| Characters | Often compounds of components | Unit of literacy |
-| Words | Usually 1–2 characters (e.g. 学生) | Real meaning and usage |
+| Level                 | What it is                                        | Why it matters                        |
+| --------------------- | ------------------------------------------------- | ------------------------------------- |
+| Strokes               | Basic marks (横, 竖, 撇, 捺, 点, 提, 折, 钩, …)   | Foundation of writing and recognition |
+| Components / radicals | Recurring graphic units (e.g. 氵 water, 女 woman) | Chunking; meaning/sound clues         |
+| Characters            | Often compounds of components                     | Unit of literacy                      |
+| Words                 | Usually 1–2 characters (e.g. 学生)                | Real meaning and usage                |
 
 Most modern characters are **compounds**. Classic examples:
 
@@ -63,13 +63,13 @@ Source: [HanziHero — Learn Chinese Characters](https://hanzihero.com/learn-chi
 
 Chinese character usage is heavily skewed. Approximate coverage from learner guides (figures vary slightly by corpus):
 
-| Characters known | Approx. text coverage | Rough HSK band |
-| --- | --- | --- |
-| 100 | ~41–42% | HSK 1 |
-| 500 | ~75% | HSK 2–3 |
-| 1,000 | ~89% | HSK 3–4 |
-| 2,500 | ~97–98% | HSK 5–6 |
-| 3,000 | ~99% | Advanced reading |
+| Characters known | Approx. text coverage | Rough HSK band   |
+| ---------------- | --------------------- | ---------------- |
+| 100              | ~41–42%               | HSK 1            |
+| 500              | ~75%                  | HSK 2–3          |
+| 1,000            | ~89%                  | HSK 3–4          |
+| 2,500            | ~97–98%               | HSK 5–6          |
+| 3,000            | ~99%                  | Advanced reading |
 
 Practical takeaways:
 
@@ -101,11 +101,11 @@ Sources: Mandarin HQ, Hacking Chinese, HSKLord
 
 Common stroke-order rules:
 
-1. Top → bottom  
-2. Left → right  
-3. Horizontal before vertical (when crossing)  
-4. Outside before inside  
-5. Close the frame last  
+1. Top → bottom
+2. Left → right
+3. Horizontal before vertical (when crossing)
+4. Outside before inside
+5. Close the frame last
 6. Center before sides (symmetrical forms)
 
 Why it matters: legibility, writing speed, motor memory, and handwriting-recognition input.
@@ -167,16 +167,16 @@ Simplified vs traditional: most learners start with **simplified** (Mainland/Sin
 
 ## 9. Common mistakes to avoid
 
-| Mistake | Better approach |
-| --- | --- |
-| Rote copying without analysis | Decompose → encode → SRS |
-| Learning rare characters early | Frequency / HSK / word-based order |
-| Ignoring radicals | Learn top components early |
-| Mnemonics for every card | Mnemonics for failures only |
-| Studying characters only in isolation | Words + graded reading |
-| Massive new-card dumps | Limit active learning set |
-| Obsessing over stroke names / calligraphy | Correct order + enough writing for goals |
-| Wrong fonts (e.g. Japanese) | Mainland-simplified fonts for this product |
+| Mistake                                   | Better approach                            |
+| ----------------------------------------- | ------------------------------------------ |
+| Rote copying without analysis             | Decompose → encode → SRS                   |
+| Learning rare characters early            | Frequency / HSK / word-based order         |
+| Ignoring radicals                         | Learn top components early                 |
+| Mnemonics for every card                  | Mnemonics for failures only                |
+| Studying characters only in isolation     | Words + graded reading                     |
+| Massive new-card dumps                    | Limit active learning set                  |
+| Obsessing over stroke names / calligraphy | Correct order + enough writing for goals   |
+| Wrong fonts (e.g. Japanese)               | Mainland-simplified fonts for this product |
 
 ---
 
@@ -198,6 +198,7 @@ Feature ideas grounded in the research above:
 ## Sources
 
 ### Practitioner / curriculum guides
+
 - [Hacking Chinese — My best advice on how to learn Chinese characters](https://www.hackingchinese.com/my-best-advice-on-how-to-learn-chinese-characters/)
 - [HanziHero — Learn Chinese Characters](https://hanzihero.com/learn-chinese-characters)
 - [HSKLord — Chinese Characters for Beginners](https://hsklord.com/blog/chinese-characters-for-beginners)
@@ -207,16 +208,20 @@ Feature ideas grounded in the research above:
 - [Arch Chinese](https://www.archchinese.com/), [Hanzi Guide](https://www.hanzi.guide/) (stroke-order / dictionary style tools)
 
 ### Data / lists
+
 - [chinese-hsk-and-frequency-lists (GitHub)](https://github.com/alyssabedard/chinese-hsk-and-frequency-lists/)
 
 ### Research / discussion
+
 - [Radical-with-dual-coding vs copying vs phonological approaches (Reading and Writing, 2026)](https://link.springer.com/article/10.1007/s11145-026-10851-z)
 - [Visual/verbal coding mnemonics in CBI (Springer)](https://link.springer.com/article/10.1007/BF02504673)
 - [Stack Exchange — disadvantages of pure character-by-character frequency grinding](https://languagelearning.stackexchange.com/questions/6007/what-are-the-disadvantages-of-learning-thousands-of-chinese-characters-one-by)
 
 ### Method notes
+
 - Search queries used: best practices for simplified hanzi; SRS/radicals/stroke order; HSK/frequency order; research on radicals/mnemonics/dual coding.
 - Searches were run in September 2026 with a hosted web-scraping tool, outside this repository. Its result cache and credentials were never part of the app: the tool is not a dependency, no code imports it, and nothing under `.firecrawl/` is tracked here.
 
 ### What this document is, and is not
+
 These are research notes: a summary in this project's own words, with each source linked inline. No page is reproduced, and no character data was taken from them — the dataset that ships with the app is described in [`../README.md`](../README.md) under "Data provenance".

@@ -15,8 +15,8 @@ export default function HomePage() {
         <p className="factoryKicker">Software Factory · Demo #1</p>
         <h1 className="factoryBrand">Ameisenfabrik</h1>
         <p className="factoryLead">
-          Living ant-colony optimization on a fixed TSP. Meaningful backend, Werkstatt UI, public URL —
-          proof we can create and deploy full-stack in ~2 days.
+          Living ant-colony optimization on a fixed TSP. Meaningful backend, Werkstatt UI, public
+          URL — proof we can create and deploy full-stack in ~2 days.
         </p>
         <ul className="factoryBeats">
           <li>live ACO · chaos inject · no LLM</li>

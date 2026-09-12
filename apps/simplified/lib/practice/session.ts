@@ -1,9 +1,6 @@
 import type { Radical } from "@/lib/radicals";
 
-import {
-  PRACTICE_OPTION_COUNT,
-  PRACTICE_SESSION_SIZE,
-} from "./constants";
+import { PRACTICE_OPTION_COUNT, PRACTICE_SESSION_SIZE } from "./constants";
 
 export type PracticeMode = "glyph-to-gloss" | "gloss-to-glyph";
 
@@ -123,14 +120,8 @@ export function buildPracticeSession(
   const selected = shuffleInPlace([...radicals], random).slice(0, size);
 
   return selected.map((radical, index) => {
-    const mode: PracticeMode =
-      index % 2 === 0 ? "glyph-to-gloss" : "gloss-to-glyph";
-    const { options: choices, correctOptionId } = buildOptions(
-      radical,
-      radicals,
-      mode,
-      random,
-    );
+    const mode: PracticeMode = index % 2 === 0 ? "glyph-to-gloss" : "gloss-to-glyph";
+    const { options: choices, correctOptionId } = buildOptions(radical, radicals, mode, random);
 
     if (mode === "glyph-to-gloss") {
       return {
@@ -156,10 +147,7 @@ export function buildPracticeSession(
 }
 
 /** Score a single multiple-choice answer against the item. */
-export function scoreAnswer(
-  item: PracticeItem,
-  selectedOptionId: string,
-): AnswerResult {
+export function scoreAnswer(item: PracticeItem, selectedOptionId: string): AnswerResult {
   return {
     correct: selectedOptionId === item.correctOptionId,
     selectedOptionId,
@@ -168,9 +156,7 @@ export function scoreAnswer(
 }
 
 /** Aggregate correct/total/accuracy for a finished session. */
-export function summarizeSession(
-  results: ReadonlyArray<{ correct: boolean }>,
-): SessionSummary {
+export function summarizeSession(results: ReadonlyArray<{ correct: boolean }>): SessionSummary {
   const total = results.length;
   const correct = results.filter((r) => r.correct).length;
   return {

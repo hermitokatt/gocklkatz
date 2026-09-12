@@ -36,9 +36,9 @@ blank until that golden is scored.
 
 Fill only after the sitting, from the rows above.
 
-| Metric          | Value |
-| --------------- | ----- |
-| Goldens scored  |       |
-| Passes          |       |
-| Fails           |       |
-| Pass rate       |       |
+| Metric         | Value |
+| -------------- | ----- |
+| Goldens scored |       |
+| Passes         |       |
+| Fails          |       |
+| Pass rate      |       |

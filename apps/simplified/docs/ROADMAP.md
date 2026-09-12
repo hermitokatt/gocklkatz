@@ -6,9 +6,9 @@ Product charter: [`MVP.md`](./MVP.md). Research: [`hanzi_research.md`](./hanzi_r
 
 ## Done
 
-| Slice | What landed | Key STEs |
-| --- | --- | --- |
-| **SIM-001 — Workplan MVP** | In-repo MVP charter + this roadmap; AGENT/README pointers | STE-72 |
+| Slice                      | What landed                                               | Key STEs |
+| -------------------------- | --------------------------------------------------------- | -------- |
+| **SIM-001 — Workplan MVP** | In-repo MVP charter + this roadmap; AGENT/README pointers | STE-72   |
 
 Slices **SIM-002–006** are implemented on stacked feature branches and pending Human merge to the default branch; move them into **Done** after merge.
 
@@ -16,23 +16,23 @@ Slices **SIM-002–006** are implemented on stacked feature branches and pending
 
 Draft from here; open STE tickets only as a Human. Prefer one Yellow product STE per wave beside Green docs.
 
-| Slice | Intent | Depends on |
-| --- | --- | --- |
-| **SIM-002 — Harness** | Phase 0: Next 16 / React 19 / TS / Zod health API / Vitest / `scripts/ci.sh` / allowlist / branded `/` | SIM-001 |
-| **SIM-003 — Radicals domain + API** | Zod schemas, ~30–50 component seed, `GET /api/radicals` + `GET /api/radicals/[id]`, Vitest | SIM-002 |
-| **SIM-004 — Radicals study UI** | `/learn/radicals` list + detail (forms, gloss, variants, examples) | SIM-003 |
-| **SIM-005 — Recognition practice** | Practice flow + client-local progress; aids off during recall | SIM-004 |
-| **SIM-006 — Deploy + polish** | Vercel deploy notes + home/share polish so a visitor can use the MVP URL | SIM-005 |
+| Slice                               | Intent                                                                                                 | Depends on |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------ | ---------- |
+| **SIM-002 — Harness**               | Phase 0: Next 16 / React 19 / TS / Zod health API / Vitest / `scripts/ci.sh` / allowlist / branded `/` | SIM-001    |
+| **SIM-003 — Radicals domain + API** | Zod schemas, ~30–50 component seed, `GET /api/radicals` + `GET /api/radicals/[id]`, Vitest             | SIM-002    |
+| **SIM-004 — Radicals study UI**     | `/learn/radicals` list + detail (forms, gloss, variants, examples)                                     | SIM-003    |
+| **SIM-005 — Recognition practice**  | Practice flow + client-local progress; aids off during recall                                          | SIM-004    |
+| **SIM-006 — Deploy + polish**       | Vercel deploy notes + home/share polish so a visitor can use the MVP URL                               | SIM-005    |
 
 ### Parked (post-MVP)
 
-| Item | Note |
-| --- | --- |
+| Item                                 | Note                                        |
+| ------------------------------------ | ------------------------------------------- |
 | Characters + component prerequisites | Frequency/HSK path after radicals bootstrap |
-| SRS engine | Separate queues; soft caps on new cards |
-| Words / graded reading | Context after form+meaning+sound |
-| Stroke writing | Optional production skill |
-| Auth / database / AI SDK | Only with STE + allowlist update |
+| SRS engine                           | Separate queues; soft caps on new cards     |
+| Words / graded reading               | Context after form+meaning+sound            |
+| Stroke writing                       | Optional production skill                   |
+| Auth / database / AI SDK             | Only with STE + allowlist update            |
 
 ## Delivery loop
 

@@ -29,15 +29,15 @@ call; against a local run, set it in `.env.local`.
 
 ## Goldens (frozen — no scores)
 
-| ID  | File                                          | Shape scored                    |
-| --- | --------------------------------------------- | ------------------------------- |
-| G01 | [goldens/G01-happy-getBestTour.md](goldens/G01-happy-getBestTour.md) | Happy tool path |
-| G02 | [goldens/G02-happy-step.md](goldens/G02-happy-step.md)               | Happy tool path |
-| G03 | [goldens/G03-unknown-tool-refuse.md](goldens/G03-unknown-tool-refuse.md) | Unknown name → refuse |
-| G04 | [goldens/G04-allowlist-miss-refuse.md](goldens/G04-allowlist-miss-refuse.md) | Near miss → refuse |
-| G05 | [goldens/G05-setParams-contract-fields.md](goldens/G05-setParams-contract-fields.md) | Contract field check |
-| G06 | [goldens/G06-error-shape-validation.md](goldens/G06-error-shape-validation.md) | Error shape |
-| G07 | [goldens/G07-invalid-params-no-write.md](goldens/G07-invalid-params-no-write.md) | Invalid params write nothing |
+| ID  | File                                                                                 | Shape scored                 |
+| --- | ------------------------------------------------------------------------------------ | ---------------------------- |
+| G01 | [goldens/G01-happy-getBestTour.md](goldens/G01-happy-getBestTour.md)                 | Happy tool path              |
+| G02 | [goldens/G02-happy-step.md](goldens/G02-happy-step.md)                               | Happy tool path              |
+| G03 | [goldens/G03-unknown-tool-refuse.md](goldens/G03-unknown-tool-refuse.md)             | Unknown name → refuse        |
+| G04 | [goldens/G04-allowlist-miss-refuse.md](goldens/G04-allowlist-miss-refuse.md)         | Near miss → refuse           |
+| G05 | [goldens/G05-setParams-contract-fields.md](goldens/G05-setParams-contract-fields.md) | Contract field check         |
+| G06 | [goldens/G06-error-shape-validation.md](goldens/G06-error-shape-validation.md)       | Error shape                  |
+| G07 | [goldens/G07-invalid-params-no-write.md](goldens/G07-invalid-params-no-write.md)     | Invalid params write nothing |
 
 Scores live only in dated run files under [`runs/`](runs/).
 

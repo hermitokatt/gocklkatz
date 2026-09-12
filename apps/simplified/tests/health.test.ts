@@ -1,10 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { GET } from "@/app/api/health/route";
-import {
-  getHealthResponse,
-  HealthResponseSchema,
-} from "@/lib/health";
+import { getHealthResponse, HealthResponseSchema } from "@/lib/health";
 
 describe("HealthResponseSchema", () => {
   it("accepts the canonical health payload", () => {

@@ -242,8 +242,7 @@ function buildHud(colony: Colony, history: HudHistory, nowMs: number): HudView {
   const goldNames = goldTourNames(colony);
   const edgeLabel = blocked[0]?.label ?? null;
 
-  const iterationBest =
-    history.lastSpreadBest !== null ? Math.round(history.lastSpreadBest) : null;
+  const iterationBest = history.lastSpreadBest !== null ? Math.round(history.lastSpreadBest) : null;
   const spreadBest = history.lastSpreadBest;
   const spreadWorst = history.lastSpreadWorst;
 
@@ -328,7 +327,7 @@ function buildHud(colony: Colony, history: HudHistory, nowMs: number): HudView {
       noteLines: [
         edgeLabel !== null && history.blockedSinceIteration !== null
           ? `${edgeLabel} · seit Iteration ${history.blockedSinceIteration}`
-          : edgeLabel ?? `${blockedCount} Kanten gesperrt`,
+          : (edgeLabel ?? `${blockedCount} Kanten gesperrt`),
         "Touren über die Sperre werden verworfen",
       ],
     };
@@ -439,7 +438,6 @@ const EMPTY_HUD: HudView = {
   blockedCount: 0,
   eventEdgeLabel: null,
 };
-
 
 export function ColonyStage() {
   const hostRef = useRef<HTMLDivElement>(null);

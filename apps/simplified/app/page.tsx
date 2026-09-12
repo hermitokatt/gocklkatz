@@ -12,8 +12,7 @@ export default function HomePage() {
         </h1>
         <p className="headline">Learn Chinese from the parts that matter.</p>
         <p className="lede">
-          Start with radicals and common components — the building blocks of
-          simplified characters.
+          Start with radicals and common components — the building blocks of simplified characters.
         </p>
         <div className="cta">
           <Link className="cta__primary" href="/learn/radicals">

@@ -1,9 +1,4 @@
-import {
-  apiErrorSchema,
-  type ApiError,
-  type SimSnapshot,
-  type StepResult,
-} from "./api-schemas";
+import { apiErrorSchema, type ApiError, type SimSnapshot, type StepResult } from "./api-schemas";
 import { advanceSteps, applyParams, getSnapshot } from "./sim";
 import {
   ALLOWED_TOOL_NAMES,
@@ -30,8 +25,7 @@ export type ToolSuccess =
   | { ok: true; tool: "step"; result: StepResult };
 
 export type ToolFailure =
-  | { ok: false; status: 400; body: ToolRefused }
-  | { ok: false; status: 400; body: ApiError };
+  { ok: false; status: 400; body: ToolRefused } | { ok: false; status: 400; body: ApiError };
 
 export type ToolOutcome = ToolSuccess | ToolFailure;
 

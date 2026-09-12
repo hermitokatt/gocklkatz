@@ -24,16 +24,16 @@ Proof: health API green, Vitest covering domain/API schemas, `bash scripts/ci.sh
 
 ## Stack (locked)
 
-| Lock | Value |
-| --- | --- |
-| Runtime | Node **22+** |
-| App | **Next.js** App Router (**16.x** family), **React 19**, **TypeScript** strict |
-| Backend | Zod-validated **Route Handlers** under `app/api/**` (not Server Actions for MVP) |
-| Domain | Pure modules under `lib/<feature>/` |
-| UI | CSS-first (globals + CSS modules); no Tailwind/shadcn unless a later STE + allowlist says so |
-| Tests | **Vitest** under `tests/`; quality gate `bash scripts/ci.sh` (lint, typecheck, test, build) |
-| Deploy | **Vercel** (SIM-006); public after merge |
-| Explicitly not in MVP | Auth, database/ORM, AI SDK, Playwright, full SRS engine |
+| Lock                  | Value                                                                                        |
+| --------------------- | -------------------------------------------------------------------------------------------- |
+| Runtime               | Node **22+**                                                                                 |
+| App                   | **Next.js** App Router (**16.x** family), **React 19**, **TypeScript** strict                |
+| Backend               | Zod-validated **Route Handlers** under `app/api/**` (not Server Actions for MVP)             |
+| Domain                | Pure modules under `lib/<feature>/`                                                          |
+| UI                    | CSS-first (globals + CSS modules); no Tailwind/shadcn unless a later STE + allowlist says so |
+| Tests                 | **Vitest** under `tests/`; quality gate `bash scripts/ci.sh` (lint, typecheck, test, build)  |
+| Deploy                | **Vercel** (SIM-006); public after merge                                                     |
+| Explicitly not in MVP | Auth, database/ORM, AI SDK, Playwright, full SRS engine                                      |
 
 Pack-review: habits from software-factory-demo may be **rewritten** for this repo. Do not paste demo product code (`/ameisen`, DualAB, three.js) into Simplified.
 
@@ -43,11 +43,11 @@ Pack-review: habits from software-factory-demo may be **rewritten** for this rep
 Phase 0 Harness  →  Phase 1 Radicals (MVP feature)  →  Post-MVP (characters, SRS, words)
 ```
 
-| Phase | What | Outcome |
-| --- | --- | --- |
-| **0 — Harness** | Next app shell, Zod `GET /api/health`, Vitest, ESLint/Prettier, `scripts/ci.sh`, dependency allowlist, branded `/` | CI-ready empty product |
-| **1 — Radicals** | Domain + seed + API + study UI + recognition practice | First learning feature live |
-| **Post-MVP** | Frequency/HSK characters with component prerequisites, SRS queues, words/context, stroke practice, mnemonics | Literacy path beyond bootstrap |
+| Phase            | What                                                                                                               | Outcome                        |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------ | ------------------------------ |
+| **0 — Harness**  | Next app shell, Zod `GET /api/health`, Vitest, ESLint/Prettier, `scripts/ci.sh`, dependency allowlist, branded `/` | CI-ready empty product         |
+| **1 — Radicals** | Domain + seed + API + study UI + recognition practice                                                              | First learning feature live    |
+| **Post-MVP**     | Frequency/HSK characters with component prerequisites, SRS queues, words/context, stroke practice, mnemonics       | Literacy path beyond bootstrap |
 
 ## First feature: Learning radicals and common components
 
@@ -62,25 +62,25 @@ Phase 0 Harness  →  Phase 1 Radicals (MVP feature)  →  Post-MVP (characters,
 
 Zod schemas in `lib/radicals/`; seed JSON or TS fixtures shipped with the repo.
 
-| Field | Purpose |
-| --- | --- |
-| `id` | Stable slug (e.g. `water`, `person`) |
-| `forms` | One or more glyphs (standalone + combining variants) |
-| `gloss` | Short English meaning / category hint |
-| `pinyin` | Optional conventional name reading |
-| `variantsNote` | How forms relate (人 / 亻) |
-| `examples` | Small list of `{ char, pinyin?, gloss }` using the component |
-| `order` | Display / curriculum rank within the MVP seed |
+| Field          | Purpose                                                      |
+| -------------- | ------------------------------------------------------------ |
+| `id`           | Stable slug (e.g. `water`, `person`)                         |
+| `forms`        | One or more glyphs (standalone + combining variants)         |
+| `gloss`        | Short English meaning / category hint                        |
+| `pinyin`       | Optional conventional name reading                           |
+| `variantsNote` | How forms relate (人 / 亻)                                   |
+| `examples`     | Small list of `{ char, pinyin?, gloss }` using the component |
+| `order`        | Display / curriculum rank within the MVP seed                |
 
 Seed size: **~30–50** most useful meaning components for beginners (not all 200+ traditional radicals). Prefer functional components over deep etymology when they conflict ([`hanzi_research.md`](./hanzi_research.md) §1).
 
 ### API (Phase 1)
 
-| Method | Path | Role |
-| --- | --- | --- |
-| `GET` | `/api/health` | Harness liveness (Phase 0) |
-| `GET` | `/api/radicals` | List seed components (Zod response) |
-| `GET` | `/api/radicals/[id]` | One component by id; 404 if missing |
+| Method | Path                 | Role                                |
+| ------ | -------------------- | ----------------------------------- |
+| `GET`  | `/api/health`        | Harness liveness (Phase 0)          |
+| `GET`  | `/api/radicals`      | List seed components (Zod response) |
+| `GET`  | `/api/radicals/[id]` | One component by id; 404 if missing |
 
 Invalid input → 400; unknown id → 404. No writes in MVP.
 

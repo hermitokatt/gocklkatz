@@ -33,8 +33,7 @@ const notoSansSc = Noto_Sans_SC({
 
 export const metadata: Metadata = {
   title: "Simplified — learn Chinese characters",
-  description:
-    "A calm path into simplified Chinese: start with radicals and common components.",
+  description: "A calm path into simplified Chinese: start with radicals and common components.",
 };
 
 export default function RootLayout({
@@ -44,9 +43,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${syne.variable} ${literata.variable} ${notoSansSc.variable}`}
-      >
+      <body className={`${syne.variable} ${literata.variable} ${notoSansSc.variable}`}>
         {children}
       </body>
     </html>

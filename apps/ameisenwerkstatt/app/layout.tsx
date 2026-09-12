@@ -6,8 +6,7 @@ export const metadata: Metadata = {
     default: "Software Factory Demo",
     template: "%s · Software Factory",
   },
-  description:
-    "Software Factory Demo #1 — Ameisenfabrik live ACO, DualAB-A façade, Origin→Vercel.",
+  description: "Software Factory Demo #1 — Ameisenfabrik live ACO, DualAB-A façade, Origin→Vercel.",
 };
 
 export default function RootLayout({

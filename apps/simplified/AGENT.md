@@ -8,11 +8,11 @@ This repository builds **Simplified** — an application for learning and practi
 
 ## Product plan
 
-| Doc | Role |
-| --- | --- |
-| [`docs/MVP.md`](docs/MVP.md) | MVP charter (stack, radicals-first feature, out of scope) |
-| [`docs/ROADMAP.md`](docs/ROADMAP.md) | Ticket-generation SoT (Done / Next slices) |
-| [`docs/hanzi_research.md`](docs/hanzi_research.md) | Learning-research background |
+| Doc                                                | Role                                                      |
+| -------------------------------------------------- | --------------------------------------------------------- |
+| [`docs/MVP.md`](docs/MVP.md)                       | MVP charter (stack, radicals-first feature, out of scope) |
+| [`docs/ROADMAP.md`](docs/ROADMAP.md)               | Ticket-generation SoT (Done / Next slices)                |
+| [`docs/hanzi_research.md`](docs/hanzi_research.md) | Learning-research background                              |
 
 **Stack pin:** Next.js App Router, React 19, TypeScript, Zod Route Handlers, Vitest, Vercel — rewrite habits from [software-factory-demo](https://cursor.com/codebase/gocklkatz/software-factory-demo); do not copy that repo’s product code.
 

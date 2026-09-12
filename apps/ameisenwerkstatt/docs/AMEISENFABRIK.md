@@ -11,9 +11,9 @@ Lauf/Halt, Chaos/Frei, Kante, the rail of plates).
 The application is deliberately split in two, and both halves read the same colony math in
 `lib/ameisen/`:
 
-| Half | What it is |
-| --- | --- |
-| **The simulation** | The canvas and 3D stage, the chaos mechanic, and the typed HTTP façade over the colony. |
+| Half                | What it is                                                                                                                                                                          |
+| ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **The simulation**  | The canvas and 3D stage, the chaos mechanic, and the typed HTTP façade over the colony.                                                                                             |
 | **The tool façade** | A small allowlist of named tools (`getTrail`, `getBestTour`, `setParams`, `step`) reachable over one HTTP endpoint, plus a frozen golden bank for scoring a model that drives them. |
 
 No model is hard-locked into the application. No AI SDK is installed. The tool façade is a typed

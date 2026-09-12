@@ -5,11 +5,11 @@ dated sittings in which someone actually scores them.
 
 ## Folder contract
 
-| Path | Role | Holds scores? |
-| ---- | ---- | ------------- |
-| [`ameisen/goldens/`](ameisen/goldens/) | The tool goldens, G01–G07 | **No** — the Pass column stays blank |
-| [`ameisen/runs/`](ameisen/runs/) | Dated sittings, copied from the template | **Yes** — this is the only place a Pass is recorded |
-| [`ameisen/runs/TEMPLATE.md`](ameisen/runs/TEMPLATE.md) | The blank sitting form | Blank until copied |
+| Path                                                   | Role                                     | Holds scores?                                       |
+| ------------------------------------------------------ | ---------------------------------------- | --------------------------------------------------- |
+| [`ameisen/goldens/`](ameisen/goldens/)                 | The tool goldens, G01–G07                | **No** — the Pass column stays blank                |
+| [`ameisen/runs/`](ameisen/runs/)                       | Dated sittings, copied from the template | **Yes** — this is the only place a Pass is recorded |
+| [`ameisen/runs/TEMPLATE.md`](ameisen/runs/TEMPLATE.md) | The blank sitting form                   | Blank until copied                                  |
 
 ### Why goldens never hold scores
 
@@ -31,8 +31,8 @@ model name, and the goldens must stay usable against any of them.
 
 ## Suites
 
-| Suite | Path | Notes |
-| ----- | ---- | ----- |
+| Suite               | Path                   | Notes                                                        |
+| ------------------- | ---------------------- | ------------------------------------------------------------ |
 | Ameisen tool façade | [`ameisen/`](ameisen/) | G01–G07, plus [`runs/TEMPLATE.md`](ameisen/runs/TEMPLATE.md) |
 
 ## First sitting

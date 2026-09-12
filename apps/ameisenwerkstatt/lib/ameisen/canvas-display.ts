@@ -60,10 +60,7 @@ export function resolveCanvasDisplaySize(input: {
 /**
  * Pin CSS pixel box so bitmap intrinsic size cannot feed layout, then set backing store.
  */
-export function applyCanvasDisplaySize(
-  canvas: HTMLCanvasElement,
-  size: CanvasDisplaySize,
-): void {
+export function applyCanvasDisplaySize(canvas: HTMLCanvasElement, size: CanvasDisplaySize): void {
   canvas.style.width = `${size.cssWidth}px`;
   canvas.style.height = `${size.cssHeight}px`;
   if (canvas.width !== size.bitmapWidth || canvas.height !== size.bitmapHeight) {
