@@ -890,3 +890,52 @@ mention — and a conclusion drawn before trying that path is a guess wearing a 
 
 *Rule:* when a later observation contradicts an entry in this journal, correct the entry. This one
 stood wrong for about an hour; the correction is the point of keeping the file at all.
+
+### The landing-page project stopped receiving deployments, and `framework` is `null`
+
+After the Arbeitsmarkt card flip merged, `gocklkatz.vercel.app` kept publishing three demo anchors
+instead of four. The repo was correct — `main` carried the change and the root `verify.sh` passed
+locally with four live cards — so this was a deploy-side problem, not a code one.
+
+What was established by measurement:
+
+* **No deployment was created at all**, across two pushes to `main` (`31115a3` at 11:44Z and
+  `213e4d3` at 12:44Z). `list_deployments` for the project still returned `11:34:37Z` as its newest
+  entry after both. So this is not a queued build — nothing was enqueued.
+* **The other projects did deploy from the same pushes.** On the PR for the second one,
+  `gocklkatz-simplified` and `gocklkatz-arbeitsmarkt` both reported `completed (success)` while
+  `gocklkatz` reported `failure` with `build-rate-limit`. So the team integration works, and the
+  problem is specific to this project.
+* **Only this project has `framework: null`.** All four app projects report `"nextjs"`; the landing
+  page reports `null`, while the repository has declared `{"framework": "nextjs"}` in `vercel.json`
+  since the build failure that produced it. This is the one configuration difference found.
+
+What was **not** established, and should not be assumed:
+
+* That `framework: null` is the *cause*. It is a difference, not a proven mechanism.
+* Whether a deployment would trigger from a fresh commit. An empty commit was tried; some
+  integrations suppress those, and this one produced no deployment.
+* What the project's Git settings show in the Vercel UI. The MCP exposes no tool that reads or writes
+  project Git or framework settings, and `deploy_to_vercel` is not a substitute — it requires the
+  whole file tree inlined as `{file, data}[]`, which is not practical for a Next.js app and would
+  create a one-off API deployment rather than restoring the git path.
+
+*Rule:* when one of five identically-configured projects stops deploying, compare their
+configuration before theorising. `framework: null` against four `"nextjs"` is the kind of difference
+that is invisible in the UI's happy path and cheap to check through the API.
+
+### Deploy once per issue, not once per sub-issue
+
+The owner's feedback after this epic, recorded because it changes the delivery loop:
+
+> we should not deploy with every sub-issue. We should only deploy once a whole issue is ready.
+
+The evidence for it is in this session. Five projects were created in one working day, and every pull
+request produced four or five Vercel preview builds. That reached `api-deployments-free-per-day`
+(100) on the project-creation path and `build-rate-limit` on the preview path within hours. Neither
+limit is a code defect; both are consequences of deploying on every sub-issue instead of once when
+the issue is finished.
+
+The delivery loop in `AGENTS.md` §11 is unchanged — branch, gate, PR, local merge, push, mirror. What
+changes is the **frequency of deployment**: the app's Vercel project and the card flip belong to the
+final sub-issue of an epic, not to each piece of it.
