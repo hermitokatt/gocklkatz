@@ -841,3 +841,37 @@ No benchmark was invented to rescue the original wording.
 not evidence — read what it points at.
 
 
+
+### The free Vercel tier caps API-created deployments per day, and it is shared
+
+Creating the fifth project failed part-way, and the failure mode is worth knowing because the
+project object looks healthy:
+
+```
+Project "gocklkatz-arbeitsmarkt" was created and linked to gocklkatz/gocklkatz
+  (project id: prj_lWVOIb2LPAi376HoChUMqMQiVYQa),
+  but creating its preview deployment failed: Vercel API error 402
+Body: {"error":{"code":"payment_required",
+   "message":"Resource is limited - try again in 24 hours (more than 100,
+   code: \"api-deployments-free-per-day\")",
+   "limit":{"total":100,"remaining":0,"reset":1789299967502},
+   "resource":"api-deployments-free-per-day"}}
+```
+
+`get_project` afterwards reports `latestDeployment: null`, `domains: []` and no `link` field, which
+reads like a broken project. It is not broken — `list_projects` shows its `link` is identical to the
+four working projects (`{"type":"cursor-origin","repo":"gocklkatz","owner":"gocklkatz"}`), while all
+four existing sites still answer `200` and the new project's documented domain answers `404`. **The
+project is configured; only the deployment is missing.**
+
+Two things to carry forward:
+
+* **The quota is account-wide, not per project** — "more than 100" across the team in a rolling day.
+  Five apps is enough to reach it in one working session.
+* **A 402 leaves a half-created resource.** The project exists and is linked, so a later retry should
+  deploy it rather than creating a duplicate. The reset in this case was exactly 24 hours after the
+  attempt: `2026-09-13T11:46:07Z`.
+
+*Rule:* when a provisioning call fails after creating something, read the resulting object rather
+than the error alone — and check whether the failure is a quota, which a wait fixes, or a
+misconfiguration, which a wait does not.
