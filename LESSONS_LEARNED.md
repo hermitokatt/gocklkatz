@@ -1200,3 +1200,43 @@ apps rebuilt for none — the exact inversion of the intent. Its set is therefor
 subtraction: everything except `apps/`, `docs/`, and the root prose, none of which is an input to its
 build. Verified that no application imports across its own boundary, which is what makes a pure
 directory comparison correct rather than merely convenient.
+
+### A test that reads this repository's history works on one machine
+
+The first version of `tests/vercel-ignore.test.sh` took its fixtures from real commits in this
+repository — `a285366` for the docs-only shape, `31115a3` for the landing-page shape, `85b136f` for
+the new-app shape. It passed locally, fourteen cases green, and then failed the Gate check on CI:
+
+```
+FAIL a fixture commit is missing from this clone
+```
+
+`actions/checkout@v4` clones **shallowly by default**. Those commits are thirty-odd behind the pull
+request's merge commit, so they are not in the CI checkout at all. The test was not wrong about the
+rule; it was wrong about the world it would run in.
+
+The fix is to stop depending on the surrounding clone. The test now builds its own repositories and
+commits in a temporary directory, so it behaves identically on a laptop, in CI, and in any clone
+however shallow:
+
+```bash
+SCRATCH="$(mktemp -d)"; cd "$SCRATCH"; git init -q .
+commit_touching docs/notes.md     # a docs-only commit
+commit_touching src/lib-demos.ts  # the landing page's own file
+commit_touching apps/alpha/page.tsx
+```
+
+*Rule:* a test that reads the history of the repository it lives in is only valid where that history
+exists. If a fixture must be a commit, create the commit — and note that `actions/checkout` is shallow
+unless you say otherwise, which also means the `git clone --depth=10` in Vercel's own docs is a hint
+that shallow clones are normal rather than exceptional.
+
+### The gate's self-test loop made this findable in one run
+
+This is the payoff from capturing a failing self-test's output earlier today (GOC-48). The CI
+diagnosis named the exact failing line — `FAIL a fixture commit is missing from this clone` — rather
+than reporting only that `tests/vercel-ignore.test.sh` had failed. Before that change the harness sent
+the child's output to `/dev/null`, and this would have been another four-hour hunt.
+
+*Rule:* capture the output of a nested check. A harness that discards it converts every failure into
+an investigation.
