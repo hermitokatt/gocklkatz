@@ -53,6 +53,16 @@ run "typecheck (tsc --noEmit)" npm run --silent typecheck
 run "tests (vitest run)" npm run --silent test
 run "build (next build)" npm run --silent build
 
+# Tell scripts/verify.sh that a build for this tree already exists, so a gate run does not
+# build every application twice. The content is the tree hash, so verify only skips when the
+# tree it would build is the tree that was built. An absent or unreadable hash writes nothing,
+# and verify then builds as before — the marker can only ever save work, never cause it to be
+# skipped wrongly.
+built_tree="$(git rev-parse HEAD^{tree} 2>/dev/null || true)"
+if [ "$fail" -eq 0 ] && [ -n "$built_tree" ]; then
+    printf '%s\n' "$built_tree" >".gate-build-complete"
+fi
+
 echo
 if [ "$fail" -ne 0 ]; then
     printf 'ci: FAIL\n'
