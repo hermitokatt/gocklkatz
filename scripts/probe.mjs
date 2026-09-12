@@ -502,6 +502,140 @@ export function claimCountProblems(card) {
 }
 
 /**
+ * Every stylesheet the served page links, so a layout rule can be read from what the browser is
+ * actually sent rather than from the file in the repository.
+ *
+ * @param {string} html
+ * @returns {string[]}
+ */
+export function stylesheetHrefs(html) {
+  /** @type {string[]} */
+  const hrefs = [];
+  const link = /<link\b[^>]*>/gi;
+  let match;
+  while ((match = link.exec(html)) !== null) {
+    const tag = match[0];
+    if (
+      !/\brel\s*=\s*(?:"[^"]*\bstylesheet\b[^"]*"|'[^']*\bstylesheet\b[^']*'|stylesheet)/i.test(tag)
+    ) {
+      continue;
+    }
+    const href = /\bhref\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'>]+))/i.exec(tag);
+    if (href === null) {
+      continue;
+    }
+    const value = decodeAttribute(href[1] ?? href[2] ?? href[3] ?? "");
+    if (value !== "") {
+      hrefs.push(value);
+    }
+  }
+  return hrefs;
+}
+
+/**
+ * Declarations of every rule whose selector is exactly `className`, across the concatenated
+ * stylesheets, as `property -> value` with the last declaration winning — which is what the
+ * cascade does for rules of equal specificity.
+ *
+ * @param {string} css
+ * @param {string} className
+ * @returns {Map<string, string>}
+ */
+function declarationsFor(css, className) {
+  const escaped = className.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  // Comments first: `app/globals.css` documents its rules, and a rule preceded by a comment is
+  // preceded by `*/`, which is neither the start of the sheet nor a brace. A selector may also
+  // begin a block rather than follow another rule, which a media query needs.
+  const clean = css.replace(/\/\*[\s\S]*?\*\//g, "");
+  const rule = new RegExp(`(?:^|[}{,])\\s*\\.${escaped}\\s*(?:,[^{]*)?\\{([^}]*)\\}`, "gi");
+  /** @type {Map<string, string>} */
+  const declarations = new Map();
+  let match;
+  while ((match = rule.exec(clean)) !== null) {
+    for (const declaration of (match[1] ?? "").split(";")) {
+      const at = declaration.indexOf(":");
+      if (at === -1) {
+        continue;
+      }
+      const property = declaration.slice(0, at).trim().toLowerCase();
+      const value = declaration.slice(at + 1).trim();
+      if (property !== "") {
+        declarations.set(property, value);
+      }
+    }
+  }
+  return declarations;
+}
+
+/** `css` length prefix as a number, or null when the value is not a length we can judge. */
+function lengthValue(/** @type {string} */ value) {
+  const match = /^\s*([+-]?(?:\d+\.?\d*|\.\d+))/.exec(value);
+  return match === null || match[1] === undefined ? null : Number(match[1]);
+}
+
+/**
+ * The landing page's provenance line renders a file path and the command that reproduces its claim
+ * side by side. They were adjacent inline elements, so a served card read
+ *
+ *     apps/simplified/tests/radicals.test.tsreproduce: npm run test
+ *
+ * — two unrelated facts fused into one string, with no error anywhere to say so. The fix is a gap,
+ * and **a gap only separates flex and grid children**: set the container back to `block` and the
+ * rule still parses, still applies, and silently stops doing anything.
+ *
+ * So both halves are asserted against the stylesheet the server actually sends: the line is a flex
+ * container, and its horizontal gap is a non-zero length. Either one alone is passable by a broken
+ * page — `display: flex` with no gap still runs the text together, and a gap on a block container
+ * does nothing at all. Exported so scripts/probe.test.mjs can exercise it on the pre-fix
+ * stylesheet, which is the case that must fail.
+ *
+ * @param {string} css all served stylesheets, concatenated
+ * @returns {string[]} problems, empty when the line is separated by layout rather than narration
+ */
+export function provenanceLayoutProblems(css) {
+  /** @type {string[]} */
+  const problems = [];
+  const declarations = declarationsFor(css, "card__provenance");
+  if (declarations.size === 0) {
+    problems.push(
+      "the served stylesheets define no .card__provenance rule, so the card's source path and its reproduce command have no layout separating them",
+    );
+    return problems;
+  }
+
+  const display = declarations.get("display") ?? "";
+  if (!/^(inline-)?flex$|^grid$/.test(display.trim().toLowerCase())) {
+    problems.push(
+      `.card__provenance has display: ${display === "" ? "<unset>" : display}, which is not flex or grid — its gap cannot separate anything, and the source path and the reproduce command run together`,
+    );
+  }
+
+  // The column gap is what separates the two items when they share a line: `gap: A B` is row then
+  // column, a single `gap: A` is both, and `column-gap` overrides the shorthand's second value.
+  let column = declarations.get("column-gap");
+  if (column === undefined) {
+    const gap = declarations.get("gap");
+    if (gap === undefined) {
+      problems.push(
+        ".card__provenance declares no gap, so the source path and the reproduce command are laid out flush against each other",
+      );
+      return problems;
+    }
+    const parts = gap.trim().split(/\s+/);
+    column = parts.length > 1 ? parts[parts.length - 1] : parts[0];
+  }
+  const width = column === undefined ? null : lengthValue(column);
+  if (width === null) {
+    problems.push(`.card__provenance column gap is not a length this check can read: "${column}"`);
+  } else if (width <= 0) {
+    problems.push(
+      `.card__provenance column gap is ${column}, which separates nothing — the source path and the reproduce command run together`,
+    );
+  }
+  return problems;
+}
+
+/**
  * @param {string} baseUrl
  * @returns {Promise<number>} process exit code
  */
@@ -579,6 +713,43 @@ async function check(baseUrl) {
       continue;
     }
     say(`claim ${card.slug.padEnd(18)} source ${source.status}`);
+  }
+
+  // ---- the provenance line is separated by layout, not by a space character ----------
+  //
+  // The markup checks above cannot see this. Two adjacent inline spans carry every data attribute
+  // the probe reads and are perfectly well-formed; the page is simply unreadable. That is the half
+  // that needs the stylesheet, so it is read from what the server sends rather than from the file
+  // in the repository — a rule that exists only in the working tree is not a rule the visitor got.
+  const stylesheets = stylesheetHrefs(home.body);
+  if (stylesheets.length === 0) {
+    failures.push(
+      "GET / links no stylesheet, so the card layout cannot be read from what the server actually sends",
+    );
+  }
+  /** @type {string[]} */
+  const cssParts = [];
+  for (const href of stylesheets) {
+    const url = new URL(href, `${base}/`).toString();
+    const sheet = await get(url);
+    if ("error" in sheet) {
+      failures.push(`the stylesheet ${url} does not resolve (${sheet.error})`);
+      continue;
+    }
+    if (sheet.status !== 200) {
+      failures.push(`the stylesheet ${url} answered ${sheet.status}, expected 200`);
+      continue;
+    }
+    cssParts.push(sheet.body);
+  }
+  const layoutProblems = provenanceLayoutProblems(cssParts.join("\n"));
+  if (cssParts.length > 0) {
+    say(`css   ${cssParts.length} stylesheet(s), ${cssParts.join("").length} bytes`);
+  }
+  if (layoutProblems.length > 0) {
+    failures.push(...layoutProblems);
+  } else {
+    say("css   .card__provenance is a flex line with a non-zero column gap");
   }
 
   // ---- the portfolio intro (ticket GOC-12) ------------------------------

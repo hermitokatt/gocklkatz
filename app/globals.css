@@ -6,6 +6,7 @@
   --text-soft: #9aa9b8;
   --accent: #ffc043;
   --accent-soft: #6ea8fe;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   --radius: 14px;
   color-scheme: dark;
 }
@@ -140,6 +141,59 @@ body {
 .card__description {
   color: var(--text-soft);
   margin: 0;
+}
+
+/**
+ * The measured claim, set apart from the description: a left rule marks it as evidence rather than
+ * marketing, and the brighter text says "read this number".
+ */
+.card__claim {
+  border-left: 2px solid var(--accent-soft);
+  color: var(--text);
+  margin: 0.25rem 0 0;
+  padding-left: 0.7rem;
+}
+
+/**
+ * Provenance, on one line: the source path, then what it took to produce it.
+ *
+ * `flex-wrap` rather than inline spans — the first version had the path and the command as adjacent
+ * inline elements with no gap between them, so a served card read
+ * "…/radicals.test.tsreproduce: npm run test". The gap belongs to the layout, not to a space
+ * character someone has to remember to type.
+ */
+.card__provenance {
+  align-items: baseline;
+  color: #6b7a8a;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.75rem;
+  margin: 0;
+}
+
+.card__source {
+  color: var(--accent);
+  font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-size: 0.78rem;
+  overflow-wrap: anywhere;
+  text-decoration: none;
+}
+
+.card__source:hover,
+.card__source:focus-visible {
+  text-decoration: underline;
+}
+
+.card__command {
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
+
+.card__command code {
+  background: rgb(255 255 255 / 6%);
+  border-radius: 4px;
+  font-size: 0.95em;
+  padding: 0.05rem 0.3rem;
 }
 
 .card__action {
