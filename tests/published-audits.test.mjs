@@ -41,13 +41,17 @@ const CASES = [
         label: "rejects a scheme followed only by a slash",
         ok: looksLikeAddress("https:///path") === false,
       },
+      // The accepted cases reuse hosts that are already in the tracked tree, so this test adds no
+      // new URL to docs/LINK_AUDIT.md. The audit scans every tracked file including this one, and a
+      // new URL here would fail `--check` until the document was regenerated — which is the audit
+      // working, but it is noise in a published document to prove a point about strings.
       {
         label: "accepts an address with a host",
-        ok: looksLikeAddress("https://example.com/x") === true,
+        ok: looksLikeAddress("https://example.invalid/x") === true,
       },
       {
         label: "accepts a host with no path",
-        ok: looksLikeAddress("https://example.com") === true,
+        ok: looksLikeAddress("https://example.invalid") === true,
       },
       {
         label: "accepts a host and port",
@@ -96,7 +100,7 @@ const CASES = [
           "[one](target.md)",
           "[two](./target.json)",
           "[three](sub/../target.md)",
-          "[external](https://example.com/)",
+          "[external](https://example.invalid/repo)",
           "[anchor](#section)",
           "[mail](mailto:someone@example.com)",
         ].join("\n"),
