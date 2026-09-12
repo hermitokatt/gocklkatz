@@ -22,6 +22,22 @@ shared, rolled back, and rebuilt on its own. This requires setting **Root Direct
 **Ignored Build Step** per project in the Vercel UI, so that a commit touching only
 `apps/simplified` does not rebuild the other four.
 
+## How often to deploy — once per issue, not once per sub-issue
+
+Deployment happens when a **whole issue is finished**, not when each sub-issue of it merges. The
+delivery loop for the work itself is unchanged (`AGENTS.md` §11: branch, gate, PR, local merge, push,
+mirror) — what changes is how often it ends in a deployment.
+
+The reason is measured, not stylistic. On 2026-09-12, merging sub-issue by sub-issue produced four or
+five preview builds per pull request and created five projects in one working day, which reached
+**two separate Vercel limits within hours**: `api-deployments-free-per-day` (100) on the API deploy
+path, and `build-rate-limit` on concurrent builds. Neither is a code defect; both are the cost of
+deploying per sub-issue.
+
+An epic's deploy-facing work — the app's Vercel project, its custom domain, and the landing-page card
+flip — belongs to the sub-issue that closes the epic. The sub-issues build up to a deployment; they
+do not each earn one.
+
 ---
 
 # The quality gate
@@ -353,6 +369,48 @@ verify-live: 1 of 1 failed, as expected — the check tells gated from published
 
 `--expect-fail` inverts the exit code, so this passes only when something failed. Without it the same
 run exits `1`, which is how the check fails a real outage.
+
+### Verifying the deployments themselves — `tools/verify-deployments.sh`
+
+`verify-live.sh` answers "can a stranger open this, or does protection hand them a login?" one URL per
+project. [`tools/verify-deployments.sh`](../tools/verify-deployments.sh) (GOC-44) answers a different
+question: **is each route of each deployed application serving what that app actually renders?**
+
+```bash
+bash tools/verify-deployments.sh
+```
+
+```
+verify-deployments: 20 route(s)
+  ok    200  https://gocklkatz.vercel.app/  (12843 bytes, contains 'Gocklkatz Inc')
+  ok    200  https://gocklkatz.vercel.app/api/health  (33 bytes, contains '{"ok":true,…}')
+  ok    200  https://gocklkatz-ameisenwerkstatt.vercel.app/ameisen  (11509 bytes, contains 'Ameisenfabrik')
+  ok    200  https://gocklkatz-simplified.vercel.app/learn/radicals/person  (14505 bytes, contains 'person; people')
+  ok    200  https://gocklkatz-bienenstock.vercel.app/bienen  (9692 bytes, contains 'data-bienen-scene')
+  ok    200  https://gocklkatz-arbeitsmarkt.vercel.app/arbeitsmarkt/operations  (39309 bytes, contains 'data-alarm-state')
+  … 20 routes across the landing page and all four demos
+verify-deployments: PASS (20 route(s) across every live deployment, each serving its own content)
+```
+
+**Why both checks exist.** A host can answer `200` while a route `500`s; a route can answer `200` with
+an error page or an empty shell; and a project can be gated so nobody sees any of it. Neither check
+subsumes the other, and the health endpoints are asserted on their JSON body rather than their status,
+so an app answering the wrong service name fails.
+
+Seen to fail, in both directions:
+
+```bash
+bash tools/verify-deployments.sh --url https://no-such-host.invalid/ "anything"
+  FAIL  https://no-such-host.invalid/ — no response (host does not resolve, or the connection failed)
+
+bash tools/verify-deployments.sh --url https://gocklkatz.vercel.app/ "Ameisenfabrik"
+  FAIL  https://gocklkatz.vercel.app/ — HTTP 200 but the body does not contain 'Ameisenfabrik'
+```
+
+The second is the case a status check cannot catch: the host is healthy and the content is wrong.
+
+Neither script triggers a deployment. They read what is already published, which is why they can run
+as often as you like — see the note below on how often a deployment *should* happen.
 
 `live: false` on the project is a separate flag and does not mean the site is down — it reflects
 that no deployment is currently aliased as the project's live production in the way the API

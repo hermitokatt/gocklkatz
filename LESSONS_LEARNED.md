@@ -1112,3 +1112,41 @@ rather than changing repository code to work around it.
 The historical `No Output Directory named "dist" found` failure is a different, already-fixed defect:
 it came from the project having no framework preset. It is worth keeping the two apart, because the
 first is real and repository-side while the second was account-side and left no build error at all.
+
+## 2026-09-12 — two deployment checks, because neither subsumes the other (GOC-44, GOC-46)
+
+GOC-46 asks whether a stranger can **open** the published site; GOC-44 asks whether the deployed
+application **serves what it should**. Both exist because each fails a different way, and this session
+showed why they cannot be one check.
+
+* `tools/verify-live.sh` (GOC-46) — one URL per project, five of them. It fetches **anonymously** and
+  **does not follow a redirect**, so a project gated by `ssoProtection` cannot land on a login page
+  and answer `200`. Its negative fixture is one of the project aliases, which is gated by design.
+* `tools/verify-deployments.sh` (GOC-44) — twenty routes across those five hosts, each asserted on its
+  response **body**: `Gocklkatz Inc`, `Ameisenfabrik`, `person; people`, `data-bienen-scene`,
+  `data-alarm-state`, and the health endpoints on their exact JSON.
+
+### Four ways a deployment can be broken and only one of them is a status code
+
+Recorded because "is it up?" is the question people ask, and it is the wrong one:
+
+| Failure | Caught by |
+| --- | --- |
+| host does not resolve | either — HTTP `000` |
+| project gated, visitor sees a login | `verify-live.sh` — it does not follow the `302` |
+| route `500`s while the host is fine | `verify-deployments.sh` — per-route status |
+| route answers `200` with the wrong body | `verify-deployments.sh` — it greps the body |
+
+The last row is the one a status check can never catch, and it was demonstrated rather than asserted:
+pointing the check at a *healthy* host with a string that host does not serve produced
+
+```
+FAIL  https://gocklkatz.vercel.app/ — HTTP 200 but the body does not contain 'Ameisenfabrik'
+```
+
+with the host answering `200` throughout. A check that only asked "did it answer?" would have called
+that a pass.
+
+*Rule:* for every check, be able to say which row of a table like this it catches and which it does
+not. Two checks that feel redundant often differ by exactly one row — and the row is usually the one
+that matters.
