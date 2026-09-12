@@ -121,6 +121,23 @@ function cleanUrl(raw) {
 }
 
 /**
+ * Whether a cleaned candidate is an address at all.
+ *
+ * A bare scheme is not: `https://` with nothing after it appears in this very file, inside the
+ * comment on `cleanUrl` that explains how `${VAR:-https://...}` is handled, and in a shell
+ * parameter-expansion example. Treating that as a published URL is not merely noise — it makes the
+ * audit stale against its own source the moment the file becomes tracked, which is precisely what
+ * happened: `--write` ran while this tool was still untracked, so the tool did not scan itself, and
+ * committing it turned the gate red. A fragment in a comment is not a link a reader can follow.
+ *
+ * @param {string} url
+ * @returns {boolean}
+ */
+export function looksLikeAddress(url) {
+  return /^https?:\/\/[^\s/]/.test(url);
+}
+
+/**
  * @param {string} text
  * @returns {string[]}
  */
@@ -130,7 +147,7 @@ function urlsIn(text) {
   const seen = new Set();
   for (const match of text.matchAll(URL_RE)) {
     const url = cleanUrl(match[0] ?? "");
-    if (url === "" || seen.has(url)) {
+    if (url === "" || !looksLikeAddress(url) || seen.has(url)) {
       continue;
     }
     seen.add(url);
@@ -566,7 +583,7 @@ function parseAuditRows(markdown) {
  * @param {string} status
  * @returns {boolean}
  */
-function statusIsOk(status) {
+export function statusIsOk(status) {
   if (status === "ok" || status.startsWith("unverifiable:")) {
     return true;
   }
@@ -707,11 +724,11 @@ function say(text) {
  *
  * @returns {string[]}
  */
-function relativeLinkProblems() {
+export function relativeLinkProblems(files) {
   /** @type {string[]} */
   const problems = [];
   const link = /\[[^\]]*\]\(([^)\s]+)\)/g;
-  for (const rel of trackedFiles()) {
+  for (const rel of files ?? trackedFiles()) {
     if (!rel.endsWith(".md")) {
       continue;
     }

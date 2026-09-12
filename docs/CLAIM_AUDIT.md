@@ -37,7 +37,7 @@ These are the rows the scanner discovers **mechanically**. Numbers it cannot rea
 | 23 tests | apps/arbeitsmarkt/package.json — the count is not written in this file; it is measured by its `test` script | `measurement` | cd apps/arbeitsmarkt && npm run test | 23 tests passed | 2026-09-12 | reproduced |
 | 13 tests | apps/bienenstock/package.json — the count is not written in this file; it is measured by its `test` script | `measurement` | cd apps/bienenstock && npm run test | 13 tests passed | 2026-09-12 | reproduced |
 | 29 tests | apps/simplified/package.json — the count is not written in this file; it is measured by its `test` script | `measurement` | cd apps/simplified && npm run test | 29 tests passed | 2026-09-12 | reproduced |
-| 67 tests | package.json — the count is not written in this file; it is measured by its `test` script | `measurement` | npm run test | 67 tests passed | 2026-09-12 | reproduced |
+| 70 tests | package.json — the count is not written in this file; it is measured by its `test` script | `measurement` | npm run test | 70 tests passed | 2026-09-12 | reproduced |
 
 ## A-2 — card claims, observed `npm run test`
 
@@ -111,6 +111,21 @@ Numbers the prose scanner does not name, inspected on 2026-09-12.
 | Vercel `api-deployments-free-per-day` (100); two limits; five projects | `docs/DEPLOY.md` | platform limits and project count, declared in that document |
 | Gate self-test **13 cases** / **8 cases** / **14 passed** | `docs/DEPLOY.md` | `bash tests/guard.test.sh`, `bash tests/gate.test.sh`, `bash tests/vercel-ignore.test.sh`. This worker re-ran the first two: guard is 13 cases (one failed here because the sandbox blocked the secret-shaped fixture); gate is 8 passed. vercel-ignore could not be reproduced in this sandbox (git hooks `Operation not permitted` in the temporary repos); the published 14 is the quoted clean run in `docs/DEPLOY.md`. |
 
+### Measurements the scanner's nouns do not reach
+
+The prose scanner matches `NN tests`, `NN route(s)`, `NN URL(s)`, `NN application(s)` and
+`NN project(s)`. Broadening it to `NN <any noun>` would collect every year, port and version in the
+tree and drown the real claims, so these are listed by hand. They are the published measurements
+whose noun is outside that set; the reviewer of this work found the first one missing, which is why
+it is here.
+
+| Claim | Where | Provenance | Observed |
+| --- | --- | --- | --- |
+| `111` self-hosted font files in the production build | `docs/LEGAL.md` | `find apps/simplified/.next \( -name '*.woff2' -o -name '*.woff' \) \| wc -l` after `bash scripts/ci.sh` | 111 |
+| Samples rendered at `1440x900` at `2x` | `docs/LEGAL.md` | `apps/ameisenwerkstatt/docs/ameisen-ui-samples/README.md`; the `width: 1440px; height: 900px` rule in each sample `.html` | 1440 x 900 |
+| Ameisenwerkstatt design-study trace at seed `37` | `docs/LEGAL.md`, `apps/ameisenwerkstatt/docs/AMEISENFABRIK-UI.md` | the same README, which records seed 37 and the then-current defaults | seed 37 |
+| Five design-sample PNGs | `docs/LEGAL.md` | `git ls-files | grep -c '\.png$'` | 5 |
+
 ### Citations (outside world; source URL + retrieval)
 
 From `apps/simplified/docs/hanzi_research.md`, gathered September 2026, retrieval date of this audit 2026-09-12. Source URLs are in the link audit. Figures were not deleted.
@@ -157,5 +172,5 @@ row	suite:apps/ameisenwerkstatt	measurement	62 tests
 row	suite:apps/arbeitsmarkt	measurement	23 tests
 row	suite:apps/bienenstock	measurement	13 tests
 row	suite:apps/simplified	measurement	29 tests
-row	suite:landing	measurement	67 tests
+row	suite:landing	measurement	70 tests
 END CLAIM_AUDIT_ROWS -->

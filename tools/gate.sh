@@ -206,6 +206,7 @@ else
     done
     run_selftest "tests/dependency-allowlist.test.mjs" node tests/dependency-allowlist.test.mjs
     run_selftest "tests/licence-audit.test.mjs" node tests/licence-audit.test.mjs
+    run_selftest "tests/published-audits.test.mjs" node tests/published-audits.test.mjs
     rm -f "$selftest_log"
 fi
 
