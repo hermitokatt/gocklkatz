@@ -1240,3 +1240,43 @@ the child's output to `/dev/null`, and this would have been another four-hour hu
 
 *Rule:* capture the output of a nested check. A harness that discards it converts every failure into
 an investigation.
+
+### The rule is not the blocker: pushes to `main` do not deploy at all
+
+GOC-43's A-2 and A-3 ask for rebuild behaviour to be **observed**. Observing it produced a finding
+that is not about the rule.
+
+On 2026-09-12T16:40:53Z the GOC-43 merge was pushed to `main` (`894445d`). It changed `tools/gate.sh`,
+`tools/vercel-ignore.sh`, `tests/vercel-ignore.test.sh`, `docs/DEPLOY.md` and `LESSONS_LEARNED.md`.
+Querying all five projects four minutes later returned **zero deployments in every one of them**:
+
+| Project | deployments after the `main` push |
+| --- | --- |
+| `gocklkatz` | 0 |
+| `gocklkatz-ameisenwerkstatt` | 0 |
+| `gocklkatz-simplified` | 0 |
+| `gocklkatz-bienenstock` | 0 |
+| `gocklkatz-arbeitsmarkt` | 0 |
+
+Meanwhile, **branch pushes do deploy**. On the same afternoon, `tools/goc-43-ignore-rule` produced a
+preview for `gocklkatz-arbeitsmarkt` at `16:36:51Z`, and `gocklkatz-simplified` produced none — which
+is the ignore rule working correctly on a preview, one project building for its own change and a
+sibling correctly skipping.
+
+And the rule's own decision for that merge is right, which is checkable without Vercel:
+
+```
+landing page      build   (tools/, tests/ changed)
+all four apps     skip    (nothing under apps/)
+```
+
+So the landing page *should* have rebuilt and did not, and none of the apps should have and none did.
+The rule is not what is stopping production.
+
+**What this means for GOC-43.** A-2 and A-3 cannot be observed from here, and it is not because the
+ignore settings are unverified — it is because **pushes to `main` are not producing deployments at
+all**. Whatever the cause, it is per-repository on the `main` branch, since branch pushes work.
+
+*Rule:* when a rule's effect cannot be observed, check that the mechanism it feeds is running end to
+end before doubting the rule. Here the rule was verifiable in isolation and correct; the pipeline
+underneath it was not firing.
