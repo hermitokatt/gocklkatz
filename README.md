@@ -14,7 +14,7 @@ demo's dependency or build breakage cannot take down another's.
 | `apps/ameisenwerkstatt` | [Ameisenwerkstatt](https://gocklkatz-ameisenwerkstatt.vercel.app) | Ant colony optimization on a fixed TSP, with a live 3D workspace. |
 | `apps/bienenstock` | [Bienenstock](https://gocklkatz-bienenstock.vercel.app) | Bee colony simulation — hive and foraging, rendered in 3D. |
 | `apps/simplified` | [Simplified](https://gocklkatz-simplified.vercel.app) | Learning and practising simplified Chinese characters (汉字). |
-| `apps/arbeitsmarkt` | Arbeitsmarkt | A relevance-ranked job-listing pipeline, demonstrated on synthetic data. |
+| `apps/arbeitsmarkt` | [Arbeitsmarkt](https://gocklkatz-arbeitsmarkt.vercel.app) | A relevance-ranked job-listing pipeline, demonstrated on synthetic data. |
 
 Source of truth for code: <https://cursor.com/codebase/gocklkatz/gocklkatz>.
 This repository is public — read [`AGENTS.md`](./AGENTS.md) before contributing.
@@ -30,7 +30,7 @@ built, shared and rolled back on its own.
 | `gocklkatz-ameisenwerkstatt` | `apps/ameisenwerkstatt` | <https://gocklkatz-ameisenwerkstatt.vercel.app> |
 | `gocklkatz-bienenstock` | `apps/bienenstock` | <https://gocklkatz-bienenstock.vercel.app> |
 | `gocklkatz-simplified` | `apps/simplified` | <https://gocklkatz-simplified.vercel.app> |
-| `gocklkatz-arbeitsmarkt` | `apps/arbeitsmarkt` | — |
+| `gocklkatz-arbeitsmarkt` | `apps/arbeitsmarkt` | <https://gocklkatz-arbeitsmarkt.vercel.app> |
 
 A URL is recorded here only once it has been fetched and returned `200`. Details, the CI gate and
 the shared quality bar: [`docs/DEPLOY.md`](./docs/DEPLOY.md).

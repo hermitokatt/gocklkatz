@@ -8,7 +8,7 @@ Each app is a separate Vercel project pointing at its own root directory in this
 | `gocklkatz-ameisenwerkstatt` | `apps/ameisenwerkstatt` | `gocklkatz-ameisenwerkstatt.vercel.app` |
 | `gocklkatz-bienenstock` | `apps/bienenstock` | `gocklkatz-bienenstock.vercel.app` |
 | `gocklkatz-simplified` | `apps/simplified` | `gocklkatz-simplified.vercel.app` |
-| `gocklkatz-arbeitsmarkt` | `apps/arbeitsmarkt` | — |
+| `gocklkatz-arbeitsmarkt` | `apps/arbeitsmarkt` | `gocklkatz-arbeitsmarkt.vercel.app` |
 
 A URL is recorded here only once it has been fetched and returned `200`. The three recorded above
 were each fetched anonymously; the deployment and branch aliases for the same projects answer `302`
@@ -314,7 +314,7 @@ domain, but nothing that attaches an existing address.
 | `gocklkatz-ameisenwerkstatt` | `apps/ameisenwerkstatt` | `gocklkatz-ameisenwerkstatt.vercel.app` | attached |
 | `gocklkatz-bienenstock` | `apps/bienenstock` | `gocklkatz-bienenstock.vercel.app` | attached |
 | `gocklkatz-simplified` | `apps/simplified` | `gocklkatz-simplified.vercel.app` | attached |
-| `gocklkatz-arbeitsmarkt` | `apps/arbeitsmarkt` | `gocklkatz-arbeitsmarkt.vercel.app` | to attach |
+| `gocklkatz-arbeitsmarkt` | `apps/arbeitsmarkt` | `gocklkatz-arbeitsmarkt.vercel.app` | attached |
 
 The domains are fixed in advance because each is already the URL on that demo's card in
 `src/lib/demos.ts`. Attaching the named domain, then flipping the card, is the whole procedure for

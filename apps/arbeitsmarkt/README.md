@@ -42,5 +42,9 @@ Then run `npm test` — the committed-output equality test must stay green.
 
 ## Deploy
 
-Creating the Vercel project and attaching a domain is not part of this work. The demo is not
-claimed live from this tree alone.
+Production URL: **<https://gocklkatz-arbeitsmarkt.vercel.app>** — fetched anonymously and answering
+`200` on `/`, `/arbeitsmarkt`, `/arbeitsmarkt/digest` and `/arbeitsmarkt/operations`.
+
+The app deploys from the monorepo's Vercel project of the same name, whose Root Directory is
+`apps/arbeitsmarkt`; a merge to `main` is what deploys it. The published views each carry the
+synthetic-data statement, verified by fetching them.

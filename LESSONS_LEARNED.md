@@ -842,10 +842,9 @@ not evidence — read what it points at.
 
 
 
-### The free Vercel tier caps API-created deployments per day, and it is shared
+### A 402 on project creation does not mean the project cannot deploy
 
-Creating the fifth project failed part-way, and the failure mode is worth knowing because the
-project object looks healthy:
+Creating the fifth project reported a quota failure, and the project object afterwards looked broken:
 
 ```
 Project "gocklkatz-arbeitsmarkt" was created and linked to gocklkatz/gocklkatz
@@ -858,20 +857,36 @@ Body: {"error":{"code":"payment_required",
    "resource":"api-deployments-free-per-day"}}
 ```
 
-`get_project` afterwards reports `latestDeployment: null`, `domains: []` and no `link` field, which
-reads like a broken project. It is not broken — `list_projects` shows its `link` is identical to the
-four working projects (`{"type":"cursor-origin","repo":"gocklkatz","owner":"gocklkatz"}`), while all
-four existing sites still answer `200` and the new project's documented domain answers `404`. **The
-project is configured; only the deployment is missing.**
+`get_project` then reported `latestDeployment: null`, `domains: []` and no `link` field — which reads
+like a broken project. `list_projects` contradicted that: its `link` was identical to the four
+working projects (`{"type":"cursor-origin","repo":"gocklkatz","owner":"gocklkatz"}`).
 
-Two things to carry forward:
+**An earlier version of this entry concluded that the deployment was therefore blocked for 24 hours,
+and that the quota was account-wide. Both were wrong, and the next push disproved them.** On the next
+pull request, one minute later:
 
-* **The quota is account-wide, not per project** — "more than 100" across the team in a rolling day.
-  Five apps is enough to reach it in one working session.
-* **A 402 leaves a half-created resource.** The project exists and is linked, so a later retry should
-  deploy it rather than creating a duplicate. The reset in this case was exactly 24 hours after the
-  attempt: `2026-09-13T11:46:07Z`.
+```
+- Vercel – gocklkatz-arbeitsmarkt:    completed (success)
+- Vercel – gocklkatz-bienenstock:     completed (failure)  → build-rate-limit
+- Vercel – gocklkatz-simplified:      completed (failure)  → build-rate-limit
+- Vercel – gocklkatz:                 completed (failure)  → build-rate-limit
+- Vercel – gocklkatz-ameisenwerkstatt: completed (failure) → build-rate-limit
+```
 
-*Rule:* when a provisioning call fails after creating something, read the resulting object rather
-than the error alone — and check whether the failure is a quota, which a wait fixes, or a
-misconfiguration, which a wait does not.
+The new project deployed through the **git integration**, which is a different path from the API
+deploy that returned 402. All five custom domains then answered `200`, including the new one, with
+its full content present.
+
+Two distinct limits were in play, and conflating them is what produced the wrong conclusion:
+
+* `api-deployments-free-per-day` — the **API** deploy path, exhausted at 100 for the day. It blocked
+  `create_git_project`'s `deploy=true` step, nothing else.
+* `build-rate-limit` — a **concurrent build** limit, which failed four projects' preview builds and
+  cleared on its own.
+
+*Rule:* an error naming a quota says which quota **and** which code path hit it. Do not generalise it
+to the resource. A project whose link is correct can still deploy by the path the error did not
+mention — and a conclusion drawn before trying that path is a guess wearing a measurement's clothes.
+
+*Rule:* when a later observation contradicts an entry in this journal, correct the entry. This one
+stood wrong for about an hour; the correction is the point of keeping the file at all.
