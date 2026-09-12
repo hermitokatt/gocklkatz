@@ -178,3 +178,55 @@ Two consequences to keep in mind:
   included.** It runs in `tools/gate.sh`, so a commit carrying a foreign identity fails the gate.
   Excluding merge commits from that audit was itself a hole: one such merge reached `main` while
   the audit reported everything clean.
+
+---
+
+## 12. The delivery loop ends at the mirror
+
+This is the whole loop. It has six steps and then it is finished:
+
+```
+branch → gate → PR → Gate green → local merge --no-ff → push origin main → mirror to GitHub
+```
+
+**Then stop.** The mirror is the end of the loop, not the middle of it.
+
+**Deploying is not part of the loop.** A merge to `main` may or may not produce a deployment,
+depending on settings this repository does not control. That is not the loop's business:
+
+* Do not wait for a deployment. Do not poll for one.
+* Do not verify one as part of finishing a task.
+* Do not push an empty commit, or re-push, to make one happen.
+* Do not report a missing deployment as a failure of the merge — it is not one.
+
+A deployment is a **separate, explicit step**: a human does it, or a human asks for it by name.
+
+### Why, measured
+
+On 2026-09-12, deploying on every sub-issue pushed the account into Vercel's build rate limit. The
+symptom is not a refusal that names itself: a push simply produces no deployment, the previous build
+keeps serving, and the project looks identical to one with a broken git connection, a wrong
+production branch, an ignored-build-step polarity bug, or a stuck project. Four such causes were
+investigated and committed before the real one was found — a working day spent on deployments that
+were the *consequence* of deploying too often, and four wrong diagnoses in the history.
+
+So the rule is not "deploy less often". It is that **the loop does not contain a deployment at all**,
+because a step that can neither be observed from inside the repository nor fixed from inside it does
+not belong in a loop that runs on its own.
+
+Corollary for verification: the checks in this repository prove a change is *correct*, not that it is
+*public*. `tools/verify-live.sh` and `tools/verify-deployments.sh` read what is already deployed.
+They are health checks to run when asked, not a finishing step — and when a deployment is behind,
+they will fail, correctly, for a reason that is not a defect in the change.
+
+### The one place a deployment is load-bearing
+
+The landing page's `scripts/verify.sh` fetches **every anchor a `live` card publishes**, so a card
+flipped to `live` before its deployment answers `200` fails the gate. That is deliberate — a card
+linking to a login wall or a 404 is worse than no card — and it is not a deployment step in disguise.
+
+The consequence is a rule about *ordering*, not about waiting: flip a card in the issue that finishes
+that app's deployment, once a human has deployed it. Until then the card stays `in-development`, and
+the gate is satisfied without anyone watching a build.
+
+

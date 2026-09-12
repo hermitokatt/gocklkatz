@@ -43,6 +43,10 @@ bash tools/gate.sh          # content guard, identity, hygiene, every app, all s
 
 The gate is bound to the git tree and enforced again on push. See [`AGENTS.md`](./AGENTS.md).
 
+The delivery loop is `branch → gate → PR → Gate green → local merge --no-ff → push main → mirror to
+GitHub`, and it **ends there**. Deploying is a separate, explicit step a human runs or asks for; the
+loop never waits on one (`AGENTS.md` §12, and why, in [`docs/DEPLOY.md`](./docs/DEPLOY.md)).
+
 ### The landing page
 
 The root of this repository is the landing page application. Its own gates:
