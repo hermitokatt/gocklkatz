@@ -1,10 +1,9 @@
 #!/usr/bin/env bash
 # Run one Cursor worker pass against a frozen ticket, with a stall watchdog.
 #
-# Generalized from jobberNG/tools/agent-run.sh after two observed hangs (2026-09-11): one after
-# the agent had committed everything, one mid-edit. The lesson recorded there is that a stall is
-# idle CPU **and no progress** — requiring a clean tree is the wrong test, because an agent can
-# hang with work uncommitted on disk just as easily.
+# Written after two observed hangs (2026-09-11): one after the agent had committed everything, one
+# mid-edit. The lesson is that a stall is idle CPU **and no progress** — requiring a clean tree is
+# the wrong test, because an agent can hang with work uncommitted on disk just as easily.
 #
 # This repository's workers do not commit (AGENTS.md §1), so progress cannot be measured by HEAD
 # moving. It is measured by a fingerprint of the working tree: dirty path count plus the diff
