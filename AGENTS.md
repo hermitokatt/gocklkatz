@@ -229,4 +229,35 @@ The consequence is a rule about *ordering*, not about waiting: flip a card in th
 that app's deployment, once a human has deployed it. Until then the card stays `in-development`, and
 the gate is satisfied without anyone watching a build.
 
+---
+
+## 13. Which model runs a worker
+
+`tools/worker-run.sh` runs one Cursor CLI pass against a frozen brief. The owner's standing model
+preference, and the only three ids it will accept:
+
+| Model | Use it for |
+| --- | --- |
+| `auto` | the default, for ordinary work |
+| `composer-2.5-fast` | where it fits: routine, well-specified changes |
+| `cursor-grok-4.6-high` | hard work — anything needing judgement, not just execution |
+
+The owner writes the third as `cursor-grok-4.6`; there is no bare id, and `-high` is the unqualified
+variant, so the harness resolves the shorthand rather than refusing it as unknown.
+
+**Anything else is refused.** `WORKER_ALLOW_ANY_MODEL=1` overrides that, and the harness prints a
+warning when it does. The refusal is deliberately not "no Anthropic models": this harness once spent
+three tickets on an expensive default before anyone noticed, and a rule that banned one vendor would
+not have stopped the next one arriving the same way.
+
+Two things to know when choosing. `auto` is Cursor's own router, and a run's real model is not
+visible from the harness, so when cost matters for a particular run, name one of the other two
+instead of leaving it to the router. And a brief that needs judgement is worth the slower model: the
+same task run on a fast model can pass every command it was asked to run and still miss the thing the
+issue was about.
+
+This policy lives here as well as in the harness's own comments, because a rule that only exists in
+the source of the tool that enforces it is not discoverable by the agent deciding which model to ask
+for.
+
 
