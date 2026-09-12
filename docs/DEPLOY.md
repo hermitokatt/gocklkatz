@@ -416,6 +416,80 @@ as often as you like — see the note below on how often a deployment *should* h
 that no deployment is currently aliased as the project's live production in the way the API
 reports it. The URL above is the evidence that matters.
 
+### What decides whether a project rebuilds — `tools/vercel-ignore.sh`
+
+Five applications, five projects, and each should rebuild only when its own code changes. Without a
+rule, one commit to the landing page rebuilds all five.
+
+Paste one line into each project's **Ignored Build Step** field (Settings → Git):
+
+| Vercel project | Root Directory | Ignored Build Step |
+| --- | --- | --- |
+| `gocklkatz` | `.` | `bash tools/vercel-ignore.sh .` |
+| `gocklkatz-ameisenwerkstatt` | `apps/ameisenwerkstatt` | `bash tools/vercel-ignore.sh apps/ameisenwerkstatt` |
+| `gocklkatz-simplified` | `apps/simplified` | `bash tools/vercel-ignore.sh apps/simplified` |
+| `gocklkatz-bienenstock` | `apps/bienenstock` | `bash tools/vercel-ignore.sh apps/bienenstock` |
+| `gocklkatz-arbeitsmarkt` | `apps/arbeitsmarkt` | `bash tools/vercel-ignore.sh apps/arbeitsmarkt` |
+
+**The exit code is inverted, and that is why this is a script rather than a one-liner.** Vercel skips
+the build when the command returns **`0`** and builds when it returns **`1` or greater** — the
+opposite of how "ignored build step" reads. A rule written the intuitive way round silently skips
+precisely the deployments it was meant to make, and its polarity is reported to differ between
+production and previews, so it can look correct on pull requests while production stops. Every path in
+`tools/vercel-ignore.sh` returns through `build` or `skip`, never a bare `exit`.
+
+**Why each app is an island.** No application imports, reads or builds from anything outside its own
+directory — each has its own `package.json`, lockfile, tests and gates. So a change confined to
+`apps/<name>` cannot affect a sibling, and the rule is a directory comparison rather than a
+dependency graph.
+
+**The landing page is the exception, and the interesting one.** Its root directory is the repository
+root, so `git diff -- .` matches every path: a rule that only asked "did anything change?" would
+rebuild the landing page for every sub-issue of every epic while the apps rebuilt for none. Its set is
+therefore an explicit subtraction — everything except `apps/`, `docs/`, and the root prose
+(`README.md`, `LESSONS_LEARNED.md`), none of which is an input to its build.
+
+#### Verified, without touching Vercel
+
+The rule can be exercised against any pair of commits, which is how it was checked. Pass a base and
+head and it answers for that range:
+
+```bash
+bash tools/vercel-ignore.sh <root> <base-sha> <head-sha>
+```
+
+`tests/vercel-ignore.test.sh` uses real commits from this repository's history — including the
+docs-only commit that stalled production on 2026-09-12 — and asserts both directions of the polarity:
+
+```
+vercel-ignore self-test (bash 3.2.57)
+  ok   the fixture commits still have the shapes this test assumes
+  --- a docs-only commit skips every project ---
+  ok   landing page skips on a docs-only commit
+  ok   Ameisenwerkstatt skips on a docs-only commit
+  …
+  --- adding an app rebuilds that app, not its siblings ---
+  ok   the new app builds
+  ok   a sibling app skips
+  --- misuse must BUILD, never skip ---
+  ok   an unresolvable base is reported as build, not skip
+vercel-ignore self-test: 14 passed, 0 failed
+```
+
+Two properties are deliberate and tested. An **unreadable state builds**: Vercel clones shallowly, so
+without a parent commit the rule builds rather than skipping, because an unnecessary build costs a
+minute while a wrongly skipped build costs a deployment nobody notices is stale. And the test
+re-asserts that its fixture commits still have the shapes it assumes, so a future change that
+invalidates a fixture fails loudly instead of passing while testing nothing.
+
+#### The one step that needs a human
+
+**Nothing above proves the rule is configured in Vercel.** The Ignored Build Step is not exposed by
+any Vercel MCP tool, so whether these five fields hold these values can only be read in the UI. Until
+someone confirms it, treat the per-project rule as **unverified** — and when confirming it, check a
+**production** deployment and not only a preview, because a rule can be correct for previews and
+silently stop production.
+
 ### Creating an application project
 
 Each application is its own Vercel project pointing at its own root directory, created with the

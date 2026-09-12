@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
 # Self-test for tools/vercel-ignore.sh.
 #
-# This script decides whether five production projects rebuild, and it does so through an INVERTED
-# exit code (0 skips, 1 builds). A mistake in it does not fail loudly — it silently stops deploying,
-# which is exactly the failure this repository spent four hours on 2026-09-12 not diagnosing.
+# That script decides whether five production projects rebuild, through an INVERTED exit code:
+# **0 skips the build, 1 or greater builds it.** A mistake in it does not fail loudly — it silently
+# stops deploying, which is the failure this repository spent four hours on 2026-09-12 not
+# diagnosing. So the polarity is asserted in both directions here rather than described in a comment.
 #
-# So the polarity is asserted in both directions, on real commits from this repository's own history,
-# rather than described in a comment.
+# The fixtures are real commits from this repository, chosen because each has a shape the rule must
+# get right. The rule is given an explicit base and head, so nothing is checked out and the working
+# tree is never touched.
 #
 # Written for bash 3.2, which is what macOS ships as /bin/bash.
 
@@ -18,24 +20,11 @@ cd "$REPO" || exit 2
 pass=0
 fail=0
 
-# expect <label> <commit-ish to check the PARENT-OF> <root arg> <expected exit> <expected word>
-#
-# The script diffs HEAD^..HEAD, so the commit under test is the one whose HEAD we stand on. We use a
-# temporary worktree rather than checking out, so the working tree is never touched.
-WORKTREE="var/vercel-ignore-test"
-rm -rf "$WORKTREE"
-
+# expect <label> <root arg> <commit> <expected exit> <expected word>
 expect() {
-    local label="$1" sha="$2" arg="$3" want_rc="$4" want_word="$5"
+    local label="$1" arg="$2" sha="$3" want_rc="$4" want_word="$5"
     local out rc
-    out="$(git -C "$WORKTREE" log -1 --format=%H >/dev/null 2>&1 || true)"
-    # Detach the worktree at the commit under test.
-    git -C "$WORKTREE" checkout -q --detach "$sha" 2>/dev/null || {
-        echo "  FAIL $label (could not check out $sha)"
-        fail=$((fail + 1))
-        return
-    }
-    out="$(cd "$WORKTREE" && bash tools/vercel-ignore.sh "$arg" 2>&1)"
+    out="$(bash tools/vercel-ignore.sh "$arg" "${sha}^" "$sha" 2>&1)"
     rc=$?
     if [ "$rc" != "$want_rc" ]; then
         echo "  FAIL $label (expected exit $want_rc, got $rc)"
@@ -55,69 +44,90 @@ expect() {
 
 echo "vercel-ignore self-test (bash ${BASH_VERSION%%(*})"
 
-git worktree add -q --detach "$WORKTREE" HEAD 2>/dev/null || {
-    echo "  FAIL could not create a test worktree at $WORKTREE"
-    exit 1
-}
+# Fixture commits. Each is verified to have the shape this test relies on, so a future rebase that
+# changed it fails loudly here rather than silently testing nothing.
+DOCS_ONLY="$(git rev-parse --verify --quiet a285366^{commit} || echo '')"
+LANDING="$(git rev-parse --verify --quiet 31115a3^{commit} || echo '')"
+NEW_APP="$(git rev-parse --verify --quiet 85b136f^{commit} || echo '')"
 
-# Two real commits with known, different shapes.
-#   31115a3 touched the landing page (src/lib/demos.ts) AND an app's README, but no app code.
-#   85b136f added the Arbeitsmarkt app itself.
-LANDING_SHA="$(git rev-parse --verify --quiet 31115a3^{commit} || echo '')"
-APP_SHA="$(git rev-parse --verify --quiet 85b136f^{commit} || echo '')"
-
-if [ -z "$LANDING_SHA" ] || [ -z "$APP_SHA" ]; then
-    echo "  FAIL the fixture commits are not present in this clone"
-    git worktree remove --force "$WORKTREE" 2>/dev/null
+if [ -z "$DOCS_ONLY" ] || [ -z "$LANDING" ] || [ -z "$NEW_APP" ]; then
+    echo "  FAIL a fixture commit is missing from this clone"
     exit 1
 fi
 
-# --- the landing page, on a commit that changed it -------------------------
-# 31115a3 changed src/lib/demos.ts, so the landing page MUST rebuild.
-expect "landing page rebuilds when its own file changed" "$LANDING_SHA" "." 1 "build"
+# Assert the fixtures still have the shape the expectations assume.
+shape_ok=1
+if [ -n "$(git diff --name-only "${DOCS_ONLY}^" "$DOCS_ONLY" | grep -v '^docs/' | grep -v '^LESSONS_LEARNED\.md$' || true)" ]; then
+    echo "  FAIL the docs-only fixture now changes something outside docs/"
+    shape_ok=0
+fi
+if ! git diff --name-only "${LANDING}^" "$LANDING" | grep -q '^src/lib/demos\.ts$'; then
+    echo "  FAIL the landing-page fixture no longer changes src/lib/demos.ts"
+    shape_ok=0
+fi
+if ! git diff --name-only "${NEW_APP}^" "$NEW_APP" | grep -q '^apps/arbeitsmarkt/'; then
+    echo "  FAIL the new-app fixture no longer adds apps/arbeitsmarkt"
+    shape_ok=0
+fi
+if [ "$shape_ok" = "1" ]; then
+    echo "  ok   the fixture commits still have the shapes this test assumes"
+    pass=$((pass + 1))
+else
+    fail=$((fail + 1))
+fi
 
-# --- an app, on that same commit ------------------------------------------
-# It touched apps/arbeitsmarkt/README.md but no app CODE. The rule is directory-based, so an app
-# whose directory changed does rebuild — the rule is about collision, not about relevance.
-expect "app rebuilds when anything in its directory changed" "$LANDING_SHA" "apps/arbeitsmarkt" 1 "build"
+echo
+echo "  --- a docs-only commit skips every project ---"
+# This is the commit that stalled production. It touched LESSONS_LEARNED.md and docs/DEPLOY.md, which
+# are inputs to no build, so nothing rebuilding is correct — and correct is not the same as what
+# happened on 2026-09-12.
+expect "landing page skips on a docs-only commit" "." "$DOCS_ONLY" 0 "skip"
+expect "Ameisenwerkstatt skips on a docs-only commit" "apps/ameisenwerkstatt" "$DOCS_ONLY" 0 "skip"
+expect "Simplified skips on a docs-only commit" "apps/simplified" "$DOCS_ONLY" 0 "skip"
+expect "Bienenstock skips on a docs-only commit" "apps/bienenstock" "$DOCS_ONLY" 0 "skip"
+expect "Arbeitsmarkt skips on a docs-only commit" "apps/arbeitsmarkt" "$DOCS_ONLY" 0 "skip"
 
-# --- a sibling app, on that same commit -----------------------------------
-# apps/bienenstock was untouched, so it must NOT rebuild. This is the requirement's core claim.
-expect "sibling app does not rebuild" "$LANDING_SHA" "apps/bienenstock" 0 "skip"
+echo
+echo "  --- a change to the landing page's own file rebuilds it, and only it ---"
+expect "landing page builds when src/lib/demos.ts changed" "." "$LANDING" 1 "build"
+expect "an untouched app skips on the same commit" "apps/bienenstock" "$LANDING" 0 "skip"
 
-# --- the app that was added, on the commit that added it ------------------
-expect "a new app rebuilds when it is added" "$APP_SHA" "apps/arbeitsmarkt" 1 "build"
+echo
+echo "  --- adding an app rebuilds that app, not its siblings ---"
+expect "the new app builds" "apps/arbeitsmarkt" "$NEW_APP" 1 "build"
+expect "a sibling app skips" "apps/simplified" "$NEW_APP" 0 "skip"
+expect "the landing page builds, because src/lib/demos.ts changed too" "." "$NEW_APP" 1 "build"
 
-# --- the landing page, when only an app was added -------------------------
-# 85b136f's changes are confined to apps/arbeitsmarkt and docs, so the landing page must NOT rebuild.
-# This is the row a naive "did anything change?" rule gets wrong.
-expect "landing page does not rebuild when only an app changed" "$APP_SHA" "." 0 "skip"
-
-# --- misuse builds rather than skipping -----------------------------------
-# No argument is a misuse; it must not be read as "skip everything".
-git -C "$WORKTREE" checkout -q --detach "$LANDING_SHA"
-out="$(cd "$WORKTREE" && bash tools/vercel-ignore.sh 2>&1)"
-rc=$?
+echo
+echo "  --- misuse must BUILD, never skip ---"
+# An unreadable state has to fall on the build side: an unnecessary build costs a minute, a wrongly
+# skipped build costs a deployment nobody notices is stale.
+out="$(bash tools/vercel-ignore.sh 2>&1)"; rc=$?
 if [ "$rc" = "2" ]; then
-    echo "  ok   no argument is reported as misuse (exit 2, not a skip)"
+    echo "  ok   no argument is misuse (exit 2, not a silent skip)"
     pass=$((pass + 1))
 else
     echo "  FAIL no argument should exit 2, got $rc"
     fail=$((fail + 1))
 fi
 
-# --- an empty diff skips --------------------------------------------------
-# Same commit twice: nothing changed, so nothing should build.
-out="$(cd "$WORKTREE" && git diff --name-only HEAD HEAD | wc -l | tr -d ' ')"
-if [ "$out" = "0" ]; then
-    echo "  ok   an empty change set is distinguishable (the script reports 'nothing changed')"
+out="$(bash tools/vercel-ignore.sh . not-a-real-sha not-a-real-sha 2>&1)"; rc=$?
+if [ "$rc" = "1" ] && printf '%s' "$out" | grep -q "build"; then
+    echo "  ok   an unresolvable base is reported as build, not skip"
     pass=$((pass + 1))
 else
-    echo "  FAIL could not construct an empty diff"
+    echo "  FAIL an unresolvable base must build; got exit $rc"
     fail=$((fail + 1))
 fi
 
-git worktree remove --force "$WORKTREE" 2>/dev/null
+out="$(bash tools/vercel-ignore.sh . "$DOCS_ONLY" "$DOCS_ONLY" 2>&1)"; rc=$?
+if [ "$rc" = "0" ] && printf '%s' "$out" | grep -q "nothing changed"; then
+    echo "  ok   an empty change set skips, and says so"
+    pass=$((pass + 1))
+else
+    echo "  FAIL an empty change set should skip; got exit $rc"
+    fail=$((fail + 1))
+fi
 
 echo
 echo "vercel-ignore self-test: $pass passed, $fail failed"

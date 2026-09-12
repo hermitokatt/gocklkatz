@@ -35,8 +35,10 @@
 set -uo pipefail
 
 ROOT="${1:-}"
+BASE_ARG="${2:-}"
+HEAD_ARG="${3:-}"
 if [ -z "$ROOT" ]; then
-    echo "vercel-ignore: usage: vercel-ignore.sh <project-root-path>" >&2
+    echo "vercel-ignore: usage: vercel-ignore.sh <project-root-path> [base-sha] [head-sha]" >&2
     exit 2
 fi
 
@@ -50,8 +52,15 @@ if ! git rev-parse --git-dir >/dev/null 2>&1; then
     build "not a git checkout"
 fi
 
+# The base and head are overridable so this rule can be exercised against any pair of commits, which
+# is how tests/vercel-ignore.test.sh proves both directions of the polarity without a checkout. Vercel
+# calls it with the root path only.
+HEAD_REF="${HEAD_ARG:-HEAD}"
 BASE=""
-if git rev-parse --verify --quiet 'HEAD^' >/dev/null 2>&1; then
+if [ -n "$BASE_ARG" ]; then
+    git rev-parse --verify --quiet "${BASE_ARG}^{commit}" >/dev/null 2>&1 || build "base '$BASE_ARG' is not a commit here"
+    BASE="$BASE_ARG"
+elif git rev-parse --verify --quiet 'HEAD^' >/dev/null 2>&1; then
     BASE="HEAD^"
 elif [ -n "${VERCEL_GIT_PREVIOUS_SHA:-}" ] && git rev-parse --verify --quiet "${VERCEL_GIT_PREVIOUS_SHA}" >/dev/null 2>&1; then
     BASE="${VERCEL_GIT_PREVIOUS_SHA}"
@@ -61,12 +70,12 @@ if [ -z "$BASE" ]; then
     build "no parent commit available (shallow clone), cannot attribute the change"
 fi
 
-if ! CHANGED="$(git diff --name-only "$BASE" HEAD 2>/dev/null)"; then
-    build "git diff against $BASE failed"
+if ! CHANGED="$(git diff --name-only "$BASE" "$HEAD_REF" 2>/dev/null)"; then
+    build "git diff $BASE..$HEAD_REF failed"
 fi
 
 if [ -z "$CHANGED" ]; then
-    skip "nothing changed between $BASE and HEAD"
+    skip "nothing changed between $BASE and $HEAD_REF"
 fi
 
 matches=""
