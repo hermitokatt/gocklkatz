@@ -330,9 +330,11 @@ Two consequences for a monorepo, both of which have bitten this project:
    is what this project showed for about four hours on 2026-09-12, and it is the reason the ignored
    build step is called out here rather than being left to the UI.
 
-**Nothing is configured for these projects today that the API can confirm**, so treat the field as
-unverified until GOC-43 records it per project, with the rule's polarity checked against a production
-deployment and not only a preview.
+**Nothing is configured for these projects, and nothing is going to be.** The field is unset on all
+five, by decision — see "Deliberately not configured" below. The trap recorded here still matters,
+because the field remains the one setting that can stop deployments with no error anywhere, and
+because a rule that is ever switched on has to be checked against a production deployment and not
+only a preview.
 
 ### Deployment protection covers deployment URLs, not custom domains
 
@@ -460,10 +462,11 @@ reports it. The URL above is the evidence that matters.
 
 ### What decides whether a project rebuilds — `tools/vercel-ignore.sh`
 
-Five applications, five projects, and each should rebuild only when its own code changes. Without a
-rule, one commit to the landing page rebuilds all five.
+Five applications, five projects, and each **would** rebuild only when its own code changes, if the
+rule below were configured. It is not, and that is a decision rather than an omission: see
+"Deliberately not configured" at the end of this section.
 
-Paste one line into each project's **Ignored Build Step** field (Settings → Git):
+The rule is one line per project, pasted into its **Ignored Build Step** field (Settings → Git):
 
 | Vercel project | Root Directory | Ignored Build Step |
 | --- | --- | --- |
@@ -539,13 +542,29 @@ One property is deliberate and tested. An **unreadable state builds**: Vercel cl
 without a parent commit the rule builds rather than skipping, because an unnecessary build costs a
 minute while a wrongly skipped build costs a deployment nobody notices is stale.
 
-#### The one step that needs a human
+#### Deliberately not configured
 
-**Nothing above proves the rule is configured in Vercel.** The Ignored Build Step is not exposed by
-any Vercel MCP tool, so whether these five fields hold these values can only be read in the UI. Until
-someone confirms it, treat the per-project rule as **unverified** — and when confirming it, check a
-**production** deployment and not only a preview, because a rule can be correct for previews and
-silently stop production.
+**The Ignored Build Step is unset on all five projects, and that is a decision, taken by the
+repository owner on 2026-09-12. Do not paste the lines above into Vercel.** GOC-43, which asked for
+this, was closed as not worth doing rather than done.
+
+The reasoning, so it is not re-opened from the same argument: the rule's only benefit is fewer
+builds. Depot CI and Vercel are both on free tiers, so a redundant build costs no money; and the
+delivery loop no longer waits on a deployment (`AGENTS.md` §12), so a queued build cannot stall a
+merge the way it did on 2026-09-12. Five project settings, each re-verified whenever the rule
+changed, is not worth that.
+
+One consequence is real and worth knowing: **a push to `main` still queues up to five builds**, one
+per project, and every pull request produces five preview builds. On 2026-09-12 that volume is what
+exhausted Vercel's build rate limit. It only mattered because the loop was waiting on deployments; it
+is no longer, so the symptom is now invisible rather than harmful. If builds ever need to be reduced
+for a reason other than money, this is the lever, and `tools/vercel-ignore.sh` is already written and
+tested for it.
+
+`tools/vercel-ignore.sh` and `tests/vercel-ignore.test.sh` are kept rather than deleted: the script
+is correct, its polarity is covered in both directions, and the test runs in the gate. An unconfigured
+rule with a tested implementation is cheaper to switch on than one that has to be rebuilt, and the
+inverted exit code is exactly the trap this section exists to record.
 
 ### Creating an application project
 
