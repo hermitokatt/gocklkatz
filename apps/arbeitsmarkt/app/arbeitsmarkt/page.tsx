@@ -95,12 +95,17 @@ export default function ArbeitsmarktPage() {
             <Link href="/arbeitsmarkt/digest">Ranked digest</Link> — filter, then rank against the
             committed demonstration profile
           </li>
-          <li>Operational view — source health, budgets, and alarms (no live collection)</li>
+          <li>
+            <Link href="/arbeitsmarkt/operations">Operations</Link> — source health, budgets, and
+            alarms (no live collection)
+          </li>
         </ul>
       </section>
 
       <p className={styles.back}>
         <Link href="/arbeitsmarkt/digest">Open the digest</Link>
+        {" · "}
+        <Link href="/arbeitsmarkt/operations">Open operations</Link>
         {" · "}
         <Link href="/">Back to Arbeitsmarkt</Link>
       </p>

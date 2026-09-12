@@ -1,0 +1,92 @@
+{
+  "meta": {
+    "schemaVersion": 1,
+    "synthetic": true,
+    "statement": "All records in this dataset are synthetic. They were generated from a checked-in seed for demonstration. No real job listing, employer, or candidate profile is present.",
+    "anchorAt": "2024-06-30T18:00:00.000Z",
+    "budgetWindow": "rolling_24h_ending_at_anchor"
+  },
+  "legend": {
+    "construction": "displayName = 'SRC-' + Prefix + Middle + Suffix",
+    "prefixes": [
+      { "token": "Vex", "meaning": "invented stem — no real listing host" },
+      { "token": "Quor", "meaning": "invented stem — no real listing host" },
+      { "token": "Nex", "meaning": "invented stem — no real listing host" },
+      { "token": "Zim", "meaning": "invented stem — no real listing host" }
+    ],
+    "middles": [
+      { "token": "alyn", "meaning": "invented bridge syllable" },
+      { "token": "umir", "meaning": "invented bridge syllable" },
+      { "token": "orith", "meaning": "invented bridge syllable" }
+    ],
+    "suffixes": [
+      { "token": "Feed", "meaning": "invented source suffix — not a product or board" },
+      { "token": "Index", "meaning": "invented source suffix — not a product or board" },
+      { "token": "Ledger", "meaning": "invented source suffix — not a product or board" },
+      { "token": "Relay", "meaning": "invented source suffix — not a product or board" }
+    ]
+  },
+  "policy": {
+    "consecutiveFailuresBeforeBackoff": 2,
+    "consecutiveFailuresBeforeQuarantine": 3,
+    "backoffIntervalMinutes": 120,
+    "note": "Demonstration failure policy only — not a production incident process."
+  },
+  "sources": [
+    {
+      "id": "syn-src-0001",
+      "synthetic": true,
+      "displayName": "SRC-VexalynFeed",
+      "nameParts": { "prefix": "Vex", "middle": "alyn", "suffix": "Feed" },
+      "complianceStatus": "permitted",
+      "complianceRule": "On the demonstration allowlist. Collection may be scheduled only while isCollectionAllowed returns true.",
+      "requestBudget": { "limit": 100 },
+      "attempts": [
+        { "at": "2024-06-30T08:00:00.000Z", "outcome": "success", "httpStatus": 200 },
+        { "at": "2024-06-30T10:00:00.000Z", "outcome": "success", "httpStatus": 200 },
+        { "at": "2024-06-30T12:00:00.000Z", "outcome": "success", "httpStatus": 200 },
+        { "at": "2024-06-30T14:00:00.000Z", "outcome": "success", "httpStatus": 200 },
+        { "at": "2024-06-30T16:00:00.000Z", "outcome": "success", "httpStatus": 200 }
+      ]
+    },
+    {
+      "id": "syn-src-0002",
+      "synthetic": true,
+      "displayName": "SRC-QuorumirIndex",
+      "nameParts": { "prefix": "Quor", "middle": "umir", "suffix": "Index" },
+      "complianceStatus": "disabled",
+      "complianceRule": "Disabled in the demonstration registry. isCollectionAllowed returns false; no attempt is recorded.",
+      "requestBudget": { "limit": 40 },
+      "attempts": []
+    },
+    {
+      "id": "syn-src-0003",
+      "synthetic": true,
+      "displayName": "SRC-NexorithLedger",
+      "nameParts": { "prefix": "Nex", "middle": "orith", "suffix": "Ledger" },
+      "complianceStatus": "permitted",
+      "complianceRule": "On the demonstration allowlist. Operational quarantine is derived from consecutive failures, not typed as a static label.",
+      "requestBudget": { "limit": 80 },
+      "attempts": [
+        { "at": "2024-06-30T09:00:00.000Z", "outcome": "success", "httpStatus": 200 },
+        { "at": "2024-06-30T11:00:00.000Z", "outcome": "transport_failure", "httpStatus": null },
+        { "at": "2024-06-30T13:00:00.000Z", "outcome": "transport_failure", "httpStatus": null },
+        { "at": "2024-06-30T15:00:00.000Z", "outcome": "refused_403", "httpStatus": 403 }
+      ]
+    },
+    {
+      "id": "syn-src-0004",
+      "synthetic": true,
+      "displayName": "SRC-ZimumirRelay",
+      "nameParts": { "prefix": "Zim", "middle": "umir", "suffix": "Relay" },
+      "complianceStatus": "permitted",
+      "complianceRule": "On the demonstration allowlist. Two consecutive transport failures place it in back-off under the demonstration policy.",
+      "requestBudget": { "limit": 60 },
+      "attempts": [
+        { "at": "2024-06-30T10:30:00.000Z", "outcome": "success", "httpStatus": 200 },
+        { "at": "2024-06-30T14:30:00.000Z", "outcome": "transport_failure", "httpStatus": null },
+        { "at": "2024-06-30T16:30:00.000Z", "outcome": "transport_failure", "httpStatus": null }
+      ]
+    }
+  ]
+}

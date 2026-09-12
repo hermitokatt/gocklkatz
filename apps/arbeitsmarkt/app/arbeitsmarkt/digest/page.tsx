@@ -171,6 +171,8 @@ export default function DigestPage() {
       <p className={styles.back}>
         <Link href="/arbeitsmarkt">Back to exhibit</Link>
         {" · "}
+        <Link href="/arbeitsmarkt/operations">Operations</Link>
+        {" · "}
         <Link href="/">Home</Link>
       </p>
     </main>

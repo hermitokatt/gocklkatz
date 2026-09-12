@@ -17,6 +17,11 @@
 #                           per entry, not once on the page). Also asserts the top score is
 #                           strictly greater than the score at DIGEST_MIN — a flat scoreboard is
 #                           not a ranking.
+#   /arbeitsmarkt/operations
+#                           200, synthetic statement, every alarm id named (counted, not one
+#                           match), a quarantined source visible, and A-3: every rendered
+#                           source id / display name matches the synthetic construction (and
+#                           any listing id / employer markers, if present, match theirs).
 #   /api/health             200, JSON, `"ok": true`, and naming this app. The service field is
 #                           checked too: `ok` alone would let a sibling app that answers the same
 #                           shape pass as this one.
@@ -41,6 +46,11 @@ DIGEST_MIN=8
 # The base view renders a sample of the dataset. Counted per record markup, not by grepping for a
 # string the legend also contains.
 SAMPLE_MIN=4
+# Operational model alarm ids — must all appear on the operations page (counted, not one match).
+ALARM_IDS="source_quarantined source_backed_off budget_exhausted disabled_source_collected"
+ALARM_COUNT=4
+# Source cards on the operations view.
+SOURCE_MIN=4
 # Generous on purpose. On a cold CI runner the first start can take far longer than on a
 # developer machine, and a timeout that is too tight produces a failure that looks like a
 # broken app. The wait reports progress every 15s, so a genuinely hung start is visible.
@@ -298,6 +308,155 @@ if [ "$code" = "200" ] \
     ok "GET /arbeitsmarkt/digest is 200 with >= $DIGEST_MIN ranked entries (each with reason), stages, and synthetic statement"
 else
     bad "GET /arbeitsmarkt/digest failed content checks (got $code; entries=$digest_entry_count; stages_ok=$stage_ok; stage_attrs=$stage_count_attrs; ranking_diff=$ranking_differentiates)"
+fi
+
+# /arbeitsmarkt/operations — alarms named by id, quarantine visible, synthetic statement, A-3
+body="$(curl -sS -m 10 -w '\n%{http_code}' "$BASE/arbeitsmarkt/operations" 2>/dev/null)"
+code="$(printf '%s' "$body" | tail -1)"
+html="$(printf '%s' "$body" | sed '$d')"
+say "route GET /arbeitsmarkt/operations $code"
+
+alarm_named=0
+alarm_missing=""
+for alarm_id in $ALARM_IDS; do
+    # Count distinct data-alarm-id markers for this id (not a single page-wide grep).
+    hits="$(printf '%s' "$html" | grep -o "data-alarm-id=\"$alarm_id\"" | wc -l | tr -d ' ')"
+    if [ "$hits" -ge 1 ]; then
+        alarm_named=$((alarm_named + 1))
+        say "          alarm id named: $alarm_id (markers=$hits)"
+    else
+        alarm_missing="$alarm_missing $alarm_id"
+        say "          missing alarm id: $alarm_id"
+    fi
+done
+say "          alarms named: $alarm_named / $ALARM_COUNT"
+
+source_count="$(printf '%s' "$html" | grep -o 'data-source-id=' | wc -l | tr -d ' ')"
+say "          source cards rendered: $source_count (need >= $SOURCE_MIN)"
+
+quarantined_count="$(printf '%s' "$html" | grep -o 'data-operational-status="quarantined"' | wc -l | tr -d ' ')"
+say "          quarantined sources shown: $quarantined_count (need >= 1)"
+
+# A-3: positive construction checks on marked fields. This cannot mean "no word that appears in
+# a real listing" — titles and company stems are legitimate. It checks that every rendered
+# identifier stays inside the synthetic schemes, and that every employer / source name matches
+# the documented construction.
+#
+# A `while read` over an empty list runs zero times and leaves the verdict at pass, so a field the
+# page does not render would be reported as clean while nothing was checked. On THIS page that is
+# the case for employers and listing ids: the operations view renders sources only. Rather than
+# leave two scans silently vacuous, they are stated as invariants — this view must render none —
+# and counted, so a leak into this page fails instead of being skipped. Measured before this
+# change: data-employer 0, data-listing-id 0.
+a3_ok=1
+a3_detail=""
+source_id_seen=0
+source_name_seen=0
+employer_seen=0
+listing_id_seen=0
+
+# Source ids: syn-src-NNNN
+while IFS= read -r sid; do
+    [ -z "$sid" ] && continue
+    source_id_seen=$((source_id_seen + 1))
+    case "$sid" in
+        syn-src-[0-9][0-9][0-9][0-9]) ;;
+        *)
+            a3_ok=0
+            a3_detail="bad source id '$sid'"
+            break
+            ;;
+    esac
+done <<EOF
+$(printf '%s' "$html" | tr ' ' '\n' | sed -n 's/^data-source-id="\([^"]*\)"$/\1/p')
+EOF
+
+# Source display names: SRC- + letters
+if [ "$a3_ok" = "1" ]; then
+    while IFS= read -r sname; do
+        [ -z "$sname" ] && continue
+        source_name_seen=$((source_name_seen + 1))
+        case "$sname" in
+            SRC-[A-Za-z]*) ;;
+            *)
+                a3_ok=0
+                a3_detail="bad source name '$sname'"
+                break
+                ;;
+        esac
+    done <<EOF
+$(printf '%s' "$html" | tr ' ' '\n' | sed -n 's/^data-source-name="\([^"]*\)"$/\1/p')
+EOF
+fi
+
+# Listing ids (if any markers): syn-NNNN
+if [ "$a3_ok" = "1" ]; then
+    while IFS= read -r lid; do
+        [ -z "$lid" ] && continue
+        listing_id_seen=$((listing_id_seen + 1))
+        case "$lid" in
+            syn-[0-9][0-9][0-9][0-9]) ;;
+            *)
+                a3_ok=0
+                a3_detail="bad listing id '$lid'"
+                break
+                ;;
+        esac
+    done <<EOF
+$(printf '%s' "$html" | tr ' ' '\n' | sed -n 's/^data-listing-id="\([^"]*\)"$/\1/p')
+EOF
+fi
+
+# Employers (if any markers): SYN- + letters
+if [ "$a3_ok" = "1" ]; then
+    while IFS= read -r emp; do
+        [ -z "$emp" ] && continue
+        employer_seen=$((employer_seen + 1))
+        case "$emp" in
+            SYN-[A-Za-z]*) ;;
+            *)
+                a3_ok=0
+                a3_detail="bad employer '$emp'"
+                break
+                ;;
+        esac
+    done <<EOF
+$(printf '%s' "$html" | tr ' ' '\n' | sed -n 's/^data-employer="\([^"]*\)"$/\1/p')
+EOF
+fi
+
+# The two scans above read a field this page does not render, so on their own they would pass while
+# checking nothing. State it as the invariant it is: the operations view lists SOURCES, and must not
+# start publishing listing or employer fields. If someone later renders one here, this fails and
+# they either mark it properly (and the scan above starts checking) or they have found a leak.
+say "          A-3 markers seen: source-id=$source_id_seen source-name=$source_name_seen employer=$employer_seen listing-id=$listing_id_seen"
+
+if [ "$a3_ok" = "1" ]; then
+    if [ "$source_id_seen" -lt "$SOURCE_MIN" ]; then
+        a3_ok=0
+        a3_detail="only $source_id_seen source id(s) scanned; the id scheme was not exercised"
+    elif [ "$source_name_seen" -lt "$SOURCE_MIN" ]; then
+        a3_ok=0
+        a3_detail="only $source_name_seen source name(s) scanned; the name scheme was not exercised"
+    elif [ "$employer_seen" -ne 0 ] || [ "$listing_id_seen" -ne 0 ]; then
+        a3_ok=0
+        a3_detail="this view renders employer=$employer_seen listing-id=$listing_id_seen; operations shows sources only"
+    fi
+fi
+
+say "          A-3 synthetic-field scan: $([ "$a3_ok" = "1" ] && echo pass || echo "FAIL ($a3_detail)")"
+
+if [ "$code" = "200" ] \
+    && printf '%s' "$html" | grep -q 'All records in this dataset are synthetic' \
+    && printf '%s' "$html" | grep -q 'data-synthetic-statement' \
+    && [ "$alarm_named" -eq "$ALARM_COUNT" ] \
+    && [ -z "$alarm_missing" ] \
+    && [ "$source_count" -ge "$SOURCE_MIN" ] \
+    && [ "$quarantined_count" -ge 1 ] \
+    && [ "$a3_ok" = "1" ]; then
+    ok "GET /arbeitsmarkt/operations is 200 with $alarm_named named alarms, quarantine visible, synthetic statement, A-3 clean"
+else
+    bad "GET /arbeitsmarkt/operations failed content checks (got $code; alarms=$alarm_named/$ALARM_COUNT; sources=$source_count; quarantined=$quarantined_count; a3=$a3_ok)"
 fi
 
 # /api/health — asserted on the parsed body, not the status alone
