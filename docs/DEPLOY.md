@@ -22,21 +22,42 @@ shared, rolled back, and rebuilt on its own. This requires setting **Root Direct
 **Ignored Build Step** per project in the Vercel UI, so that a commit touching only
 `apps/simplified` does not rebuild the other four.
 
-## How often to deploy — once per issue, not once per sub-issue
+## Deploying is not part of the delivery loop
 
-Deployment happens when a **whole issue is finished**, not when each sub-issue of it merges. The
-delivery loop for the work itself is unchanged (`AGENTS.md` §11: branch, gate, PR, local merge, push,
-mirror) — what changes is how often it ends in a deployment.
+The loop is six steps and ends at the mirror (`AGENTS.md` §12):
 
-The reason is measured, not stylistic. On 2026-09-12, merging sub-issue by sub-issue produced four or
-five preview builds per pull request and created five projects in one working day, which reached
-**two separate Vercel limits within hours**: `api-deployments-free-per-day` (100) on the API deploy
-path, and `build-rate-limit` on concurrent builds. Neither is a code defect; both are the cost of
-deploying per sub-issue.
+```
+branch → gate → PR → Gate green → local merge --no-ff → push origin main → mirror to GitHub
+```
 
-An epic's deploy-facing work — the app's Vercel project, its custom domain, and the landing-page card
-flip — belongs to the sub-issue that closes the epic. The sub-issues build up to a deployment; they
-do not each earn one.
+Nothing in it waits for a deployment, verifies one, or pushes again to force one. A merge to `main`
+may produce a deployment and may not; either way the task is finished. **A human deploys, or a human
+asks for a deployment by name.**
+
+When a deployment does happen, it belongs to a **whole finished issue**, not to each sub-issue that
+merged into it. An epic's deploy-facing work — the app's Vercel project, its custom domain, and the
+landing-page card flip — belongs to the sub-issue that closes the epic. The sub-issues build up to a
+deployment; they do not each earn one.
+
+### Why: over-deploying does not refuse a build, it makes the next ones look broken
+
+This was measured, and it cost a working day, which is the reason the rule is this absolute rather
+than a preference for tidiness.
+
+On 2026-09-12, deploying per sub-issue produced four or five preview builds per pull request and
+created five projects in one working day, reaching **two separate Vercel limits within hours**:
+`api-deployments-free-per-day` (100) on the API deploy path, and `build-rate-limit` on concurrent
+builds.
+
+What the second one looks like from outside is the trap. A push produces no deployment, the previous
+build keeps serving, and no log says why. That is indistinguishable from a broken git connection, a
+wrong production branch, an ignored-build-step polarity bug, or a stuck project — all four of which
+were investigated, and committed as diagnoses, before the real cause was found. Each retry, and each
+empty commit pushed to force a rebuild, spent more of the budget that was already exhausted.
+
+The fix is not to configure more. It is to deploy less, and to stop the loop before it reaches a
+deployment at all.
+
 
 ---
 
@@ -410,7 +431,9 @@ bash tools/verify-deployments.sh --url https://gocklkatz.vercel.app/ "Ameisenfab
 The second is the case a status check cannot catch: the host is healthy and the content is wrong.
 
 Neither script triggers a deployment. They read what is already published, which is why they can run
-as often as you like — see the note below on how often a deployment *should* happen.
+as often as you like. Neither is a finishing step for a change: the delivery loop ends at the mirror
+and contains no deployment, so these are health checks to run when a human asks for one — and when a
+deployment is behind, they fail for that reason rather than because the change is wrong.
 
 `live: false` on the project is a separate flag and does not mean the site is down — it reflects
 that no deployment is currently aliased as the project's live production in the way the API
