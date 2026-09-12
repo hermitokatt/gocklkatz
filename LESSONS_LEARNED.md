@@ -977,10 +977,11 @@ five:
 | custom domain attached | `gocklkatz.vercel.app` | one each |
 | `framework` | **`null`** | `"nextjs"` |
 
-**`framework: null` is the only difference, and it is not the cause.** `gocklkatz` deployed four
-times on this exact configuration — 10:19, 10:32, 10:41, 11:00, 11:13, 11:19, 11:26 and 11:34Z, a
-regular ~48-minute cadence from git pushes. A setting that was never changed cannot explain a
-failure that began at a point in time. It is recorded as a tidy-up, not a fix.
+**`framework: null` is the only difference, and it is not the cause.** `gocklkatz` deployed eight
+times on this exact configuration — 10:19, 10:32, 10:41, 11:00, 11:13, 11:19, 11:26 and 11:34Z. A
+setting that was never changed cannot explain a failure that began at a point in time. **Read the
+entry below before acting on this one:** it explains why the cause is a branch-trigger setting rather
+than the framework field, and `framework: null` is a tidy-up, not a fix.
 
 The team is on the **`hobby`** plan, and this session created four projects and ran roughly thirty
 preview builds. `build-rate-limit` has been failing previews across projects since. **A plan-level
