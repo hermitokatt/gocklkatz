@@ -41,7 +41,6 @@ Anything committed must be fit for a stranger, a recruiter, and a client to read
 /                        landing page app (one card per demo)
 LICENSE                  MIT, Gocklkatz Inc
 AGENTS.md                this file
-LESSONS_LEARNED.md       the working journal — read it, and add to it (section 12)
 docs/tickets/            frozen requirements, one file per ticket
 docs/                    deploy, architecture, portfolio notes
 tools/worker-run.sh      runs one implementation pass with a stall watchdog
@@ -179,30 +178,3 @@ Two consequences to keep in mind:
   included.** It runs in `tools/gate.sh`, so a commit carrying a foreign identity fails the gate.
   Excluding merge commits from that audit was itself a hole: one such merge reached `main` while
   the audit reported everything clean.
-
-## 12. Write down what you learned — [`LESSONS_LEARNED.md`](./LESSONS_LEARNED.md)
-
-That file is the working journal. **Read its "Standing lessons" list before starting work**, and add
-an entry when you finish a piece of work.
-
-It exists because the cost of these sessions is not the work, it is the re-learning. When a long
-session is compacted the reasoning goes first, and the same mistake comes back: the same check that
-passes on a `200`, the same recursive copy that drags in `node_modules`, the same platform merge that
-puts a foreign identity into history. Twice is a pattern, not bad luck.
-
-**Add an entry when:**
-
-* something failed that had failed before, or should not have failed at all;
-* a check turned out not to check anything;
-* a platform or tool behaved differently from its documentation;
-* a decision was made for a reason a reader would not guess from the result.
-
-Record the **measurement**, not the conclusion — the command, the observed output, the exit code —
-so the next reader can recheck it rather than trust it. A lesson with no evidence behind it is a
-rumour, and this repository is built on not trusting those.
-
-**It is public, and `AGENTS.md` §2 applies in full.** No absolute paths (`$HOME` in prose), no
-secrets, no `.env` values, no identity other than Hermito Katt / Gocklkatz Inc. `tools/guard.sh`
-enforces this and will refuse the commit.
-
-It is a record, not a backlog. Open work stays in the issue tracker.

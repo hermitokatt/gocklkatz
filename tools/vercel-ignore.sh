@@ -81,7 +81,7 @@ fi
 matches=""
 if [ "$ROOT" = "." ]; then
     # The landing page: everything except the applications, and except prose.
-    matches="$(printf '%s\n' "$CHANGED" | grep -v '^apps/' | grep -v '^docs/' | grep -v '^LESSONS_LEARNED\.md$' | grep -v '^README\.md$' || true)"
+    matches="$(printf '%s\n' "$CHANGED" | grep -v '^apps/' | grep -v '^docs/' | grep -v '^README\.md$' || true)"
 else
     root="${ROOT%/}"
     matches="$(printf '%s\n' "$CHANGED" | grep "^${root}/" || true)"
