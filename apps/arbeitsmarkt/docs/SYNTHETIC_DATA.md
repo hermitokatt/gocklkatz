@@ -44,6 +44,16 @@ location = District + " " + Zone
 
 Example: `Northgrid Sector`.
 
+Source display names in `data/sources.json` follow a sibling construction so listing hosts stay
+obviously invented too — no real job board or API is named:
+
+```
+displayName = "SRC-" + Prefix + Middle + Suffix
+```
+
+Example: `SRC-VexalynFeed`. Source ids use `syn-src-NNNN`. The source legend lives in the registry
+file; the operations view surfaces the construction.
+
 The word-part lists live in `lib/dataset/parts.ts` and are copied into the dataset's `legend`
 with a plain-language meaning for each token. A reader can open the JSON and see that no real
 employer or real place is named.

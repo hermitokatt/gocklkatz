@@ -740,3 +740,104 @@ Measured on the real data, for the record: `collect=24 filter=16 rank=16 digest=
 (7 `posted_before_eligibility`, 1 `focus_excluded`), score range `0.9881 … 0.0652`, 15 distinct
 totals across 16 survivors.
 
+---
+
+## 2026-09-12 — Arbeitsmarkt operations (GOC-30)
+
+Added `/arbeitsmarkt/operations` over a synthetic source registry (`data/sources.json`) and a pure
+failure-policy module. Quarantine and back-off are derived from attempt records.
+
+### Alarm id presence does not prove the failure policy ran
+
+Making `applyFailurePolicy` a no-op (always `"ok"`) left every alarm **named** on the page — clear
+alarms still render `data-alarm-id="…"`. Verify still reported `alarms named: 4 / 4` and
+`ok build`, then failed on the separate quarantine marker:
+
+```
+route GET /arbeitsmarkt/operations 200
+          quarantined sources shown: 0 (need >= 1)
+    FAIL  GET /arbeitsmarkt/operations failed content checks (… quarantined=0; a3=1)
+```
+
+The same break failed the unit assertion `expected 'healthy' to be 'quarantined'` on
+`syn-src-0003`. Counting alarm ids alone would have passed a silent policy no-op; the quarantined
+source marker is what makes the policy checkable on the served surface.
+
+### A-3's employer and listing scans checked nothing, and the comment said so
+
+The A-3 scan is four `while read` loops over marked fields, validating each value against the
+synthetic construction schemes. Two of them read a field the operations page does not render:
+
+```
+A-3 markers seen: source-id=1 source-name=1 employer=0 listing-id=0
+```
+
+A `while read` over an empty stream runs zero times and leaves the verdict at pass, so
+`employer=0` and `listing-id=0` were reported as **clean** while nothing had been checked. The code's
+own comment claimed "a page with zero markers would pass vacuously, so SOURCE_MIN above and the
+non-empty id scans below close that hole" — but that reasoning only covers the fields the page *does*
+render.
+
+Closed by stating the emptiness as an invariant and counting every scan. With the page as it is:
+
+```
+A-3 markers seen: source-id=4 source-name=4 employer=0 listing-id=0
+A-3 synthetic-field scan: pass
+```
+
+and with a `data-employer` marker injected into the operations view:
+
+```
+A-3 markers seen: source-id=4 source-name=4 employer=4 listing-id=0
+A-3 synthetic-field scan: FAIL (this view renders employer=4 listing-id=0; operations shows sources only)
+```
+
+*Rule:* a scan over a collection must assert the collection was non-empty, or say explicitly that
+empty is the expected state. Otherwise "nothing to check" and "everything checked out" print the same
+word.
+
+### `sed -n 's/.*ATTR="\([^"]*\)".*/\1/p'` returns one match per line, not one per occurrence
+
+The first version of my fix for the above counted **one** source id when the page rendered four, and
+the assertion caught it:
+
+```
+A-3 markers seen: source-id=1 source-name=1 employer=0 listing-id=0
+A-3 synthetic-field scan: FAIL (only 1 source id(s) scanned; the id scheme was not exercised)
+```
+
+This is the third appearance of the same bug in this repository. `data-rank` was counted 48 times for
+12 entries in the GOC-29 review because `data-rank` matched `data-rank-label`; this one is the
+greedy-`.*` form. The markup puts every card on one line, so `sed` matches that line once.
+
+The fix is portable and needs no GNU flags:
+
+```sh
+printf '%s' "$html" | tr ' ' '\n' | sed -n 's/^ATTR="\([^"]*\)"$/\1/p'
+```
+
+*Rule:* count occurrences with a tool that is per-occurrence, not per-line — `grep -o`, or split the
+input so each occurrence is its own line. Note also that my first version failed the assertion rather
+than passing it, which is only true because the assertion compares a count against a minimum. A check
+that asked merely "is there at least one?" would have accepted `source-id=1`.
+
+### Two published documents disagreed about a rejection's basis
+
+`AGENTS.md` §4 said browser drivers were "Measured and rejected; see `apps/arbeitsmarkt/docs/` for the
+evidence". The evidence it pointed at said:
+
+> No separate performance benchmark of browser drivers was run for this ticket.
+
+The stronger claim was the one with no measurement behind it, in the document that sets the standard
+for exactly that. §4 now reads:
+
+> Rejected because the shipped demo acquires nothing, and installing them would put an acquisition
+> tool into a repository whose rule is that no acquisition happens here; see `apps/arbeitsmarkt/docs/`
+> for that reasoning.
+
+No benchmark was invented to rescue the original wording.
+
+*Rule:* when a summary and its source disagree, the source wins and the summary changes. A pointer is
+not evidence — read what it points at.
+
+

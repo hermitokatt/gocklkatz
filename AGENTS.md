@@ -58,7 +58,7 @@ These are the design, not preferences.
 
 | Rule | Why |
 | --- | --- |
-| **No browser driver, no scraping framework in any app runtime.** | Measured and rejected; see `apps/arbeitsmarkt/docs/` for the evidence. |
+| **No browser driver, no scraping framework in any app runtime.** | Rejected because the shipped demo acquires nothing, and installing them would put an acquisition tool into a repository whose rule is that no acquisition happens here; see `apps/arbeitsmarkt/docs/` for that reasoning. |
 | **No app reads another app's files.** | Each demo deploys independently to its own Vercel project. |
 | **No scraped data is ever committed or published.** `apps/arbeitsmarkt` renders synthetic data generated from a checked-in seed. | Publishing third-party listings is not in scope, for legal and terms-of-service reasons. |
 | **Dependencies are added only by updating `docs/DEPENDENCY_ALLOWLIST.md` in the same commit, with a ticket.** | See §6. |
