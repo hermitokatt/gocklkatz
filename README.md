@@ -33,7 +33,8 @@ built, shared and rolled back on its own.
 | `gocklkatz-arbeitsmarkt` | `apps/arbeitsmarkt` | <https://gocklkatz-arbeitsmarkt.vercel.app> |
 
 A URL is recorded here only once it has been fetched and returned `200`. Details, the CI gate and
-the shared quality bar: [`docs/DEPLOY.md`](./docs/DEPLOY.md).
+the shared quality bar: [`docs/DEPLOY.md`](./docs/DEPLOY.md). Legal and terms-of-service position:
+[`docs/LEGAL.md`](./docs/LEGAL.md).
 
 ## Working on this repository
 

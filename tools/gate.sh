@@ -140,6 +140,15 @@ else
     bad "tools/check-deps.mjs"
 fi
 
+step "dependency licences"
+licences_out="$(node tools/audit-licences.mjs 2>&1)"; licences_rc=$?
+if [ "$licences_rc" -eq 0 ]; then
+    ok "tools/audit-licences.mjs"
+else
+    printf '%s\n' "$licences_out" | sed 's/^/       /'
+    bad "tools/audit-licences.mjs"
+fi
+
 # The guard's own must-fail proof runs in the gate too. Running only the check would exercise the
 # passing path forever, so a regression that broke the failure path would go unnoticed — and a
 # guard that has never been seen to fail is not a guard (AGENTS.md section 6).
@@ -180,6 +189,7 @@ else
         run_selftest "$t" env GATE_SKIP_SELF_TESTS=1 bash "$t"
     done
     run_selftest "tests/dependency-allowlist.test.mjs" node tests/dependency-allowlist.test.mjs
+    run_selftest "tests/licence-audit.test.mjs" node tests/licence-audit.test.mjs
     rm -f "$selftest_log"
 fi
 
