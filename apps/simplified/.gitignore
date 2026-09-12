@@ -43,3 +43,6 @@ next-env.d.ts
 # firecrawl / secrets
 .secretfirecrawler
 .firecrawl/
+
+# Written by scripts/ci.sh, consumed by scripts/verify.sh; never committed.
+.gate-build-complete

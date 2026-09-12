@@ -149,13 +149,37 @@ if [ ! -f node_modules/.package-lock.json ]; then
 fi
 
 # ---------------------------------------------------------------------------
-step "build (next build)"
-if ! npm run --silent build >>"$LOG" 2>&1; then
-    bad "build"
-    dump_log
-    exit 1
+# Reuse the build scripts/ci.sh just made, when it was made for this exact tree.
+#
+# The repository gate runs ci.sh and then verify.sh for every app, and ci.sh already runs
+# `next build`. Building again here doubled the work of a gate run, which is what pushed a cold CI
+# runner past the readiness timeout — five apps meant ten builds and five server starts.
+#
+# The marker holds the tree hash, so this skips only when the tree it would build is the tree that
+# was built. It is consumed here and removed, so a second verify run in the same tree still builds.
+BUILD_MARKER=".gate-build-complete"
+marker_ok=0
+if [ -f "$BUILD_MARKER" ]; then
+    want_tree="$(git rev-parse HEAD^{tree} 2>/dev/null || true)"
+    have_tree="$(cat "$BUILD_MARKER" 2>/dev/null || true)"
+    rm -f "$BUILD_MARKER"
+    if [ -n "$want_tree" ] && [ -n "$have_tree" ] && [ "$want_tree" = "$have_tree" ]; then
+        marker_ok=1
+    fi
 fi
-ok "build"
+
+if [ "$marker_ok" = "1" ]; then
+    step "build (next build) — reusing the build scripts/ci.sh made for this tree"
+    ok "build reused"
+else
+    step "build (next build)"
+    if ! npm run --silent build >>"$LOG" 2>&1; then
+        bad "build"
+        dump_log
+        exit 1
+    fi
+    ok "build"
+fi
 
 # ---------------------------------------------------------------------------
 step "start (next start on $PORT)"
