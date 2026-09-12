@@ -1063,3 +1063,52 @@ deployments would have hidden that.
 
 *Rule:* a plausible mechanism is not a cause until a count or a probe excludes the alternatives. The
 plan limit fit the fourth-to-fifth story neatly; the count showed 23 to spare.
+
+## 2026-09-12 — the Ignored Build Step, and why the deploy kept silently stopping (GOC-42)
+
+Investigating GOC-42 turned up the mechanism that best explains the four-hour production stall
+recorded above, and it is a setting nobody can read from this repository.
+
+### The exit code is inverted, and its polarity differs by environment
+
+From Vercel's own knowledge base, the rule is the opposite of the intuitive one:
+
+> If the command returns "0", the build will be skipped. If, however, a code "1" or greater is
+> returned, then a new deployment will be built.
+
+So a script written as "are there relevant changes? → exit 0" **skips the build precisely when there
+are changes**. Written the other way round it does the opposite. There is no error either way,
+because skipping is the configured behaviour.
+
+Worse, the polarity is not uniform. A community fix exists titled *"invert Vercel ignoreCommand exit
+codes for production branch"*, which is the same symptom this repository hit: an ignore rule that
+behaves for previews and silently suppresses **production** deployments. That is exactly the
+signature measured here — previews building at `14:22:12Z` while production sat frozen at `11:13:15Z`,
+with every other setting verified correct.
+
+Three facts to carry into GOC-43, which owns this setting:
+
+* the field is **not exposed by any Vercel MCP tool**, so it cannot be audited from here;
+* a wrong rule fails **silently** — no failed deployment, no error log, just nothing happening;
+* Vercel **shallow-clones** (`git clone --depth=10`), so a history-diffing rule has ten commits to
+  work with.
+
+### A green production build is the evidence that the repository is not at fault
+
+Before touching settings, read a production build log. The current one is clean:
+
+```
+✓ Compiled successfully in 945ms
+✓ Generating static pages using 1 worker (4/4) in 138ms
+Build Completed in /vercel/output [8s]
+Deployment completed
+```
+
+The only warning is `npm warn allow-scripts` about `unrs-resolver`'s postinstall, which does not fail
+the build. So when the repository's build is clean and a deployment still does not appear, the fault
+is in the trigger or in project settings — and GOC-42's own risk note says the same thing: report it
+rather than changing repository code to work around it.
+
+The historical `No Output Directory named "dist" found` failure is a different, already-fixed defect:
+it came from the project having no framework preset. It is worth keeping the two apart, because the
+first is real and repository-side while the second was account-side and left no build error at all.
