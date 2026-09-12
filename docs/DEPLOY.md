@@ -327,6 +327,16 @@ Expect `refs/heads/main`, matching the local `main`, plus one `refs/tags/<releas
 release — and nothing else. No `refs/pull/*`: if one appears, something published more than the
 branch.
 
+`git ls-remote` prints an extra `<sha>\trefs/tags/<release>^{}` line for each **annotated** tag. That
+is the commit a tag peels to, not a second ref, so a release shows two lines and not one:
+
+```
+6e26aee…    HEAD
+6e26aee…    refs/heads/main
+71f11f9…    refs/tags/v1.0.0
+9593c97…    refs/tags/v1.0.0^{}     <- the peeled commit, not another release
+```
+
 ---
 
 ### The framework preset, and why it is declared in the repository
