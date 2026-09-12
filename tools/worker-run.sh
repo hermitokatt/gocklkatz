@@ -14,10 +14,10 @@
 #   tools/worker-run.sh <prompt-file> [repo-root]
 #
 # Environment:
-#   WORKER_MODEL      model id (default: composer-2.5). See `cursor-agent models`. Anthropic
-#                     models are refused unless WORKER_ALLOW_ANTHROPIC=1.
+#   WORKER_MODEL      model id (default: auto). The policy allows auto, composer-2.5-fast and
+#                     cursor-grok-4.6-high; anything else needs WORKER_ALLOW_ANY_MODEL=1.
 #   WORKER_STALL_TICKS  idle ticks before kill; 1 tick = 30s (default: 10 = 5 minutes)
-#   WORKER_ALLOW_ANTHROPIC  set to 1 to permit an Anthropic model (refused by default)
+#   WORKER_ALLOW_ANY_MODEL  set to 1 to permit a model outside the policy (refused by default)
 #   WORKER_SANDBOX    enabled|disabled (default: enabled)
 #
 # Logs: var/agent-logs/<timestamp>.log  (tee'd; read non-blockingly)
@@ -26,7 +26,7 @@ set -uo pipefail
 
 PROMPT_FILE="${1:?usage: worker-run.sh <prompt-file> [repo-root]}"
 REPO="${2:-$(cd "$(dirname "$0")/.." && pwd)}"
-MODEL="${WORKER_MODEL:-composer-2.5}"
+MODEL="${WORKER_MODEL:-auto}"
 STALL_TICKS="${WORKER_STALL_TICKS:-10}"
 SANDBOX="${WORKER_SANDBOX:-enabled}"
 
@@ -43,26 +43,51 @@ export GIT_COMMITTER_NAME="Hermito Katt" GIT_COMMITTER_EMAIL="gocklkatz@gmail.co
 
 PROMPT="$(cat "$PROMPT_FILE")"
 
-# Identify the model id before spending on a run: an unknown model fails fast and cheap.
+# Model policy — the owner's standing preference.
+#
+#   auto                  the default for ordinary work
+#   composer-2.5-fast     where it fits: routine, well-specified changes
+#   cursor-grok-4.6-high  for hard work. The owner writes this as `cursor-grok-4.6`; there is no
+#                         bare id, and `-high` is the unqualified variant.
+#
+# Everything else is refused unless WORKER_ALLOW_ANY_MODEL=1. That is deliberately stricter than
+# "not Anthropic": this harness spent three tickets on claude-opus-5-thinking-high before anyone
+# noticed, so a rule that banned one vendor would not have stopped the next expensive default
+# arriving the same way.
+#
+# A note on `auto`: it is Cursor's own router and it is what resolved to a Claude model when the
+# global default was set that way. That choice is the owner's. A run's actual model is not visible
+# from here, so when cost matters for a particular run, name one of the other two instead.
+ALLOWED_MODELS="auto composer-2.5-fast cursor-grok-4.6-high"
+
+# Step 1 — resolve the owner's shorthand. This runs first, because `cursor-grok-4.6` is not a real
+# id: checking existence before resolving would reject the shorthand for the wrong reason.
+if [ "$MODEL" = "cursor-grok-4.6" ]; then
+    MODEL="cursor-grok-4.6-high"
+    echo "worker-run: resolved 'cursor-grok-4.6' to '$MODEL' (there is no bare id)." >&2
+fi
+
+# Step 2 — the id must exist, so an unknown model fails fast and cheap.
 if ! cursor-agent models 2>/dev/null | grep -q "^${MODEL} - "; then
     echo "worker-run: model '${MODEL}' is not in \`cursor-agent models\`. Aborting." >&2
     exit 2
 fi
 
-# Anthropic models are refused by default. They are the most expensive option available, Cursor's
-# own `auto` resolves to one, and a run that names a model explicitly is easy to forget about —
-# this harness spent three tickets on claude-opus-5-thinking-high before anyone noticed. Set
-# WORKER_ALLOW_ANTHROPIC=1 to override deliberately.
-case "$MODEL" in
-    claude-*|*opus*|*sonnet*|*fable*)
-        if [ "${WORKER_ALLOW_ANTHROPIC:-0}" != "1" ]; then
-            echo "worker-run: refusing Anthropic model '$MODEL'." >&2
-            echo "worker-run:   the default is non-Anthropic; pick another, or set WORKER_ALLOW_ANTHROPIC=1." >&2
-            exit 2
-        fi
-        echo "worker-run: WARNING — running '$MODEL', an Anthropic model (WORKER_ALLOW_ANTHROPIC=1)." >&2
-        ;;
-esac
+# Step 3 — the id must be in the policy.
+if [ "${WORKER_ALLOW_ANY_MODEL:-0}" = "1" ]; then
+    echo "worker-run: WARNING — WORKER_ALLOW_ANY_MODEL=1, running '$MODEL' outside the policy." >&2
+else
+    allowed=0
+    for m in $ALLOWED_MODELS; do
+        if [ "$MODEL" = "$m" ]; then allowed=1; break; fi
+    done
+    if [ "$allowed" -ne 1 ]; then
+        echo "worker-run: refusing model '$MODEL' — not in the standing policy." >&2
+        echo "worker-run:   allowed: $ALLOWED_MODELS" >&2
+        echo "worker-run:   set WORKER_ALLOW_ANY_MODEL=1 if it is genuinely necessary." >&2
+        exit 2
+    fi
+fi
 
 fingerprint() {
     # dirty path count + diff stat; changes when the worker writes a file, even without a commit
