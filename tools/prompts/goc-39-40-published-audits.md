@@ -216,3 +216,31 @@ document, show `--check` failing, and paste that failure. `AGENTS.md` §6.
 What you built, each command above with its observed output, the claims and links that were
 **removed or corrected** and why, **what you did not verify**, and any decision the requirement did
 not cover. Do not report success without pasted output.
+
+---
+
+# Addendum — added by the orchestrator after the GOC-38 worker run
+
+One defect from that run is worth carrying into these two audits, because both of them discover
+their own input from the tree and both will be re-run somewhere that is not this machine.
+
+**A check must work on a tree where nothing has been installed.** The GOC-38 audit read
+`node_modules`, which exists here and does not exist on a fresh CI checkout. It passed locally and
+would have failed on every CI run — every package resolving to UNKNOWN. It was measured in a clean
+`git worktree` before it was fixed, and the fix was to read the committed
+`package-lock.json` instead. Neither script in this ticket may depend on `node_modules`, on a build
+output, or on anything else that is absent from a fresh clone. If your audit needs generated data,
+generate it or read the committed artefact.
+
+**Prove a must-fail case on the path the check actually takes.** That worker's fixtures all
+exercised a fallback branch, so the branch that CI would use had no failing test at all. When you
+demonstrate that `--check` fails, do it on the primary path with a fresh clone's conditions.
+
+**A note on the local harness, so you are not misled.** `tools/guard.sh` lists files from the git
+index. If a tracked file is deleted on disk but the deletion is not staged, the guard's scanners
+cannot read it and the guard fails with "the scanner could not run" — a real refusal, but a
+misleading message. Stage deletions with `git rm` or `git add -A` before reading a guard result.
+You are not asked to fix that; it is recorded as its own finding.
+
+**Do not run `bash tools/gate.sh`.** It takes a minute, and the orchestrator runs it on the final
+tree. The narrow commands in your Evidence section are enough.
