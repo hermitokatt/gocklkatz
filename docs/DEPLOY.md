@@ -4,13 +4,16 @@ Each app is a separate Vercel project pointing at its own root directory in this
 
 | Vercel project | Root Directory | Live URL |
 | --- | --- | --- |
-| `gocklkatz` | `.` | — |
-| `gocklkatz-ameisenwerkstatt` | `apps/ameisenwerkstatt` | — |
+| `gocklkatz` | `.` | `gocklkatz.vercel.app` |
+| `gocklkatz-ameisenwerkstatt` | `apps/ameisenwerkstatt` | `gocklkatz-ameisenwerkstatt.vercel.app` |
 | `gocklkatz-bienenstock` | `apps/bienenstock` | — |
-| `gocklkatz-simplified` | `apps/simplified` | — |
+| `gocklkatz-simplified` | `apps/simplified` | `gocklkatz-simplified.vercel.app` |
 | `gocklkatz-arbeitsmarkt` | `apps/arbeitsmarkt` | — |
 
-A URL is recorded here only once it has been fetched and returned `200`.
+A URL is recorded here only once it has been fetched and returned `200`. The three recorded above
+were each fetched anonymously; the deployment and branch aliases for the same projects answer `302`
+to an authentication host and are deliberately not listed, because they are not addresses a visitor
+can open.
 
 ## Why one project per app
 
@@ -308,7 +311,7 @@ domain, but nothing that attaches an existing address.
 | `gocklkatz` | `.` | `gocklkatz.vercel.app` | attached |
 | `gocklkatz-ameisenwerkstatt` | `apps/ameisenwerkstatt` | `gocklkatz-ameisenwerkstatt.vercel.app` | attached |
 | `gocklkatz-bienenstock` | `apps/bienenstock` | `gocklkatz-bienenstock.vercel.app` | to attach |
-| `gocklkatz-simplified` | `apps/simplified` | `gocklkatz-simplified.vercel.app` | to attach |
+| `gocklkatz-simplified` | `apps/simplified` | `gocklkatz-simplified.vercel.app` | attached |
 | `gocklkatz-arbeitsmarkt` | `apps/arbeitsmarkt` | `gocklkatz-arbeitsmarkt.vercel.app` | to attach |
 
 The domains are fixed in advance because each is already the URL on that demo's card in

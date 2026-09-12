@@ -4,9 +4,9 @@ An application for learning and practicing simplified Chinese characters (汉字
 
 ## Production
 
-Production URL: _pending Human Vercel link_
+Production URL: **<https://gocklkatz-simplified.vercel.app>** — fetched anonymously and answering `200`.
 
-Deploy steps: [`docs/DEPLOY.md`](docs/DEPLOY.md). After the first successful Vercel production deploy, replace the placeholder above with the live `*.vercel.app` (or custom) URL. Smoke: `/`, `/api/health`, `/learn/radicals`, `/learn/radicals/practice`.
+Deploy steps: [`docs/DEPLOY.md`](docs/DEPLOY.md). Smoke: `/`, `/api/health`, `/learn/radicals`, `/learn/radicals/practice`. The app deploys from the monorepo's Vercel project of the same name, whose Root Directory is `apps/simplified`; a merge to `main` is what deploys it.
 
 ## MVP
 

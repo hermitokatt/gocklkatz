@@ -50,7 +50,7 @@ const DEMOS = [
     name: "Simplified",
     description: "Learning and practising simplified Chinese characters.",
     url: "https://gocklkatz-simplified.vercel.app",
-    status: "in-development",
+    status: "live",
   },
   {
     slug: "arbeitsmarkt",

@@ -13,7 +13,7 @@ demo's dependency or build breakage cannot take down another's.
 | *(root)* | Landing page | The portfolio home. One card per demo; a card links to its deployment only once that deployment is live. |
 | `apps/ameisenwerkstatt` | [Ameisenwerkstatt](https://gocklkatz-ameisenwerkstatt.vercel.app) | Ant colony optimization on a fixed TSP, with a live 3D workspace. |
 | `apps/bienenstock` | Bienenstock | Bee colony simulation — hive and foraging, rendered in 3D. |
-| `apps/simplified` | Simplified | Learning and practising simplified Chinese characters (汉字). |
+| `apps/simplified` | [Simplified](https://gocklkatz-simplified.vercel.app) | Learning and practising simplified Chinese characters (汉字). |
 | `apps/arbeitsmarkt` | Arbeitsmarkt | Relevance-ranked IT job listings from public APIs. |
 
 Source of truth for code: <https://cursor.com/codebase/gocklkatz/gocklkatz>.
@@ -29,7 +29,7 @@ built, shared and rolled back on its own.
 | `gocklkatz` | `.` | <https://gocklkatz.vercel.app> |
 | `gocklkatz-ameisenwerkstatt` | `apps/ameisenwerkstatt` | <https://gocklkatz-ameisenwerkstatt.vercel.app> |
 | `gocklkatz-bienenstock` | `apps/bienenstock` | — |
-| `gocklkatz-simplified` | `apps/simplified` | — |
+| `gocklkatz-simplified` | `apps/simplified` | <https://gocklkatz-simplified.vercel.app> |
 | `gocklkatz-arbeitsmarkt` | `apps/arbeitsmarkt` | — |
 
 A URL is recorded here only once it has been fetched and returned `200`. Details, the CI gate and
