@@ -991,3 +991,44 @@ That also makes this the wrong thing to keep retrying. The budget is per team, a
 from it, so a retry loop costs the thing it is testing. The honest position: the repository is
 correct and unchanged, the deploy is bounded by a shared plan limit, and the check is to wait and
 push once — not to add a fifth variant of the same attempt.
+
+### Answering the quota question with a count, and finding the real boundary
+
+The owner asked whether the Hobby plan's 100-deployments-per-day limit was the cause. Counted
+directly through the API, since `2026-09-12T00:00:00Z`:
+
+| Project | deployments today |
+| --- | --- |
+| `gocklkatz` | 20 |
+| `gocklkatz-ameisenwerkstatt` | 20 |
+| `gocklkatz-simplified` | 20 |
+| `gocklkatz-bienenstock` | 15 |
+| `gocklkatz-arbeitsmarkt` | 2 |
+| **total** | **77** |
+
+**77 of 100, so the daily cap was not exhausted**, and the integration was demonstrably alive — a
+preview deployment was created at `14:22:12Z`. The fourth-to-fifth transition was therefore not the
+plan limit. That was a plausible hypothesis and the count is what settled it.
+
+What the count *did* expose is the real boundary, and it is narrower than "deployments stopped":
+
+| | newest | branch it built |
+| --- | --- | --- |
+| **preview** (`target: null`) | `14:22:12Z` | `docs/deploy-config-audit` |
+| **production** (`target: production`) | `11:13:15Z` | `main` |
+
+Then the direct test: a push to `main` at `14:31:55Z` created **no deployment at all** — not a
+production one, not even a preview. Querying deployments since `14:15:00Z` returned exactly one row,
+the PR-branch preview.
+
+So the integration responds to **pull-request branches** and ignores **`main`**. Every sibling project
+built from the same `main` pushes, so this is per-project and per-branch, not repository-wide and not
+a quota. The remaining candidate is the project's own **Production Branch** setting, which no MCP tool
+reads or writes, so it needs the Vercel UI to confirm.
+
+*Rule:* when "deployments stopped" is the symptom, split it by target before theorising. Preview and
+production are separate trigger paths, and here only one of them was broken — a single count of
+deployments would have hidden that.
+
+*Rule:* a plausible mechanism is not a cause until a count or a probe excludes the alternatives. The
+plan limit fit the fourth-to-fifth story neatly; the count showed 23 to spare.
