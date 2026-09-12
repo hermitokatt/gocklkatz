@@ -57,7 +57,7 @@ const DEMOS = [
     name: "Arbeitsmarkt",
     description: "A relevance-ranked job-listing pipeline, demonstrated on synthetic data.",
     url: "https://gocklkatz-arbeitsmarkt.vercel.app",
-    status: "in-development",
+    status: "live",
   },
 ] as const satisfies readonly Demo[];
 

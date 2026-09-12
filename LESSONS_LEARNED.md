@@ -841,3 +841,52 @@ No benchmark was invented to rescue the original wording.
 not evidence — read what it points at.
 
 
+
+### A 402 on project creation does not mean the project cannot deploy
+
+Creating the fifth project reported a quota failure, and the project object afterwards looked broken:
+
+```
+Project "gocklkatz-arbeitsmarkt" was created and linked to gocklkatz/gocklkatz
+  (project id: prj_lWVOIb2LPAi376HoChUMqMQiVYQa),
+  but creating its preview deployment failed: Vercel API error 402
+Body: {"error":{"code":"payment_required",
+   "message":"Resource is limited - try again in 24 hours (more than 100,
+   code: \"api-deployments-free-per-day\")",
+   "limit":{"total":100,"remaining":0,"reset":1789299967502},
+   "resource":"api-deployments-free-per-day"}}
+```
+
+`get_project` then reported `latestDeployment: null`, `domains: []` and no `link` field — which reads
+like a broken project. `list_projects` contradicted that: its `link` was identical to the four
+working projects (`{"type":"cursor-origin","repo":"gocklkatz","owner":"gocklkatz"}`).
+
+**An earlier version of this entry concluded that the deployment was therefore blocked for 24 hours,
+and that the quota was account-wide. Both were wrong, and the next push disproved them.** On the next
+pull request, one minute later:
+
+```
+- Vercel – gocklkatz-arbeitsmarkt:    completed (success)
+- Vercel – gocklkatz-bienenstock:     completed (failure)  → build-rate-limit
+- Vercel – gocklkatz-simplified:      completed (failure)  → build-rate-limit
+- Vercel – gocklkatz:                 completed (failure)  → build-rate-limit
+- Vercel – gocklkatz-ameisenwerkstatt: completed (failure) → build-rate-limit
+```
+
+The new project deployed through the **git integration**, which is a different path from the API
+deploy that returned 402. All five custom domains then answered `200`, including the new one, with
+its full content present.
+
+Two distinct limits were in play, and conflating them is what produced the wrong conclusion:
+
+* `api-deployments-free-per-day` — the **API** deploy path, exhausted at 100 for the day. It blocked
+  `create_git_project`'s `deploy=true` step, nothing else.
+* `build-rate-limit` — a **concurrent build** limit, which failed four projects' preview builds and
+  cleared on its own.
+
+*Rule:* an error naming a quota says which quota **and** which code path hit it. Do not generalise it
+to the resource. A project whose link is correct can still deploy by the path the error did not
+mention — and a conclusion drawn before trying that path is a guess wearing a measurement's clothes.
+
+*Rule:* when a later observation contradicts an entry in this journal, correct the entry. This one
+stood wrong for about an hour; the correction is the point of keeping the file at all.
