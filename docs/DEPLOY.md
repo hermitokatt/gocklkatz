@@ -235,7 +235,7 @@ commit that configures the app, and the setting is reviewable in a pull request.
 
 The settings-side equivalent is `vercel project update --framework nextjs`.
 
-### Deployment protection covers generated URLs, not the custom domain
+### Deployment protection covers deployment URLs, not custom domains
 
 Read back from the Vercel API:
 
@@ -255,13 +255,14 @@ $ curl -s https://gocklkatz.vercel.app/api/health
 {"ok":true,"service":"gocklkatz"}
 ```
 
-The **generated** URLs — `gocklkatz-gocklkatz.vercel.app` and any preview deployment — are covered
-and answer `302` to `vercel.com/sso-api`. That is the intended behaviour for previews, and it is
-recorded here so that a `302` on a preview URL is not mistaken for a broken deployment.
+The **deployment** URLs — the hashed ones and the `-git-main-` branch alias — are covered and
+answer `302` to `vercel.com/sso-api`. That is the intended behaviour, and it is recorded here so
+that a `302` on such a URL is not mistaken for a broken deployment. `gocklkatz-gocklkatz.vercel.app`
+in the list above is a custom domain and is therefore excluded, which is why it answers `200`.
 
 The check that keeps this honest is `GOC-46`: fetch every **published** URL anonymously and treat a
 `302` to an authentication host as failure rather than following it. Published means the custom
-domains in the table above, not the generated deployment URLs.
+custom domains in the table above, not the deployment URLs.
 
 `live: false` on the project is a separate flag and does not mean the site is down — it reflects
 that no deployment is currently aliased as the project's live production in the way the API
@@ -269,31 +270,51 @@ reports it. The URL above is the evidence that matters.
 
 ### Creating an application project
 
-Each application is its own Vercel project pointing at its own root directory. Created with the
-Vercel MCP `create_git_project`, which takes the repository, the provider and the root directory:
+Each application is its own Vercel project pointing at its own root directory, created with the
+Vercel MCP `create_git_project`, which takes the repository, the provider and the root directory.
+`provider: cursor-origin` links the project to the Origin repository directly, so a **merge to
+`main` is what deploys** — there is no separate deploy step.
 
-| Project | Root Directory | Live URL |
+A project publishes several addresses and only some are public, so `get_project` is the thing to
+read rather than the URL a deploy log happens to print. For `gocklkatz-ameisenwerkstatt` it reports
+three, and only the first is public:
+
+| Domain | What it is | Fetched anonymously |
 | --- | --- | --- |
-| `gocklkatz` | `.` | <https://gocklkatz.vercel.app> |
-| `gocklkatz-ameisenwerkstatt` | `apps/ameisenwerkstatt` | <https://gocklkatz-ameisenwerkstatt.vercel.app> |
+| `gocklkatz-ameisenwerkstatt.vercel.app` | the **custom domain** attached to the project | `200` |
+| `gocklkatz-ameisenwerkstatt-gocklkatz.vercel.app` | project alias, `<project>-<team>` | `302` to `vercel.com/sso-api` |
+| `gocklkatz-ameisenwerkstatt-git-main-gocklkatz.vercel.app` | branch alias | `302` |
+| `gocklkatz-ameisenwerkstatt-<hash>-gocklkatz.vercel.app` | one per deployment (not in the list; created per build) | `302` |
 
-`provider: cursor-origin` links the project to the Origin repository directly, so a merge to `main`
-is what deploys.
+Every one of those is a `*.vercel.app` address, and only one is reachable. So the rule is not about
+the suffix and not about how official a name looks — it is about whether the address is a **custom
+domain attached to the project**:
 
-### A generated deployment URL is not a public one
+**`ssoProtection` is `all_except_custom_domains`. Anything that is not an attached custom domain is
+gated.**
 
-Vercel's generated URLs — `gocklkatz-ameisenwerkstatt-<hash>-gocklkatz.vercel.app`, and the
-`-git-main-` alias — answer `302` to `vercel.com/sso-api`. That is the team's `ssoProtection`,
-which is set to `all_except_custom_domains`, and generated URLs are not custom domains.
+A project can therefore be built, deployed and serving while no visitor can reach it, because nobody
+attached a domain yet. Fetched through Vercel's authenticated API such an app answers
+`{"ok":true,"service":"demo-shell"}`, while the same URL fetched anonymously redirects to a login.
 
-So a project is reachable publicly **only** through a custom domain, and attaching one is a UI
-step. Until it is attached, the deployment works but no visitor can see it: fetched through Vercel's
-authenticated API the app answers `{"ok":true,"service":"demo-shell"}`, while the same URL fetched
-anonymously redirects to a login.
+Attaching the domain is a UI step — the Vercel MCP exposes `buy_domain`, which purchases a new
+domain, but nothing that attaches an existing address.
 
-This is why a demo's card stays `in-development` until its custom domain answers anonymously.
-`scripts/verify.sh` fetches every anchor a `live` card publishes, so promoting a card early fails
-the gate — correctly, because a card linking to an SSO wall is not a live demo.
+### The five projects
+
+| Project | Root Directory | Custom domain | Status |
+| --- | --- | --- | --- |
+| `gocklkatz` | `.` | `gocklkatz.vercel.app` | attached |
+| `gocklkatz-ameisenwerkstatt` | `apps/ameisenwerkstatt` | `gocklkatz-ameisenwerkstatt.vercel.app` | attached |
+| `gocklkatz-bienenstock` | `apps/bienenstock` | `gocklkatz-bienenstock.vercel.app` | to attach |
+| `gocklkatz-simplified` | `apps/simplified` | `gocklkatz-simplified.vercel.app` | to attach |
+| `gocklkatz-arbeitsmarkt` | `apps/arbeitsmarkt` | `gocklkatz-arbeitsmarkt.vercel.app` | to attach |
+
+The domains are fixed in advance because each is already the URL on that demo's card in
+`src/lib/demos.ts`. Attaching the named domain, then flipping the card, is the whole procedure for
+adding an app — and the order is not optional: `scripts/verify.sh` fetches every anchor a `live`
+card publishes, so promoting a card before its domain answers fails the gate. Correctly, because a
+card linking to a login wall is not a live demo.
 
 ## Vercel ↔ Origin
 
