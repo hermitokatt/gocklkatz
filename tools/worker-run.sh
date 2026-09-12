@@ -14,8 +14,10 @@
 #   tools/worker-run.sh <prompt-file> [repo-root]
 #
 # Environment:
-#   WORKER_MODEL      model id (default: composer-2.5). See `cursor-agent models`.
+#   WORKER_MODEL      model id (default: composer-2.5). See `cursor-agent models`. Anthropic
+#                     models are refused unless WORKER_ALLOW_ANTHROPIC=1.
 #   WORKER_STALL_TICKS  idle ticks before kill; 1 tick = 30s (default: 10 = 5 minutes)
+#   WORKER_ALLOW_ANTHROPIC  set to 1 to permit an Anthropic model (refused by default)
 #   WORKER_SANDBOX    enabled|disabled (default: enabled)
 #
 # Logs: var/agent-logs/<timestamp>.log  (tee'd; read non-blockingly)
@@ -46,6 +48,21 @@ if ! cursor-agent models 2>/dev/null | grep -q "^${MODEL} - "; then
     echo "worker-run: model '${MODEL}' is not in \`cursor-agent models\`. Aborting." >&2
     exit 2
 fi
+
+# Anthropic models are refused by default. They are the most expensive option available, Cursor's
+# own `auto` resolves to one, and a run that names a model explicitly is easy to forget about —
+# this harness spent three tickets on claude-opus-5-thinking-high before anyone noticed. Set
+# WORKER_ALLOW_ANTHROPIC=1 to override deliberately.
+case "$MODEL" in
+    claude-*|*opus*|*sonnet*|*fable*)
+        if [ "${WORKER_ALLOW_ANTHROPIC:-0}" != "1" ]; then
+            echo "worker-run: refusing Anthropic model '$MODEL'." >&2
+            echo "worker-run:   the default is non-Anthropic; pick another, or set WORKER_ALLOW_ANTHROPIC=1." >&2
+            exit 2
+        fi
+        echo "worker-run: WARNING — running '$MODEL', an Anthropic model (WORKER_ALLOW_ANTHROPIC=1)." >&2
+        ;;
+esac
 
 fingerprint() {
     # dirty path count + diff stat; changes when the worker writes a file, even without a commit
