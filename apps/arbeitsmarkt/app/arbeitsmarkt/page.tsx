@@ -54,7 +54,12 @@ export default function ArbeitsmarktPage() {
         </div>
         <ul className={styles.list}>
           {sample.map((record) => (
-            <li key={record.id} className={styles.item} data-synthetic={String(record.synthetic)}>
+            <li
+              key={record.id}
+              className={styles.item}
+              data-synthetic={String(record.synthetic)}
+              data-sample-record={record.id}
+            >
               <div className={styles.itemTop}>
                 <span className={styles.badge}>synthetic</span>
                 <span className={styles.id}>{record.id}</span>
@@ -84,14 +89,19 @@ export default function ArbeitsmarktPage() {
       </section>
 
       <section className={styles.roadmap} aria-labelledby="next-heading">
-        <h2 id="next-heading">What comes next</h2>
+        <h2 id="next-heading">Pipeline views</h2>
         <ul>
-          <li>Ranked digest view — profile stages over this synthetic set</li>
+          <li>
+            <Link href="/arbeitsmarkt/digest">Ranked digest</Link> — filter, then rank against the
+            committed demonstration profile
+          </li>
           <li>Operational view — source health, budgets, and alarms (no live collection)</li>
         </ul>
       </section>
 
       <p className={styles.back}>
+        <Link href="/arbeitsmarkt/digest">Open the digest</Link>
+        {" · "}
         <Link href="/">Back to Arbeitsmarkt</Link>
       </p>
     </main>

@@ -5,11 +5,12 @@ generated from a checked-in seed. No live listings are acquired, committed, or p
 
 ## Surface
 
-| Route           | Notes                                                      |
-| --------------- | ---------------------------------------------------------- |
-| `/`             | App card                                                   |
-| `/arbeitsmarkt` | Exhibit: synthetic statement, sample listings, name legend |
-| `/api/health`   | `{ "ok": true, "service": "arbeitsmarkt" }`                |
+| Route                  | Notes                                                         |
+| ---------------------- | ------------------------------------------------------------- |
+| `/`                    | App card                                                      |
+| `/arbeitsmarkt`        | Exhibit: synthetic statement, sample listings, name legend    |
+| `/arbeitsmarkt/digest` | Ranked digest over the synthetic set (filter → rank → digest) |
+| `/api/health`          | `{ "ok": true, "service": "arbeitsmarkt" }`                   |
 
 ## Run
 
@@ -25,8 +26,9 @@ Port **43127**. Ameisenwerkstatt 43123, landing 43124, Simplified 43125, Bienens
 ## Data
 
 See [`docs/SYNTHETIC_DATA.md`](./docs/SYNTHETIC_DATA.md) for the seed, naming construction, and
-dataset shape. See [`docs/ACQUISITION.md`](./docs/ACQUISITION.md) for why browser drivers and
-scraping frameworks are absent from this app.
+dataset shape. See [`docs/RANKING.md`](./docs/RANKING.md) for the demonstration profile, filter
+rules, and scoring weights. See [`docs/ACQUISITION.md`](./docs/ACQUISITION.md) for why browser
+drivers and scraping frameworks are absent from this app.
 
 Regenerate the committed file after changing the generator:
 

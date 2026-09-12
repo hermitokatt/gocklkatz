@@ -600,6 +600,16 @@ What happened. What the cause was. What was measured. What the rule is now.
 
 The claims above are worth exactly as much as the evidence behind them, so where each came from:
 
+* **The 2026-09-12 Arbeitsmarkt entries** (GOC-28 and GOC-29) were measured by the orchestrator, not
+  taken from a worker report: the dataset byte-identity (`sha256 64015a5d…`, three consecutive
+  regenerations), the pipeline counts `collect=24 filter=16 rank=16 digest=12`, the score range
+  `0.9881 … 0.0652` with 15 distinct totals across 16 survivors, and all three deliberate breaks.
+  Two of the worker's own claims were **not** reproduced as written and are corrected in the entries
+  above or below.
+* **The full out-of-sandbox gate run** that two earlier entries left open was obtained on the
+  GOC-28 tree: `GATE: PASS (tree 988c03cc, 5 app block(s))`, every app `ok` for both `scripts/ci.sh`
+  and `runs and serves (verify)`, plus `guard self-test: 13 passed, 0 failed, 0 skipped`. The
+  sandboxed failures in those entries are environment artefacts.
 * **The 2026-09-12 entry** was written during the GOC-23 work and every figure in it was re-measured
   before it was written down: the 30–50 schema range, the 45 seed entries, `*.tsbuildinfo` and
   `next-env.d.ts` being gitignored, the 40 tracked files in `apps/simplified`, the `302` from the
@@ -620,3 +630,113 @@ The claims above are worth exactly as much as the evidence behind them, so where
   the sandboxed secret-probe exit 0, and the four deliberate-break observations listed in the
   table. Full `GATE: PASS` outside the sandbox was not obtained in that session.
 * Anything added later should say how it was measured, or say that it was not.
+
+---
+
+## 2026-09-12 — Arbeitsmarkt digest (GOC-29)
+
+Added filter → rank → digest over the committed synthetic set (`/arbeitsmarkt/digest`), with
+`data/profile.json`, `lib/pipeline/`, and verify assertions that count digest entries per-entry
+markup and require the top score to exceed the score at rank 8.
+
+### Empty dataset: digest entry count fails; exhibit `SYN-` check does not
+
+A-2 emptied `data/listings.json` to `records: []` / `recordCount: 0`. After restore, sha256 matched
+the pre-empty file (`64015a5d3831a6af77c9c5e7697068aaed2b1779b56a0f2268d4f8e1d416c8ce`).
+
+Observed on the emptied tree (`bash scripts/verify.sh`, exit 1):
+
+```
+route GET /arbeitsmarkt           200
+    ok    GET /arbeitsmarkt is 200 with synthetic statement and rendered content
+route GET /arbeitsmarkt/digest    200
+          digest entries with rank+reason: 0 (need >= 8)
+    FAIL  GET /arbeitsmarkt/digest failed content checks (got 200; entries=0; …)
+```
+
+The digest assertion failed for the right reason (count). The exhibit route still passed because
+`grep SYN-` matches the legend construction string (`companyName = 'SYN-' + …`), which remains on
+the page with zero sample listings. The check is named as if it proves rendered listing content;
+with an empty set it only proves the legend text is present.
+
+### Flat scores fail the ranking-differentiation assertion
+
+With every score component forced to `0.5`, verify still counted 12 entries but:
+
+```
+score at rank 1: 0.5; score at rank 8: 0.5
+FAIL  … ranking_diff=0
+```
+
+Restored `lib/pipeline/run.ts` byte-identical; `bash scripts/ci.sh` and `bash scripts/verify.sh`
+green afterwards.
+
+### The `SYN-` gap was closed, not just recorded
+
+The entry above found that `/arbeitsmarkt` still passed on an empty dataset, and left it open. It is
+now fixed, and the fix is the obvious one: **count records instead of grepping a string**.
+
+The page's sample items gained `data-sample-record={record.id}`, and the assertion counts that
+marker against `SAMPLE_MIN=4`, replacing `grep -q 'SYN-'`. Re-tested on the same emptied dataset —
+now **both** routes fail:
+
+```
+sample records rendered: 0 (need >= 4)
+    FAIL  GET /arbeitsmarkt did not answer 200 with synthetic statement and rendered content (got 200)
+    FAIL  GET /arbeitsmarkt/digest failed content checks (got 200; entries=0; …ranking_diff=0)
+```
+
+*Rule:* when a check is found to pass for the wrong reason, recording the finding is not the fix. A
+guard known to be vacuous is worse than one nobody has tested, because the note saying so is not
+where the next reader looks.
+
+### To reach an assertion's own failure, the fixture has to get past everything upstream
+
+Emptying the dataset was supposed to make the digest assertion fail. The first attempt failed the
+**build** instead:
+
+```
+Error [ZodError]: "meta.recordCount (24) must equal records.length (0)"
+Error occurred prerendering page "/arbeitsmarkt"
+```
+
+`records: []` alone is not a valid dataset, because the schema requires `recordCount` to equal
+`records.length`. Setting `recordCount` to `0` as well made the fixture **self-consistent**, the build
+passed, and only then did the digest route reach its content assertion and fail there:
+
+```
+==> build (next build)
+    ok    build
+          digest entries with rank+reason: 0 (need >= 8)
+    FAIL  GET /arbeitsmarkt/digest failed content checks (got 200; …)
+```
+
+Both failures are useful and they are different facts: the schema catches an internally inconsistent
+dataset, and the digest assertion catches a consistent but empty one. Reporting only the first would
+have "proved" A-2 while never exercising the check A-2 is about — the same shape of mistake as
+breaking a determinism test with a type error.
+
+*Rule:* when a deliberate break fails something earlier than the assertion under test, fix the
+fixture until it reaches the assertion. `ok build` immediately before the FAIL is the signal that the
+right check fired.
+
+### The ranking assertion, and the same guard-naming lesson one level up
+
+`verify.sh` requires the score at rank 1 to exceed the score at rank `DIGEST_MIN`. That is an
+assertion about the *shape* of the output rather than about a string being present, and it was seen to
+fail by flattening the score — `recency` forced to a constant so every survivor scored identically:
+
+```
+score at rank 1: 1; score at rank 8: 1
+    FAIL  GET /arbeitsmarkt/digest failed content checks (… entries=12; stages_ok=1; stage_attrs=4; ranking_diff=0)
+```
+
+Note what passed in that run: 12 entries, all four stage counts, the synthetic statement. Only the
+ranking check caught it — which is the argument for asserting on the shape of a result rather than on
+its presence. The break was reverted and the formula verified restored (`Math.pow(0.5, …)` present
+once).
+
+Measured on the real data, for the record: `collect=24 filter=16 rank=16 digest=12`, 8 rejections
+(7 `posted_before_eligibility`, 1 `focus_excluded`), score range `0.9881 … 0.0652`, 15 distinct
+totals across 16 survivors.
+

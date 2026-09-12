@@ -22,6 +22,9 @@ export default function HomePage() {
         <p>
           <Link className="homeCta" href="/arbeitsmarkt">
             Open the exhibit
+          </Link>{" "}
+          <Link className="homeCta" href="/arbeitsmarkt/digest">
+            Open the digest
           </Link>
         </p>
         <p className="homeFoot">

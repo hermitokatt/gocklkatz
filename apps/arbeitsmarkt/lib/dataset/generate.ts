@@ -58,14 +58,27 @@ export const datasetMetaSchema = z.object({
     endInclusive: z.literal(DATE_WINDOW.endInclusive),
     dayCountInclusive: z.literal(DATE_WINDOW.dayCountInclusive),
   }),
-  recordCount: z.literal(RECORD_COUNT),
+  // Number must match records.length (refined on the dataset). The generator still writes
+  // RECORD_COUNT; the literal was dropped so an emptied file can reach the digest-entry
+  // assertion in verify.sh instead of failing only at Zod parse.
+  recordCount: z.number().int().nonnegative(),
 });
 
-export const datasetSchema = z.object({
-  meta: datasetMetaSchema,
-  legend: datasetLegendSchema,
-  records: z.array(listingRecordSchema).length(RECORD_COUNT),
-});
+export const datasetSchema = z
+  .object({
+    meta: datasetMetaSchema,
+    legend: datasetLegendSchema,
+    records: z.array(listingRecordSchema),
+  })
+  .superRefine((data, ctx) => {
+    if (data.meta.recordCount !== data.records.length) {
+      ctx.addIssue({
+        code: "custom",
+        message: `meta.recordCount (${data.meta.recordCount}) must equal records.length (${data.records.length})`,
+        path: ["meta", "recordCount"],
+      });
+    }
+  });
 
 export type ListingRecord = z.infer<typeof listingRecordSchema>;
 export type SyntheticDataset = z.infer<typeof datasetSchema>;

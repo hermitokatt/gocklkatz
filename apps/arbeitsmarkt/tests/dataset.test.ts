@@ -36,6 +36,8 @@ describe("synthetic dataset generator", () => {
 
     expect(committedRaw).toBe(generatedRaw);
     expect(loadCommittedDataset().meta.seed).toBe(DEFAULT_SEED);
+    expect(loadCommittedDataset().meta.recordCount).toBe(24);
+    expect(loadCommittedDataset().records).toHaveLength(24);
   });
 
   it("flags every record synthetic in the dataset, and the synthetic-only filter returns all", () => {

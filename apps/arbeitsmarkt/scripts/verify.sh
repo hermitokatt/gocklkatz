@@ -9,10 +9,14 @@
 # What it asserts, and why each one is here:
 #
 #   /                       200, and names the app
-#   /arbeitsmarkt           200, contains the synthetic-data statement, and contains a string the
-#                           page actually renders (`Synthetic data only`). A 200 on an error page
-#                           or empty shell must not pass, so the assertion is on content, not on
-#                           status alone.
+#   /arbeitsmarkt           200, contains the synthetic-data statement, and renders at least
+#                           SAMPLE_MIN sample records — counted from the record markup, not grepped
+#                           from a string. A 200 on an error page or empty shell must not pass.
+#   /arbeitsmarkt/digest    200, synthetic statement, pipeline stage counts, and at least
+#                           DIGEST_MIN entries each carrying a rank and a stated reason (counted
+#                           per entry, not once on the page). Also asserts the top score is
+#                           strictly greater than the score at DIGEST_MIN — a flat scoreboard is
+#                           not a ranking.
 #   /api/health             200, JSON, `"ok": true`, and naming this app. The service field is
 #                           checked too: `ok` alone would let a sibling app that answers the same
 #                           shape pass as this one.
@@ -32,6 +36,11 @@ PORT="${VERIFY_PORT:-43127}"
 HOST="127.0.0.1"
 BASE="http://$HOST:$PORT"
 READY_TIMEOUT_S="${VERIFY_READY_TIMEOUT_S:-180}"
+# Digests must show enough ranked rows that the funnel is visible. Counted per entry markup.
+DIGEST_MIN=8
+# The base view renders a sample of the dataset. Counted per record markup, not by grepping for a
+# string the legend also contains.
+SAMPLE_MIN=4
 # Generous on purpose. On a cold CI runner the first start can take far longer than on a
 # developer machine, and a timeout that is too tight produces a failure that looks like a
 # broken app. The wait reports progress every 15s, so a genuinely hung start is visible.
@@ -204,13 +213,91 @@ body="$(curl -sS -m 10 -w '\n%{http_code}' "$BASE/arbeitsmarkt" 2>/dev/null)"
 code="$(printf '%s' "$body" | tail -1)"
 html="$(printf '%s' "$body" | sed '$d')"
 say "route GET /arbeitsmarkt           $code"
+
+# Count the sample records themselves. This used to grep for the literal `SYN-`, which the
+# legend also contains, so the assertion passed on an EMPTY dataset: the legend alone satisfied it.
+# Observed with `records: []` — this route reported ok while the digest route reported
+# `entries=0`. A check that a page renders records has to count records.
+sample_count="$(printf '%s' "$html" | grep -o 'data-sample-record=' | wc -l | tr -d ' ')"
+say "          sample records rendered: $sample_count (need >= $SAMPLE_MIN)"
 if [ "$code" = "200" ] \
+    && [ "$sample_count" -ge "$SAMPLE_MIN" ] \
     && printf '%s' "$html" | grep -q 'All records in this dataset are synthetic' \
-    && printf '%s' "$html" | grep -q 'Synthetic data only' \
-    && printf '%s' "$html" | grep -q 'SYN-'; then
-    ok "GET /arbeitsmarkt is 200 with synthetic statement and rendered content"
+    && printf '%s' "$html" | grep -q 'Synthetic data only'; then
+    ok "GET /arbeitsmarkt is 200 with synthetic statement and $sample_count rendered records"
 else
     bad "GET /arbeitsmarkt did not answer 200 with synthetic statement and rendered content (got $code)"
+fi
+
+# /arbeitsmarkt/digest — ranked entries counted per-entry, stages, synthetic statement
+body="$(curl -sS -m 10 -w '\n%{http_code}' "$BASE/arbeitsmarkt/digest" 2>/dev/null)"
+code="$(printf '%s' "$body" | tail -1)"
+html="$(printf '%s' "$body" | sed '$d')"
+say "route GET /arbeitsmarkt/digest    $code"
+
+# Count entry chunks that each carry data-rank and data-reason. Splitting on the entry marker
+# means one well-formed entry cannot satisfy a check meant for DIGEST_MIN.
+digest_entry_count="$(
+    printf '%s' "$html" | awk -v RS='data-digest-entry' '
+        NR > 1 {
+            if ($0 ~ /data-rank=/ && $0 ~ /data-reason/) ok++
+        }
+        END { print ok+0 }
+    '
+)"
+say "          digest entries with rank+reason: $digest_entry_count (need >= $DIGEST_MIN)"
+
+stage_ok=1
+for stage in collect filter rank digest; do
+    if ! printf '%s' "$html" | grep -q "data-pipeline-stage=\"$stage\""; then
+        stage_ok=0
+        say "          missing pipeline stage marker: $stage"
+    fi
+done
+# Stage counts must be present as attributes, not only as labels.
+stage_count_attrs="$(printf '%s' "$html" | grep -o 'data-stage-count="[0-9]*"' | wc -l | tr -d ' ')"
+say "          data-stage-count attributes: $stage_count_attrs"
+
+# Ranking must differentiate: top score strictly greater than the score at DIGEST_MIN.
+# gawk 3-arg match() is not portable; use sed on each entry chunk instead.
+score_list="$(
+    printf '%s' "$html" | awk -v RS='data-digest-entry' 'NR > 1 { print }' \
+        | sed -n 's/.*data-score="\([0-9.][0-9.]*\)".*/\1/p'
+)"
+score_1=""
+score_n=""
+score_i=0
+while IFS= read -r sc; do
+    [ -z "$sc" ] && continue
+    score_i=$((score_i + 1))
+    if [ "$score_i" -eq 1 ]; then
+        score_1="$sc"
+    fi
+    if [ "$score_i" -eq "$DIGEST_MIN" ]; then
+        score_n="$sc"
+    fi
+done <<EOF
+$score_list
+EOF
+say "          score at rank 1: ${score_1:-none}; score at rank $DIGEST_MIN: ${score_n:-none}"
+
+ranking_differentiates=0
+if [ -n "$score_1" ] && [ -n "$score_n" ]; then
+    if awk -v a="$score_1" -v b="$score_n" 'BEGIN { exit !(a > b) }'; then
+        ranking_differentiates=1
+    fi
+fi
+
+if [ "$code" = "200" ] \
+    && printf '%s' "$html" | grep -q 'All records in this dataset are synthetic' \
+    && printf '%s' "$html" | grep -q 'data-synthetic-statement' \
+    && [ "$digest_entry_count" -ge "$DIGEST_MIN" ] \
+    && [ "$stage_ok" = "1" ] \
+    && [ "$stage_count_attrs" -ge 4 ] \
+    && [ "$ranking_differentiates" = "1" ]; then
+    ok "GET /arbeitsmarkt/digest is 200 with >= $DIGEST_MIN ranked entries (each with reason), stages, and synthetic statement"
+else
+    bad "GET /arbeitsmarkt/digest failed content checks (got $code; entries=$digest_entry_count; stages_ok=$stage_ok; stage_attrs=$stage_count_attrs; ranking_diff=$ranking_differentiates)"
 fi
 
 # /api/health — asserted on the parsed body, not the status alone
