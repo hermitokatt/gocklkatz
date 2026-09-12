@@ -920,9 +920,29 @@ What was **not** established, and should not be assumed:
   whole file tree inlined as `{file, data}[]`, which is not practical for a Next.js app and would
   create a one-off API deployment rather than restoring the git path.
 
-*Rule:* when one of five identically-configured projects stops deploying, compare their
-configuration before theorising. `framework: null` against four `"nextjs"` is the kind of difference
-that is invisible in the UI's happy path and cheap to check through the API.
+### Confirmed: a real tree change also fails to trigger a build
+
+The entry above left open whether a fresh commit would deploy. It does not. On the same branch, an
+**empty** commit was replaced with one that genuinely changes the tree (`a09890ab` → `31326055`),
+pushed, merged, and pushed to `main` at `13:03:52Z`. Measured 7 minutes later at `13:10:51Z`:
+
+```
+newest deployment: created 1789212877122 (11:34:37Z), state READY
+No deployment was created in the last 30 minutes.
+```
+
+So the earlier empty-commit result was not the explanation. Three pushes to `main` — two empty, one
+a real content change — produced no deployment, while the other projects deployed from the same
+pushes. The git integration for this one project is not creating deployments.
+
+That makes the next step a **Vercel UI** action rather than a code one: check the project's Git
+settings and reconnect the repository if the connection is stale. Nothing in this repository needs
+to change; `vercel.json` already declares the framework, and the tree serves correctly from a local
+build.
+
+*Rule:* when three attempts to trigger a build fail while a sibling project deploys from the same
+pushes, stop looking for a code cause. Establish whose responsibility the failing step is, then say
+so plainly instead of trying a fourth variant.
 
 ### Deploy once per issue, not once per sub-issue
 
