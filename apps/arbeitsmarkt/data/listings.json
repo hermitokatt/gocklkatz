@@ -1,0 +1,461 @@
+{
+  "meta": {
+    "schemaVersion": 1,
+    "seed": 28,
+    "synthetic": true,
+    "statement": "All records in this dataset are synthetic. They were generated from a checked-in seed for demonstration. No real job listing, employer, or candidate profile is present.",
+    "dateWindow": {
+      "startInclusive": "2024-01-01",
+      "endInclusive": "2024-06-30",
+      "dayCountInclusive": 182
+    },
+    "recordCount": 24
+  },
+  "legend": {
+    "construction": "companyName = 'SYN-' + Prefix + Middle + Suffix; location = District + ' ' + Zone",
+    "prefixes": [
+      {
+        "token": "Vex",
+        "meaning": "invented stem — no real employer"
+      },
+      {
+        "token": "Quor",
+        "meaning": "invented stem — no real employer"
+      },
+      {
+        "token": "Nex",
+        "meaning": "invented stem — no real employer"
+      },
+      {
+        "token": "Zim",
+        "meaning": "invented stem — no real employer"
+      },
+      {
+        "token": "Prax",
+        "meaning": "invented stem — no real employer"
+      },
+      {
+        "token": "Flux",
+        "meaning": "invented stem — no real employer"
+      },
+      {
+        "token": "Glyp",
+        "meaning": "invented stem — no real employer"
+      },
+      {
+        "token": "Korr",
+        "meaning": "invented stem — no real employer"
+      }
+    ],
+    "middles": [
+      {
+        "token": "alyn",
+        "meaning": "invented bridge syllable"
+      },
+      {
+        "token": "umir",
+        "meaning": "invented bridge syllable"
+      },
+      {
+        "token": "orith",
+        "meaning": "invented bridge syllable"
+      },
+      {
+        "token": "ixan",
+        "meaning": "invented bridge syllable"
+      },
+      {
+        "token": "ynor",
+        "meaning": "invented bridge syllable"
+      },
+      {
+        "token": "etho",
+        "meaning": "invented bridge syllable"
+      }
+    ],
+    "suffixes": [
+      {
+        "token": "Tek",
+        "meaning": "invented suffix — not a product brand"
+      },
+      {
+        "token": "Labs",
+        "meaning": "invented suffix — not a product brand"
+      },
+      {
+        "token": "Works",
+        "meaning": "invented suffix — not a product brand"
+      },
+      {
+        "token": "Forge",
+        "meaning": "invented suffix — not a product brand"
+      },
+      {
+        "token": "Stack",
+        "meaning": "invented suffix — not a product brand"
+      },
+      {
+        "token": "Node",
+        "meaning": "invented suffix — not a product brand"
+      }
+    ],
+    "locationDistricts": [
+      {
+        "token": "Northgrid",
+        "meaning": "fictional district"
+      },
+      {
+        "token": "Bayloop",
+        "meaning": "fictional district"
+      },
+      {
+        "token": "Ridgevoid",
+        "meaning": "fictional district"
+      },
+      {
+        "token": "Saltspan",
+        "meaning": "fictional district"
+      },
+      {
+        "token": "Mossreach",
+        "meaning": "fictional district"
+      },
+      {
+        "token": "Ironmere",
+        "meaning": "fictional district"
+      }
+    ],
+    "locationZones": [
+      {
+        "token": "Sector",
+        "meaning": "fictional zone label"
+      },
+      {
+        "token": "Commons",
+        "meaning": "fictional zone label"
+      },
+      {
+        "token": "Hub",
+        "meaning": "fictional zone label"
+      },
+      {
+        "token": "Yard",
+        "meaning": "fictional zone label"
+      }
+    ]
+  },
+  "records": [
+    {
+      "id": "syn-0001",
+      "synthetic": true,
+      "companyName": "SYN-ZimynorStack",
+      "companyParts": {
+        "prefix": "Zim",
+        "middle": "ynor",
+        "suffix": "Stack"
+      },
+      "title": "Reliability engineer · retention windows",
+      "location": "Mossreach Commons",
+      "postedOn": "2024-01-15"
+    },
+    {
+      "id": "syn-0002",
+      "synthetic": true,
+      "companyName": "SYN-KorrorithNode",
+      "companyParts": {
+        "prefix": "Korr",
+        "middle": "orith",
+        "suffix": "Node"
+      },
+      "title": "Platform engineer · ranking stages",
+      "location": "Ironmere Yard",
+      "postedOn": "2024-06-15"
+    },
+    {
+      "id": "syn-0003",
+      "synthetic": true,
+      "companyName": "SYN-KorralynLabs",
+      "companyParts": {
+        "prefix": "Korr",
+        "middle": "alyn",
+        "suffix": "Labs"
+      },
+      "title": "Data pipeline engineer · ranking stages",
+      "location": "Ironmere Sector",
+      "postedOn": "2024-03-17"
+    },
+    {
+      "id": "syn-0004",
+      "synthetic": true,
+      "companyName": "SYN-GlypumirNode",
+      "companyParts": {
+        "prefix": "Glyp",
+        "middle": "umir",
+        "suffix": "Node"
+      },
+      "title": "API services engineer · ingestion budgets",
+      "location": "Bayloop Yard",
+      "postedOn": "2024-03-15"
+    },
+    {
+      "id": "syn-0005",
+      "synthetic": true,
+      "companyName": "SYN-FluxynorTek",
+      "companyParts": {
+        "prefix": "Flux",
+        "middle": "ynor",
+        "suffix": "Tek"
+      },
+      "title": "Infrastructure engineer · digest assembly",
+      "location": "Ironmere Yard",
+      "postedOn": "2024-01-29"
+    },
+    {
+      "id": "syn-0006",
+      "synthetic": true,
+      "companyName": "SYN-NexynorStack",
+      "companyParts": {
+        "prefix": "Nex",
+        "middle": "ynor",
+        "suffix": "Stack"
+      },
+      "title": "API services engineer · ranking stages",
+      "location": "Saltspan Hub",
+      "postedOn": "2024-03-19"
+    },
+    {
+      "id": "syn-0007",
+      "synthetic": true,
+      "companyName": "SYN-QuorumirStack",
+      "companyParts": {
+        "prefix": "Quor",
+        "middle": "umir",
+        "suffix": "Stack"
+      },
+      "title": "Data pipeline engineer · digest assembly",
+      "location": "Bayloop Hub",
+      "postedOn": "2024-06-19"
+    },
+    {
+      "id": "syn-0008",
+      "synthetic": true,
+      "companyName": "SYN-NexixanStack",
+      "companyParts": {
+        "prefix": "Nex",
+        "middle": "ixan",
+        "suffix": "Stack"
+      },
+      "title": "Platform engineer · source health",
+      "location": "Ridgevoid Yard",
+      "postedOn": "2024-01-30"
+    },
+    {
+      "id": "syn-0009",
+      "synthetic": true,
+      "companyName": "SYN-KorrorithTek",
+      "companyParts": {
+        "prefix": "Korr",
+        "middle": "orith",
+        "suffix": "Tek"
+      },
+      "title": "Reliability engineer · retention windows",
+      "location": "Saltspan Yard",
+      "postedOn": "2024-06-17"
+    },
+    {
+      "id": "syn-0010",
+      "synthetic": true,
+      "companyName": "SYN-ZimethoNode",
+      "companyParts": {
+        "prefix": "Zim",
+        "middle": "etho",
+        "suffix": "Node"
+      },
+      "title": "API services engineer · ingestion budgets",
+      "location": "Northgrid Hub",
+      "postedOn": "2024-04-07"
+    },
+    {
+      "id": "syn-0011",
+      "synthetic": true,
+      "companyName": "SYN-KorralynLabs",
+      "companyParts": {
+        "prefix": "Korr",
+        "middle": "alyn",
+        "suffix": "Labs"
+      },
+      "title": "Reliability engineer · digest assembly",
+      "location": "Ironmere Sector",
+      "postedOn": "2024-04-16"
+    },
+    {
+      "id": "syn-0012",
+      "synthetic": true,
+      "companyName": "SYN-GlyporithLabs",
+      "companyParts": {
+        "prefix": "Glyp",
+        "middle": "orith",
+        "suffix": "Labs"
+      },
+      "title": "Infrastructure engineer · source health",
+      "location": "Ironmere Yard",
+      "postedOn": "2024-05-01"
+    },
+    {
+      "id": "syn-0013",
+      "synthetic": true,
+      "companyName": "SYN-QuororithLabs",
+      "companyParts": {
+        "prefix": "Quor",
+        "middle": "orith",
+        "suffix": "Labs"
+      },
+      "title": "API services engineer · ranking stages",
+      "location": "Ironmere Commons",
+      "postedOn": "2024-05-17"
+    },
+    {
+      "id": "syn-0014",
+      "synthetic": true,
+      "companyName": "SYN-FluxorithNode",
+      "companyParts": {
+        "prefix": "Flux",
+        "middle": "orith",
+        "suffix": "Node"
+      },
+      "title": "API services engineer · ingestion budgets",
+      "location": "Mossreach Commons",
+      "postedOn": "2024-05-24"
+    },
+    {
+      "id": "syn-0015",
+      "synthetic": true,
+      "companyName": "SYN-PraxixanTek",
+      "companyParts": {
+        "prefix": "Prax",
+        "middle": "ixan",
+        "suffix": "Tek"
+      },
+      "title": "Infrastructure engineer · retention windows",
+      "location": "Ridgevoid Sector",
+      "postedOn": "2024-01-10"
+    },
+    {
+      "id": "syn-0016",
+      "synthetic": true,
+      "companyName": "SYN-QuorixanStack",
+      "companyParts": {
+        "prefix": "Quor",
+        "middle": "ixan",
+        "suffix": "Stack"
+      },
+      "title": "Infrastructure engineer · ingestion budgets",
+      "location": "Mossreach Commons",
+      "postedOn": "2024-02-17"
+    },
+    {
+      "id": "syn-0017",
+      "synthetic": true,
+      "companyName": "SYN-PraxynorLabs",
+      "companyParts": {
+        "prefix": "Prax",
+        "middle": "ynor",
+        "suffix": "Labs"
+      },
+      "title": "Frontend systems engineer · alarm routing",
+      "location": "Northgrid Yard",
+      "postedOn": "2024-02-18"
+    },
+    {
+      "id": "syn-0018",
+      "synthetic": true,
+      "companyName": "SYN-PraxalynStack",
+      "companyParts": {
+        "prefix": "Prax",
+        "middle": "alyn",
+        "suffix": "Stack"
+      },
+      "title": "Data pipeline engineer · retention windows",
+      "location": "Mossreach Hub",
+      "postedOn": "2024-01-29"
+    },
+    {
+      "id": "syn-0019",
+      "synthetic": true,
+      "companyName": "SYN-KorrethoNode",
+      "companyParts": {
+        "prefix": "Korr",
+        "middle": "etho",
+        "suffix": "Node"
+      },
+      "title": "Infrastructure engineer · retention windows",
+      "location": "Mossreach Hub",
+      "postedOn": "2024-01-30"
+    },
+    {
+      "id": "syn-0020",
+      "synthetic": true,
+      "companyName": "SYN-ZimixanStack",
+      "companyParts": {
+        "prefix": "Zim",
+        "middle": "ixan",
+        "suffix": "Stack"
+      },
+      "title": "Reliability engineer · digest assembly",
+      "location": "Bayloop Commons",
+      "postedOn": "2024-03-20"
+    },
+    {
+      "id": "syn-0021",
+      "synthetic": true,
+      "companyName": "SYN-NexumirLabs",
+      "companyParts": {
+        "prefix": "Nex",
+        "middle": "umir",
+        "suffix": "Labs"
+      },
+      "title": "API services engineer · source health",
+      "location": "Bayloop Hub",
+      "postedOn": "2024-01-25"
+    },
+    {
+      "id": "syn-0022",
+      "synthetic": true,
+      "companyName": "SYN-QuororithForge",
+      "companyParts": {
+        "prefix": "Quor",
+        "middle": "orith",
+        "suffix": "Forge"
+      },
+      "title": "Infrastructure engineer · ingestion budgets",
+      "location": "Mossreach Sector",
+      "postedOn": "2024-06-01"
+    },
+    {
+      "id": "syn-0023",
+      "synthetic": true,
+      "companyName": "SYN-QuororithWorks",
+      "companyParts": {
+        "prefix": "Quor",
+        "middle": "orith",
+        "suffix": "Works"
+      },
+      "title": "Data pipeline engineer · ranking stages",
+      "location": "Bayloop Commons",
+      "postedOn": "2024-04-08"
+    },
+    {
+      "id": "syn-0024",
+      "synthetic": true,
+      "companyName": "SYN-NexixanNode",
+      "companyParts": {
+        "prefix": "Nex",
+        "middle": "ixan",
+        "suffix": "Node"
+      },
+      "title": "Reliability engineer · retention windows",
+      "location": "Northgrid Hub",
+      "postedOn": "2024-03-20"
+    }
+  ]
+}

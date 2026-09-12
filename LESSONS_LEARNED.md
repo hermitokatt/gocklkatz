@@ -450,6 +450,139 @@ Both apps pass: `ci: PASS (format, lint, typecheck, tests, build)`.
 
 ---
 
+## 2026-09-12 — Arbeitsmarkt greenfield (GOC-28)
+
+Greenfield `apps/arbeitsmarkt`: synthetic dataset + generator, exhibit page, `scripts/ci.sh` /
+`scripts/verify.sh`, `repo.config` entry, verify port 43127. No acquisition path; no browser
+driver; no scraping framework.
+
+### Same sandboxed gate FAIL pattern as Bienenstock (GOC-19)
+
+`bash tools/gate.sh` reported `arbeitsmarkt` ci + verify green, then `GATE: FAIL` overall:
+
+1. `tests/guard.test.sh` — `secret-shaped value is caught` expected exit 1, got 0.
+2. Landing-page verify — live card URLs `UNREACHABLE (fetch failed)` under the sandbox proxy.
+
+Manual probe of (1) inside the same sandbox:
+
+```
+$ printf 'DEEPSEEK_API_KEY=sk-0000...\n' > /tmp/secretleak.txt && bash tools/guard.sh --paths /tmp/secretleak.txt
+guard: ok — content clean, identity Hermito Katt <gocklkatz@gmail.com>
+exit:0
+```
+
+This matches the GOC-19 measurement: the sandbox breaks `xargs` used by the secret scan; the
+check is not a silent no-op outside the sandbox. Full `GATE: PASS` was not re-obtained in this
+session because unrestricted permissions were refused by the environment. Within the same gate
+run, the arbeitsmarkt lines were:
+
+```
+ok    arbeitsmarkt — scripts/ci.sh (lint, typecheck, test, build)
+ok    arbeitsmarkt — runs and serves (verify)
+```
+
+### Deliberate assertion failures (content/behaviour, not types)
+
+| Assertion | Break | Observed |
+| --- | --- | --- |
+| Determinism | `process.hrtime.bigint()` in each title | `determinism equal: false`; vitest exit 1 on `expect(a).toBe(b)` |
+| Committed equality | one-byte edit `synthetic` → `Xynthetic` in `data/listings.json` | `committed === generated: false`; vitest exit 1 |
+| Synthetic filter | one record `synthetic: false` (schema temporarily `z.boolean()` so Zod did not reject) | `expected true to be false` on per-record flag; exit 1 |
+| Verify content | replace `SYNTHETIC_STATEMENT` on the page; route still 200 | `FAIL GET /arbeitsmarkt did not answer 200 with synthetic statement… (got 200)` |
+
+All four reverted; `bash scripts/ci.sh` green afterwards.
+
+### Landing-page copy still contradicts the constraint
+
+Not edited (out of scope for this ticket). Observed still present:
+
+* `src/lib/demos.ts` — Arbeitsmarkt description: "Relevance-ranked IT job listings from public APIs."
+* `README.md` — same claim for `apps/arbeitsmarkt`.
+
+Both contradict ticket 005 / this epic: published data is synthetic; no public-API listings.
+
+`AGENTS.md` §4 pointed at `apps/arbeitsmarkt/docs/` before that directory existed; this tree adds
+`docs/SYNTHETIC_DATA.md` and `docs/ACQUISITION.md`.
+
+### The clock assertion named a hazard it did not actually catch
+
+The generator suite contained this test:
+
+```js
+it("does not consult Date.now or process.env in the generator", () => {
+  const generateSrc = readFileSync(join(APP_ROOT, "lib", "dataset", "generate.ts"), "utf8");
+  expect(generateSrc).not.toMatch(/\bDate\.now\b/);
+  expect(generateSrc).not.toMatch(/\bprocess\.env\b/);
+});
+```
+
+Its name promises that the generator does not consult the clock. It matched `Date.now` and nothing
+else, so this break **passed the whole suite**:
+
+```diff
+- const ms = Date.UTC(2024, 0, 1 + offset);
++ const ms = Date.UTC(2024, 0, 1 + offset) + new Date().getMilliseconds();
+```
+
+`new Date()` is the same hazard as `Date.now()`, and arguably the more common way to write it. The
+test was green because it checked a spelling, not the property.
+
+What made this a weak guard rather than a hole is worth recording, because it is the argument for
+keeping overlapping assertions: a **behavioural** test caught the coarser version of the same break.
+Shifting the whole output window by the current minute failed
+
+```
+FAIL  committed data/listings.json equals a fresh generation from the default seed
+```
+
+and the fine-grained version is a latent flake that the byte-equality check would have caught as soon
+as the millisecond differed between the two generations. The defect was a misleading test name, not a
+missing net.
+
+**The fix, and the two false positives it produced.** Widening a pattern is not a one-line change.
+Each attempt was applied, run against the *known-good* generator, and corrected:
+
+| Pattern tried | Result |
+| --- | --- |
+| `\bnew\s+Date\b` | flagged `new Date(ms)` — legitimate, built from a seeded offset |
+| `\bDate\s*\((?![.])` | flagged `Date.UTC(2024, 0, 1 + offset)` — the deterministic window builder |
+| `\bnew\s+Date\s*\(\s*\)` | correct: the hazard is the *no-argument* form |
+
+The assertion now scans all four generator modules rather than only the entry point, and lists
+`Date.now`, `new Date()`, `performance.now`, `process.env` and `Math.random`. Re-applying the original
+break now fails and names it:
+
+```
+AssertionError: new Date() must not appear in the generator: expected 'import { z } from "zod";…' not to match /\bnew\s+Date\s*\(\s*\)/
+```
+
+*Rule:* a guard's name is a claim about what it checks, and a regex is a spelling. When you widen one,
+run it against known-good input before trusting it — otherwise the first thing a stricter guard does
+is fail on correct code, and the natural response is to relax it back.
+
+### The sandbox guard failure, resolved
+
+The entry above left the sandbox `gate.sh` result open. It is the environment artefact recorded under
+GOC-19 and GOC-20, and it is now confirmed from the other side: outside the sandbox, on the same tree,
+the command passes.
+
+```
+$ bash tests/guard.test.sh
+guard self-test: 13 passed, 0 failed, 0 skipped
+
+$ bash tools/gate.sh
+GATE: PASS (tree 6bba20ee, 5 app block(s))
+```
+
+All five apps reported `ok` for both `scripts/ci.sh` and `runs and serves (verify)`. The secret scan
+works; the sandbox breaks `xargs`, and it fails closed.
+
+*Rule:* twice now a sandboxed worker has concluded that a working guard is broken. When a check fails
+in one environment and passes in another, re-run it in the environment the check is for before writing
+down what it means.
+
+---
+
 ## Journal template
 
 ```
@@ -483,4 +616,7 @@ The claims above are worth exactly as much as the evidence behind them, so where
   hive-nectar nonce run that failed (`hiveA=71.610000` vs `hiveB=72.610000`, exit 1). The
   visit-shift figures `46/38` then `71/13` are from the nectar-spike test log on seed 19
   before and after the unload-memory change, on the same machine, same command.
+* **The 2026-09-12 Arbeitsmarkt entry** quotes the gate lines for `arbeitsmarkt` ci/verify ok,
+  the sandboxed secret-probe exit 0, and the four deliberate-break observations listed in the
+  table. Full `GATE: PASS` outside the sandbox was not obtained in that session.
 * Anything added later should say how it was measured, or say that it was not.

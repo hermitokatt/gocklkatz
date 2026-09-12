@@ -55,7 +55,7 @@ const DEMOS = [
   {
     slug: "arbeitsmarkt",
     name: "Arbeitsmarkt",
-    description: "Relevance-ranked IT job listings from public APIs.",
+    description: "A relevance-ranked job-listing pipeline, demonstrated on synthetic data.",
     url: "https://gocklkatz-arbeitsmarkt.vercel.app",
     status: "in-development",
   },
