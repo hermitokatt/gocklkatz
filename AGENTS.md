@@ -215,9 +215,11 @@ because a step that can neither be observed from inside the repository nor fixed
 not belong in a loop that runs on its own.
 
 Corollary for verification: the checks in this repository prove a change is *correct*, not that it is
-*public*. `tools/verify-live.sh` and `tools/verify-deployments.sh` read what is already deployed.
-They are health checks to run when asked, not a finishing step — and when a deployment is behind,
-they will fail, correctly, for a reason that is not a defect in the change.
+*public*. `tools/verify-live.sh` and `tools/verify-deployments.sh` read what is already deployed, and
+`tools/audit-mirror-metadata.mjs` reads what the public copy says about itself. They are health checks
+to run when asked, not a finishing step — and when a deployment is behind, they will fail, correctly,
+for a reason that is not a defect in the change. None of the three can run in CI: a runner has
+neither the credentials nor the network they need, which is why they are not gate steps.
 
 ### The one place a deployment is load-bearing
 
