@@ -222,6 +222,37 @@ Origin repositories cannot be made public on this account — the API accepts `v
 and `visibility=private` but rejects `visibility=public`, which is why the public copy lives on
 GitHub instead.
 
+## Repository metadata
+
+GitHub's description, homepage and topics are settings on the public copy, not files inside it, so
+they are recorded here for the same reason the Vercel project settings are recorded further down: a
+repository recreated from this one can be configured from the same commit that configures
+everything else. `tools/mirror-to-github.sh` pushes the `main` branch and never touches repository
+settings, so nothing here is applied automatically and nothing gets overwritten by a publication.
+
+Observed on the public copy, 2026-09-12:
+
+**Description**
+
+> Gocklkatz Inc — engineering portfolio: a landing page and four self-contained demo applications
+> (ant colony optimisation, a bee colony, Chinese radicals, job listings), each built, tested and
+> deployed on its own.
+
+**Homepage:** <https://gocklkatz.vercel.app> — fetched anonymously and answering `200`, like every
+other published URL in this document.
+
+**Topics:** `monorepo`, `nextjs`, `portfolio`, `simulation`, `typescript`
+
+```bash
+gh repo edit hermitokatt/gocklkatz \
+  --description "Gocklkatz Inc — engineering portfolio: a landing page and four self-contained demo applications (ant colony optimisation, a bee colony, Chinese radicals, job listings), each built, tested and deployed on its own." \
+  --homepage "https://gocklkatz.vercel.app" \
+  --add-topic monorepo --add-topic nextjs --add-topic portfolio \
+  --add-topic simulation --add-topic typescript
+```
+
+Read them back with `gh repo view hermitokatt/gocklkatz --json description,homepageUrl,repositoryTopics`.
+
 ## Publishing
 
 ```bash
