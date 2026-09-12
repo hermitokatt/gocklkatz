@@ -151,18 +151,32 @@ if [ "${GATE_SKIP_SELF_TESTS:-0}" = "1" ]; then
     skip "skipped (GATE_SKIP_SELF_TESTS=1; this is a nested gate run)"
 else
     step "self-tests"
-    for t in tests/guard.test.sh tests/gate.test.sh; do
-        if GATE_SKIP_SELF_TESTS=1 bash "$t" >/dev/null 2>&1; then
-            ok "$t"
+    # A self-test's own report names the failing case, and it is the only artefact that does. It used
+    # to be sent to /dev/null, so a failure here said only "run it directly" — which is useless in CI,
+    # where the reader has no way to run anything. That cost a diagnosis: GOC-48 had to be filed from
+    # a CI run whose failing child had printed its reason into a discard.
+    #
+    # Success stays quiet; failure is shown, tail-truncated so one noisy suite cannot bury the rest.
+    selftest_log="$(mktemp "${TMPDIR:-/tmp}/gate-selftest.XXXXXX")"
+    run_selftest() {
+        # $1 = label, rest = command
+        local label="$1"
+        shift
+        if "$@" >"$selftest_log" 2>&1; then
+            ok "$label"
         else
-            bad "$t — run it directly to see the failing case"
+            bad "$label — output follows"
+            # Enough to reach the report when a case failed early: a case prints a failing gate's
+            # whole run before its own FAIL line, so a short tail shows the wrong part. The closing
+            # counter is the single most useful line in any of these reports.
+            tail -60 "$selftest_log" | sed 's/^/          /'
         fi
+    }
+    for t in tests/guard.test.sh tests/gate.test.sh; do
+        run_selftest "$t" env GATE_SKIP_SELF_TESTS=1 bash "$t"
     done
-    if node tests/dependency-allowlist.test.mjs >/dev/null 2>&1; then
-        ok "tests/dependency-allowlist.test.mjs"
-    else
-        bad "tests/dependency-allowlist.test.mjs — run it directly to see the failing case"
-    fi
+    run_selftest "tests/dependency-allowlist.test.mjs" node tests/dependency-allowlist.test.mjs
+    rm -f "$selftest_log"
 fi
 
 # ---------------------------------------------------------------------------
