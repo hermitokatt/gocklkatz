@@ -7,11 +7,11 @@ same simulation.
 A demo application in the [Gocklkatz Inc](../../README.md) portfolio. Self-contained: its own
 `package.json`, its own lockfile, its own gates. It imports nothing from the other apps.
 
-| | |
-| --- | --- |
-| Product notes | [`docs/AMEISENFABRIK.md`](./docs/AMEISENFABRIK.md) |
-| Room demo script | [`docs/DEMO.md`](./docs/DEMO.md) |
-| Deployment | Not yet deployed. No URL is recorded here until one has been fetched and returned `200`. |
+|                  |                                                                                          |
+| ---------------- | ---------------------------------------------------------------------------------------- |
+| Product notes    | [`docs/AMEISENFABRIK.md`](./docs/AMEISENFABRIK.md)                                       |
+| Room demo script | [`docs/DEMO.md`](./docs/DEMO.md)                                                         |
+| Deployment       | Not yet deployed. No URL is recorded here until one has been fetched and returned `200`. |
 
 ## Run it
 
@@ -24,15 +24,15 @@ npm run dev     # http://127.0.0.1:43123
 
 ## Surface
 
-| Route | Method | Notes |
-| --- | --- | --- |
-| `/` | GET | The app's own card |
-| `/ameisen` | GET | The Werkstatt: canvas, 3D walk graph, chaos controls |
-| `/api/health` | GET | `{ "ok": true, "service": "demo-shell" }` |
-| `/api/ameisen/snapshot` | GET | Read-only snapshot of the shared server colony |
-| `/api/ameisen/params` | POST | Mutate-gated — sets α, β, ρ, ant count |
-| `/api/ameisen/step` | POST | Mutate-gated — advances N iterations |
-| `/api/ameisen/tools` | POST | Mutate-gated — allowlisted tools only |
+| Route                   | Method | Notes                                                |
+| ----------------------- | ------ | ---------------------------------------------------- |
+| `/`                     | GET    | The app's own card                                   |
+| `/ameisen`              | GET    | The Werkstatt: canvas, 3D walk graph, chaos controls |
+| `/api/health`           | GET    | `{ "ok": true, "service": "demo-shell" }`            |
+| `/api/ameisen/snapshot` | GET    | Read-only snapshot of the shared server colony       |
+| `/api/ameisen/params`   | POST   | Mutate-gated — sets α, β, ρ, ant count               |
+| `/api/ameisen/step`     | POST   | Mutate-gated — advances N iterations                 |
+| `/api/ameisen/tools`    | POST   | Mutate-gated — allowlisted tools only                |
 
 The `/ameisen` page runs its **own colony in the browser**. Nothing on that page writes to the
 server, so sharing the URL never requires unlocking anything.
@@ -49,7 +49,7 @@ bash scripts/ci.sh       # format, lint, typecheck, tests, build
 bash scripts/verify.sh   # builds it, starts it, fetches /, /ameisen and /api/health
 ```
 
-`scripts/ci.sh` proves the app compiles and its tests pass. It cannot prove the app *runs*: a build
+`scripts/ci.sh` proves the app compiles and its tests pass. It cannot prove the app _runs_: a build
 passes over a page that throws on first render, and a route that answers `200` with an error page
 still answers `200`. `scripts/verify.sh` is the one that starts a server on port **43123**, waits
 for the port to accept a connection, fetches each route, and asserts what came back — including
@@ -78,13 +78,13 @@ documents were written for that setting. Product documents — what was built, w
 demonstrated — were kept and rewritten. The rest was not carried over, and the omission is recorded
 here rather than left silent:
 
-| Withheld | Why |
-| --- | --- |
-| The delivery-loop, roadmap, ticket-schema and ticket-drafting documents | They describe the internal working arrangements of an organisation — named seats, who merges, who may file work. That is not part of a demo, and it names people. |
-| The red-gate incident playbook | It is an operator runbook for escalating inside that organisation, not an account of an engineering failure. See below. |
-| A field-notes digest of third-party social-media posts | Third-party content and personal handles, gathered under terms this repository has not reviewed. |
-| The charter for a different, unbuilt demo | It describes work in another repository against a deadline that is not this one's. |
-| The process quiz bank under `docs/eval/` | Its questions are about that organisation's internal loop, so it scores knowledge of the withheld documents. The tool goldens in `docs/eval/ameisen/`, which score the application's actual façade, were kept. |
+| Withheld                                                                | Why                                                                                                                                                                                                            |
+| ----------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| The delivery-loop, roadmap, ticket-schema and ticket-drafting documents | They describe the internal working arrangements of an organisation — named seats, who merges, who may file work. That is not part of a demo, and it names people.                                              |
+| The red-gate incident playbook                                          | It is an operator runbook for escalating inside that organisation, not an account of an engineering failure. See below.                                                                                        |
+| A field-notes digest of third-party social-media posts                  | Third-party content and personal handles, gathered under terms this repository has not reviewed.                                                                                                               |
+| The charter for a different, unbuilt demo                               | It describes work in another repository against a deadline that is not this one's.                                                                                                                             |
+| The process quiz bank under `docs/eval/`                                | Its questions are about that organisation's internal loop, so it scores knowledge of the withheld documents. The tool goldens in `docs/eval/ameisen/`, which score the application's actual façade, were kept. |
 
 **On the incident playbook specifically.** It looked like the most publishable of the withheld
 documents, because a real account of a real failure is exactly what a portfolio should carry. It is
@@ -105,5 +105,5 @@ duplicated here. Two copies of a policy is one policy and one lie.
 ## Naming
 
 The application brands itself **Ameisenfabrik** — that is the wordmark on the page and the name in
-its own documents. **Ameisenwerkstatt** is its slot in this portfolio, and *Werkstatt* is the UI
+its own documents. **Ameisenwerkstatt** is its slot in this portfolio, and _Werkstatt_ is the UI
 direction that was chosen for `/ameisen`.

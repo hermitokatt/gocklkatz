@@ -5,8 +5,7 @@ import { listRadicals } from "@/lib/radicals";
 
 export const metadata: Metadata = {
   title: "Radicals — Simplified",
-  description:
-    "Browse meaning components and radicals that build simplified Chinese characters.",
+  description: "Browse meaning components and radicals that build simplified Chinese characters.",
 };
 
 export default function LearnRadicalsPage() {
@@ -24,8 +23,8 @@ export default function LearnRadicalsPage() {
           </p>
           <h1 className="study__title">Radicals</h1>
           <p className="study__lede">
-            Meaning components that recur across simplified characters — start
-            here before full words.
+            Meaning components that recur across simplified characters — start here before full
+            words.
           </p>
           <p className="study__practice-link">
             <Link href="/learn/radicals/practice">Practice recognition</Link>
@@ -39,10 +38,7 @@ export default function LearnRadicalsPage() {
               className="radical-index__item"
               style={{ animationDelay: `${Math.min(index, 12) * 0.04}s` }}
             >
-              <Link
-                className="radical-index__link"
-                href={`/learn/radicals/${radical.id}`}
-              >
+              <Link className="radical-index__link" href={`/learn/radicals/${radical.id}`}>
                 <span className="radical-index__primary" lang="zh-Hans">
                   {radical.forms[0]}
                 </span>

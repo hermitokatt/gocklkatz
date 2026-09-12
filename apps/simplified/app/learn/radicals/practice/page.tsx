@@ -16,9 +16,7 @@ type PracticePageProps = {
   searchParams: Promise<{ start?: string | string[] }>;
 };
 
-export default async function RadicalPracticePage({
-  searchParams,
-}: PracticePageProps) {
+export default async function RadicalPracticePage({ searchParams }: PracticePageProps) {
   const params = await searchParams;
   const startRaw = params.start;
   const startValue = Array.isArray(startRaw) ? startRaw[0] : startRaw;

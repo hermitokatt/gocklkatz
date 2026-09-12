@@ -21,13 +21,13 @@ Optional smoke, not part of the talk: `GET http://localhost:43123/api/health` �
 
 ## What the audience should already see (calm)
 
-| Zone | What is on screen |
-| --- | --- |
-| **Mast** | Kicker `Ameisenwerkstatt · chaos inject · no LLM`, a green one-liner, the gradient wordmark **Ameisenfabrik**, and one German sentence about the 5-city TSP on its orbit sphere and **τ^α · η^β** |
-| **Controls** (top-right) | **Halt** / **Lauf**, **Chaos**, **Frei** (disabled while nothing is blocked), the **Kante** select and **Sperre / Frei** |
+| Zone                        | What is on screen                                                                                                                                                                                               |
+| --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Mast**                    | Kicker `Ameisenwerkstatt · chaos inject · no LLM`, a green one-liner, the gradient wordmark **Ameisenfabrik**, and one German sentence about the 5-city TSP on its orbit sphere and **τ^α · η^β**               |
+| **Controls** (top-right)    | **Halt** / **Lauf**, **Chaos**, **Frei** (disabled while nothing is blocked), the **Kante** select and **Sperre / Frei**                                                                                        |
 | **Left rail** — five plates | **Beste Tour** (gold length), **Iteration** (count + ants walking), **Pheromon** (share of trail mass on the gold tour), **Gesperrt** (`0`), **Wahl** (the top candidate's probability for one highlighted ant) |
-| **Stage** | Cyan pheromone field, orange city nodes carrying workshop names, crawling ants, the gold best-so-far tour |
-| **Footer** | Legend (Pheromon / Beste Tour / Gesperrte Kante), the read-only parameter line, and the `Gold: City › City › …` chain when a best tour exists |
+| **Stage**                   | Cyan pheromone field, orange city nodes carrying workshop names, crawling ants, the gold best-so-far tour                                                                                                       |
+| **Footer**                  | Legend (Pheromon / Beste Tour / Gesperrte Kante), the read-only parameter line, and the `Gold: City › City › …` chain when a best tour exists                                                                   |
 
 Point at the stage first, then the rail. The graph is the product; the plates are the scoreboard.
 
@@ -91,17 +91,17 @@ dashed magenta with a cut mark.
 
 **See immediately:**
 
-| Cue | Change |
-| --- | --- |
-| Kicker | `Ameisenwerkstatt · chaos aktiv · no LLM` |
-| Subline | Names the blocked Kante; says gold was discarded because the cut lay on the tour |
-| **Chaos** button | Magenta glow |
-| **Frei** | Enabled |
-| Stage frame | Alert tint; the gold path is **gone** |
+| Cue                  | Change                                                                                           |
+| -------------------- | ------------------------------------------------------------------------------------------------ |
+| Kicker               | `Ameisenwerkstatt · chaos aktiv · no LLM`                                                        |
+| Subline              | Names the blocked Kante; says gold was discarded because the cut lay on the tour                 |
+| **Chaos** button     | Magenta glow                                                                                     |
+| **Frei**             | Enabled                                                                                          |
+| Stage frame          | Alert tint; the gold path is **gone**                                                            |
 | Plate **Beste Tour** | `—` in magenta, alert border, "Gold verworfen · die Sperre lag auf der Tour" plus the last value |
-| Plate **Pheromon** | Label flips to **Pheromon · Masse** — the share has no referent without a gold tour |
-| Plate **Gesperrt** | Count `1`, alert border, names the edge and the iteration |
-| Footer | Event line: `Iteration N · Kante X–Y gesperrt · Gold verworfen` |
+| Plate **Pheromon**   | Label flips to **Pheromon · Masse** — the share has no referent without a gold tour              |
+| Plate **Gesperrt**   | Count `1`, alert border, names the edge and the iteration                                        |
+| Footer               | Event line: `Iteration N · Kante X–Y gesperrt · Gold verworfen`                                  |
 
 **Say:**
 
@@ -172,21 +172,21 @@ Toggle **Sperre / Frei**, or hit **Frei**, to clean up before questions.
 
 ## Operator cheat sheet
 
-| Control | Effect |
-| --- | --- |
-| **Halt** / **Lauf** | Pause / resume the requestAnimationFrame colony loop |
-| **Chaos** | Block gold's longest hop, or the longest open edge if there is no gold |
-| **Frei** | Clear all blocked edges (disabled when the count is 0) |
-| **Kante** + **Sperre / Frei** | Toggle the selected undirected edge by city names |
-| Canvas click | Toggle the nearest edge; hits on cities are ignored |
+| Control                       | Effect                                                                 |
+| ----------------------------- | ---------------------------------------------------------------------- |
+| **Halt** / **Lauf**           | Pause / resume the requestAnimationFrame colony loop                   |
+| **Chaos**                     | Block gold's longest hop, or the longest open edge if there is no gold |
+| **Frei**                      | Clear all blocked edges (disabled when the count is 0)                 |
+| **Kante** + **Sperre / Frei** | Toggle the selected undirected edge by city names                      |
+| Canvas click                  | Toggle the nearest edge; hits on cities are ignored                    |
 
-| Plate | Calm | After gold-cutting Chaos |
-| --- | --- | --- |
-| **Beste Tour** | Gold length | `—` plus a "verworfen" note |
-| **Iteration** | Count + walking ants | Same; a heartbeat tick when all ants are home |
-| **Pheromon** | Share on gold | Falls back to **Pheromon · Masse** |
-| **Gesperrt** | `0` + the tour spread note | Count + the named edge, alert |
-| **Wahl** | Top candidate and its probability | Same |
+| Plate          | Calm                              | After gold-cutting Chaos                      |
+| -------------- | --------------------------------- | --------------------------------------------- |
+| **Beste Tour** | Gold length                       | `—` plus a "verworfen" note                   |
+| **Iteration**  | Count + walking ants              | Same; a heartbeat tick when all ants are home |
+| **Pheromon**   | Share on gold                     | Falls back to **Pheromon · Masse**            |
+| **Gesperrt**   | `0` + the tour spread note        | Count + the named edge, alert                 |
+| **Wahl**       | Top candidate and its probability | Same                                          |
 
 ## Don't
 

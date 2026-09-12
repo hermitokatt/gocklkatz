@@ -74,12 +74,10 @@ function validationError(parsed: {
 }
 
 export type ParamsOutcome =
-  | { ok: true; snapshot: SimSnapshot }
-  | { ok: false; status: 400; body: ApiError };
+  { ok: true; snapshot: SimSnapshot } | { ok: false; status: 400; body: ApiError };
 
 export type StepOutcome =
-  | { ok: true; result: StepResult }
-  | { ok: false; status: 400; body: ApiError };
+  { ok: true; result: StepResult } | { ok: false; status: 400; body: ApiError };
 
 function applyBlockedKeys(colony: Colony, keys: readonly string[]): Colony {
   const n = colony.cities.length;

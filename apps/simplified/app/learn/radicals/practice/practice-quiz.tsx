@@ -41,22 +41,12 @@ type PracticeQuizProps = {
  * Starting a session is a navigation to `?start=1` so the first question is
  * rendered on the server even when client hydration fails.
  */
-export function PracticeQuiz({
-  radicals,
-  initialSession = null,
-}: PracticeQuizProps) {
-  const hasInitialSession =
-    Array.isArray(initialSession) && initialSession.length > 0;
+export function PracticeQuiz({ radicals, initialSession = null }: PracticeQuizProps) {
+  const hasInitialSession = Array.isArray(initialSession) && initialSession.length > 0;
 
-  const [progress, setProgress] = useState<PracticeProgress>(() =>
-    emptyPracticeProgress(),
-  );
-  const [phase, setPhase] = useState<Phase>(
-    hasInitialSession ? "question" : "ready",
-  );
-  const [items, setItems] = useState<PracticeItem[]>(
-    hasInitialSession ? initialSession! : [],
-  );
+  const [progress, setProgress] = useState<PracticeProgress>(() => emptyPracticeProgress());
+  const [phase, setPhase] = useState<Phase>(hasInitialSession ? "question" : "ready");
+  const [items, setItems] = useState<PracticeItem[]>(hasInitialSession ? initialSession! : []);
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<AnswerRow[]>([]);
   const [lastResult, setLastResult] = useState<AnswerRow | null>(null);
@@ -78,9 +68,7 @@ export function PracticeQuiz({
 
   const current = items[index];
   const radicalForCurrent =
-    current != null
-      ? radicals.find((r) => r.id === current.radicalId)
-      : undefined;
+    current != null ? radicals.find((r) => r.id === current.radicalId) : undefined;
 
   function restartInPlace() {
     setStartError(null);
@@ -96,8 +84,7 @@ export function PracticeQuiz({
       setLastResult(null);
       setPhase("question");
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Could not start practice.";
+      const message = error instanceof Error ? error.message : "Could not start practice.";
       setStartError(message);
     }
   }
@@ -152,8 +139,8 @@ export function PracticeQuiz({
             Recognition
           </h1>
           <p className="practice__lede">
-            A short quiz — glyph to meaning, and meaning to glyph. Study aids stay
-            hidden until you answer.
+            A short quiz — glyph to meaning, and meaning to glyph. Study aids stay hidden until you
+            answer.
           </p>
           <p className="practice__meta">
             Up to {PRACTICE_SESSION_SIZE} items · progress stays in this browser
@@ -180,10 +167,7 @@ export function PracticeQuiz({
       ) : null}
 
       {phase === "question" && current ? (
-        <section
-          className="practice-panel practice-panel--quiz"
-          aria-labelledby="practice-prompt"
-        >
+        <section className="practice-panel practice-panel--quiz" aria-labelledby="practice-prompt">
           <p className="practice__progress" aria-live="polite">
             {index + 1} / {items.length}
           </p>
@@ -280,9 +264,7 @@ export function PracticeQuiz({
               {radicalForCurrent.examples.slice(0, 2).map((example) => (
                 <li key={`${example.char}-${example.gloss}`}>
                   <span lang="zh-Hans">{example.char}</span>
-                  <span className="practice-aids__example-gloss">
-                    {example.gloss}
-                  </span>
+                  <span className="practice-aids__example-gloss">{example.gloss}</span>
                 </li>
               ))}
             </ul>
@@ -308,8 +290,8 @@ export function PracticeQuiz({
             {summary.correct} of {summary.total} correct
           </p>
           <p className="practice__lede">
-            Progress is saved in this browser. Study any radical you missed, then
-            try another round when ready.
+            Progress is saved in this browser. Study any radical you missed, then try another round
+            when ready.
           </p>
           <ul className="practice-review">
             {answers.map((row) => {
@@ -328,10 +310,7 @@ export function PracticeQuiz({
                   >
                     {row.correct ? "Ok" : "Miss"}
                   </span>
-                  <Link
-                    href={`/learn/radicals/${radical.id}`}
-                    className="practice-review__link"
-                  >
+                  <Link href={`/learn/radicals/${radical.id}`} className="practice-review__link">
                     <span lang="zh-Hans">{radical.forms[0]}</span>
                     <span>{radical.gloss}</span>
                   </Link>

@@ -46,6 +46,10 @@ if [ ! -f node_modules/.package-lock.json ]; then
 fi
 
 run "lint (eslint)" npm run --silent lint
+# Checked, not merely configured. This app shipped a `.prettierrc.json` that nothing invoked, so 26
+# files were unformatted while this script reported PASS. `AGENTS.md` in this app already described
+# these gates as "format, lint, typecheck, tests, build" — now that is true.
+run "format (prettier --check)" npm run --silent format:check
 run "typecheck (tsc --noEmit)" npm run --silent typecheck
 run "tests (vitest run)" npm run --silent test
 run "build (next build)" npm run --silent build
@@ -55,4 +59,4 @@ if [ "$fail" -ne 0 ]; then
     printf 'ci: FAIL\n'
     exit 1
 fi
-printf 'ci: PASS (lint, typecheck, tests, build)\n'
+printf 'ci: PASS (format, lint, typecheck, tests, build)\n'

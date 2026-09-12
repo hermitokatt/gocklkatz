@@ -26,13 +26,7 @@ type RailProps = {
 };
 
 export function Rail({ model }: RailProps) {
-  const plates = [
-    model.besteTour,
-    model.iteration,
-    model.pheromon,
-    model.gesperrt,
-    model.wahl,
-  ];
+  const plates = [model.besteTour, model.iteration, model.pheromon, model.gesperrt, model.wahl];
   return (
     <section className={styles.rail} aria-live="polite">
       {plates.map((plate, index) => {

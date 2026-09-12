@@ -60,14 +60,7 @@ export {
   mutateForbiddenSchema,
 } from "./mutate-gate";
 export type { MutateForbidden } from "./mutate-gate";
-export {
-  advanceSteps,
-  applyParams,
-  getColony,
-  getSnapshot,
-  resetSim,
-  snapshotOf,
-} from "./sim";
+export { advanceSteps, applyParams, getColony, getSnapshot, resetSim, snapshotOf } from "./sim";
 export type { ParamsOutcome, StepOutcome } from "./sim";
 export {
   ALLOWED_TOOL_NAMES,

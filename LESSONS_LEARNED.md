@@ -365,6 +365,78 @@ through unload moved the same script to `deltaVisits0=71 deltaVisits1=13`.
 
 ---
 
+## 2026-09-12 — formatting enforcement across the older apps
+
+Brought `apps/ameisenwerkstatt` and `apps/simplified` to the standard Bienenstock set, and wired the
+check into both gates so it cannot regress.
+
+### Two apps promised Prettier and did not have it, in two different ways
+
+Neither was the gap as described.
+
+**Ameisenwerkstatt** had the config and nothing that ran it: `.prettierrc.json`, `.prettierignore`,
+and `prettier` in devDependencies — but `ci.sh` never invoked it, so **26 files** were unformatted
+while the gate reported PASS. The app's own `AGENTS.md` already described its gates as "format,
+lint, typecheck, tests, build". The documentation promised a step that did not exist.
+
+**Simplified** had nothing at all: no `prettier` devDependency, no `.prettierrc.json`, no
+`.prettierignore`. Its `docs/MVP.md` listed "ESLint/Prettier" in the Phase 0 harness scope, so the
+scope claimed a tool the app never had.
+
+Both were found by asking what the app's own files *claim* and then checking whether the claim holds.
+Neither was visible from the gate, because the gate ran what `ci.sh` ran and `ci.sh` ran nothing.
+
+*Rule:* a tool that is configured but never invoked, and a tool that is documented but never
+installed, fail the same way — the documentation reads as a control while nothing is controlled.
+Check the claim, not just the config.
+
+### `--list-different` is the honest way to see a formatter's real reach
+
+Before running `prettier --write`, list what it would touch:
+
+```
+$ npx prettier --list-different .
+tests/health.test.ts
+tsconfig.json
+... 26 files
+```
+
+Ameisenwerkstatt's 31 candidates included **5 HTML files** under `docs/ameisen-ui-samples/` that the
+directory's own README calls "frozen renders from the design study, kept as the record of what was
+considered". Reformating them would have edited the record they exist to preserve. They are excluded
+in `.prettierignore` with that reason written next to them. The remaining 26 were formatted.
+
+A blanket `prettier --write .` would have quietly rewritten a historical artefact. Listing first is
+what made that visible.
+
+### A step naming a script that does not exist fails for a misleading reason
+
+The `format:check` step was added to Ameisenwerkstatt's `ci.sh` but not to its `package.json`. The
+gate then reported:
+
+```
+==> format (prettier --check)
+    FAIL  format (prettier --check)
+ci: FAIL
+```
+
+That looks like a formatting failure. It was `npm run` failing because the script was missing, and
+running `prettier` by hand from the same directory reported everything clean — a contradiction that
+only resolves if you read the step's own output instead of its label.
+
+*Rule:* a failing step is not evidence about the thing it is named for. Read the failure.
+
+The step now fails for the intended reason, naming the file:
+
+```
+[warn] lib/ameisen/api-schemas.ts
+    FAIL  format (prettier --check)
+```
+
+Both apps pass: `ci: PASS (format, lint, typecheck, tests, build)`.
+
+---
+
 ## Journal template
 
 ```

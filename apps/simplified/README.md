@@ -20,9 +20,9 @@ The app ships one dataset: the radical and component set in [`lib/radicals/seed.
 
 **Where it came from.** The record here is a description, not a claim of original authorship over the language itself, so it separates two things that carry different rights.
 
-*What is not owned by anyone.* Which components exist, how they are written, how they are pronounced, and what they mean are facts about the writing system, in the public domain and identical in every reference work. The readings are standard Hanyu Pinyin using tone marks, not a transcription of any particular dictionary. The example characters are ordinary high-frequency characters built from the component — 休 for 人, 河 for 氵 — and the pairing is what any textbook would give.
+_What is not owned by anyone._ Which components exist, how they are written, how they are pronounced, and what they mean are facts about the writing system, in the public domain and identical in every reference work. The readings are standard Hanyu Pinyin using tone marks, not a transcription of any particular dictionary. The example characters are ordinary high-frequency characters built from the component — 休 for 人, 河 for 氵 — and the pairing is what any textbook would give.
 
-*What was written for this project.* The selection and ordering of the 45 components (stated as pedagogical rather than Kangxi index order in the seed's own header), the English glosses and their wording, the `variantsNote` explanations, and the choice of examples. The glosses average 18 characters and are paraphrases rather than copies; 月 is given as "moon; month; often flesh/body in compounds", which is a teaching note, not a dictionary entry.
+_What was written for this project._ The selection and ordering of the 45 components (stated as pedagogical rather than Kangxi index order in the seed's own header), the English glosses and their wording, the `variantsNote` explanations, and the choice of examples. The glosses average 18 characters and are paraphrases rather than copies; 月 is given as "moon; month; often flesh/body in compounds", which is a teaching note, not a dictionary entry.
 
 **No third-party dataset.** Nothing here derives from CC-CEDICT, Unihan, Wiktionary, or any other licensed corpus, and no dictionary was transcribed. The research notes in [`docs/hanzi_research.md`](docs/hanzi_research.md) were gathered from public web pages in September 2026 and cite each source inline; they informed what the app teaches, and no character data was taken from them.
 
@@ -59,14 +59,14 @@ bash scripts/ci.sh
 
 Runs lint, typecheck, Vitest, and production build.
 
-| Script | Purpose |
-| --- | --- |
-| `npm run dev` | Local Next.js server |
-| `npm run lint` | ESLint |
-| `npm run typecheck` | `tsc --noEmit` |
-| `npm run test` | Vitest |
-| `npm run build` | Production build |
-| `npm run ci` | Full `scripts/ci.sh` gate |
+| Script              | Purpose                   |
+| ------------------- | ------------------------- |
+| `npm run dev`       | Local Next.js server      |
+| `npm run lint`      | ESLint                    |
+| `npm run typecheck` | `tsc --noEmit`            |
+| `npm run test`      | Vitest                    |
+| `npm run build`     | Production build          |
+| `npm run ci`        | Full `scripts/ci.sh` gate |
 
 ## Agents
 

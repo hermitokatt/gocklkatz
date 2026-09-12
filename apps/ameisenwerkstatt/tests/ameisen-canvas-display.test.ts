@@ -1,8 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  CANVAS_MIN_CSS_HEIGHT,
-  resolveCanvasDisplaySize,
-} from "@/lib/ameisen/canvas-display";
+import { CANVAS_MIN_CSS_HEIGHT, resolveCanvasDisplaySize } from "@/lib/ameisen/canvas-display";
 
 /** Pre-STE-42 resize: layout height = max(measured, 420), next measure = bitmap height. */
 function naiveIntrinsicLoop(startHeight: number, dpr: number, steps: number): number[] {

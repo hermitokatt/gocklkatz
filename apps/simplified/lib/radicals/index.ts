@@ -32,9 +32,7 @@ export function getRadicalById(id: string): Radical | undefined {
  * Detail wrapper around `getRadicalById`.
  * Invalid or unknown ids both yield `undefined` — use schema validation for 400.
  */
-export function getRadicalDetail(
-  id: string,
-): RadicalDetailResponse | undefined {
+export function getRadicalDetail(id: string): RadicalDetailResponse | undefined {
   const radical = getRadicalById(id);
   if (!radical) {
     return undefined;

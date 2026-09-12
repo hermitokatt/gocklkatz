@@ -75,8 +75,7 @@ const seedRaw: Radical[] = [
     forms: ["言", "讠"],
     gloss: "speech; words",
     pinyin: "yán",
-    variantsNote:
-      "Standalone/full form 言; simplified left-side combining form 讠.",
+    variantsNote: "Standalone/full form 言; simplified left-side combining form 讠.",
     examples: [
       { char: "说", pinyin: "shuō", gloss: "speak; say" },
       { char: "话", pinyin: "huà", gloss: "speech; words" },
@@ -150,8 +149,7 @@ const seedRaw: Radical[] = [
     forms: ["月"],
     gloss: "moon; month; often flesh/body in compounds",
     pinyin: "yuè",
-    variantsNote:
-      "As a radical, 月 often marks body parts (historically from 肉).",
+    variantsNote: "As a radical, 月 often marks body parts (historically from 肉).",
     examples: [
       { char: "明", pinyin: "míng", gloss: "bright" },
       { char: "朋", pinyin: "péng", gloss: "friend" },
@@ -473,8 +471,7 @@ const seedRaw: Radical[] = [
     forms: ["玉", "王"],
     gloss: "jade; precious; king-form as left radical",
     pinyin: "yù",
-    variantsNote:
-      "As a left radical, 玉 usually appears as 王 (king form) plus a dot in full 玉.",
+    variantsNote: "As a left radical, 玉 usually appears as 王 (king form) plus a dot in full 玉.",
     examples: [
       { char: "现", pinyin: "xiàn", gloss: "appear; now" },
       { char: "球", pinyin: "qiú", gloss: "ball" },

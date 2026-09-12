@@ -3,7 +3,7 @@ import { GET } from "@/app/api/health/route";
 import { healthResponseSchema } from "@/lib/health";
 
 describe("GET /api/health", () => {
-  it("returns a Zod-validated { ok: true, service: \"demo-shell\" } body", async () => {
+  it('returns a Zod-validated { ok: true, service: "demo-shell" } body', async () => {
     const response = GET();
     expect(response.status).toBe(200);
 

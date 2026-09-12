@@ -14,43 +14,43 @@ Copy-friendly markdown table. Fill Pass only after scoring each prompt against t
 
 ### Metadata
 
-| Field | Value |
-| ----- | ----- |
-| Date (UTC) | |
-| Sitting label | |
-| Scorer | Human |
-| Notes | |
+| Field         | Value |
+| ------------- | ----- |
+| Date (UTC)    |       |
+| Sitting label |       |
+| Scorer        | Human |
+| Notes         |       |
 
 Model / provider belong only in a dated run copy (never in `goldens-b.jsonl`).
 
 ### Scores
 
-| ID | Pass (Y/N/blank) | Notes |
-| -- | ---------------- | ----- |
-| B01 | | |
-| B02 | | |
-| B03 | | |
-| B04 | | |
-| B05 | | |
-| B06 | | |
-| B07 | | |
-| B08 | | |
-| B21 | | |
-| B22 | | |
-| B23 | | |
-| B24 | | |
-| B25 | | |
-| B26 | | |
-| B27 | | |
-| B28 | | |
+| ID  | Pass (Y/N/blank) | Notes |
+| --- | ---------------- | ----- |
+| B01 |                  |       |
+| B02 |                  |       |
+| B03 |                  |       |
+| B04 |                  |       |
+| B05 |                  |       |
+| B06 |                  |       |
+| B07 |                  |       |
+| B08 |                  |       |
+| B21 |                  |       |
+| B22 |                  |       |
+| B23 |                  |       |
+| B24 |                  |       |
+| B25 |                  |       |
+| B26 |                  |       |
+| B27 |                  |       |
+| B28 |                  |       |
 
 ### Aggregate
 
 Fill only after the Human sitting. Pass rate is Human-computed only.
 
-| Metric | Value |
-| ------ | ----- |
-| Prompts scored | |
-| Passes | |
-| Fails | |
-| Pass rate (Human-computed only) | |
+| Metric                          | Value |
+| ------------------------------- | ----- |
+| Prompts scored                  |       |
+| Passes                          |       |
+| Fails                           |       |
+| Pass rate (Human-computed only) |       |

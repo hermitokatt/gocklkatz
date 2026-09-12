@@ -41,9 +41,7 @@ function secretsEqual(expected: string, provided: string): boolean {
 export function assertMutateAllowed(request: Request): NextResponse | null {
   const secret = process.env[AMEISEN_MUTATE_SECRET_ENV]?.trim() ?? "";
   if (secret.length === 0) {
-    return forbidden(
-      `${AMEISEN_MUTATE_SECRET_ENV} is unset; DualAB-A mutate routes are closed`,
-    );
+    return forbidden(`${AMEISEN_MUTATE_SECRET_ENV} is unset; DualAB-A mutate routes are closed`);
   }
 
   const header = request.headers.get("authorization");

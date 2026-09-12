@@ -14,14 +14,14 @@ MVP deploy notes for connecting this Next.js App Router repo to **Vercel**. No e
 2. Import this Git repository.
 3. Confirm framework settings (Vercel usually auto-detects Next.js):
 
-| Setting | Value |
-| --- | --- |
-| Framework Preset | **Next.js** |
-| Node.js Version | **22.x** (Project Settings → General → Node.js Version) |
-| Build Command | `next build` (default for Next.js) |
-| Output Directory | leave default (Next.js handles this) |
-| Install Command | `npm install` (default) |
-| Root Directory | `.` (repo root) |
+| Setting          | Value                                                   |
+| ---------------- | ------------------------------------------------------- |
+| Framework Preset | **Next.js**                                             |
+| Node.js Version  | **22.x** (Project Settings → General → Node.js Version) |
+| Build Command    | `next build` (default for Next.js)                      |
+| Output Directory | leave default (Next.js handles this)                    |
+| Install Command  | `npm install` (default)                                 |
+| Root Directory   | `.` (repo root)                                         |
 
 4. **Environment Variables:** leave empty for MVP. Do **not** commit tokens, org IDs, or project IDs to the repo.
 5. Click **Deploy**.
@@ -32,12 +32,12 @@ After the first production deploy succeeds, copy the production URL into [`READM
 
 Open these on the production host (replace `<host>`):
 
-| Check | URL |
-| --- | --- |
-| Home | `https://<host>/` |
-| Health | `https://<host>/api/health` → JSON `{ "ok": true, "service": "simplified" }` |
-| Learn | `https://<host>/learn/radicals` |
-| Practice | `https://<host>/learn/radicals/practice` |
+| Check    | URL                                                                          |
+| -------- | ---------------------------------------------------------------------------- |
+| Home     | `https://<host>/`                                                            |
+| Health   | `https://<host>/api/health` → JSON `{ "ok": true, "service": "simplified" }` |
+| Learn    | `https://<host>/learn/radicals`                                              |
+| Practice | `https://<host>/learn/radicals/practice`                                     |
 
 Done when a Human can browse radicals and complete one practice round on the public URL.
 

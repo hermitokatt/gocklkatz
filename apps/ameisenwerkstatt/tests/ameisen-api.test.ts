@@ -14,10 +14,7 @@ import { getSnapshot, resetSim } from "@/lib/ameisen/sim";
 
 const TEST_SECRET = "test-ameisen-mutate-secret";
 
-function jsonRequest(
-  body: unknown,
-  options?: { authorization?: string | null },
-): Request {
+function jsonRequest(body: unknown, options?: { authorization?: string | null }): Request {
   const headers: Record<string, string> = {
     "content-type": "application/json",
   };
@@ -165,17 +162,12 @@ describe("Ameisen DualAB-A mutate gate (fail-closed)", () => {
   it("fails closed with 403 when secret env is unset (params + step)", async () => {
     const before = getSnapshot();
     const paramsRes = await postParamsRoute(
-      jsonRequest(
-        { alpha: 2, beta: 3, rho: 0.2, antCount: 4 },
-        { authorization: null },
-      ),
+      jsonRequest({ alpha: 2, beta: 3, rho: 0.2, antCount: 4 }, { authorization: null }),
     );
     expect(paramsRes.status).toBe(403);
     mutateForbiddenSchema.parse(await paramsRes.json());
 
-    const stepRes = await postStepRoute(
-      jsonRequest({ iterations: 1 }, { authorization: null }),
-    );
+    const stepRes = await postStepRoute(jsonRequest({ iterations: 1 }, { authorization: null }));
     expect(stepRes.status).toBe(403);
     mutateForbiddenSchema.parse(await stepRes.json());
     expect(getSnapshot()).toEqual(before);
@@ -185,9 +177,7 @@ describe("Ameisen DualAB-A mutate gate (fail-closed)", () => {
     process.env[AMEISEN_MUTATE_SECRET_ENV] = TEST_SECRET;
     const before = getSnapshot();
 
-    const missing = await postStepRoute(
-      jsonRequest({ iterations: 1 }, { authorization: null }),
-    );
+    const missing = await postStepRoute(jsonRequest({ iterations: 1 }, { authorization: null }));
     expect(missing.status).toBe(403);
     mutateForbiddenSchema.parse(await missing.json());
 

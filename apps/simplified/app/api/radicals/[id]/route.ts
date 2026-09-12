@@ -1,9 +1,6 @@
 import { NextResponse } from "next/server";
 
-import {
-  getRadicalDetail,
-  RadicalIdParamSchema,
-} from "@/lib/radicals";
+import { getRadicalDetail, RadicalIdParamSchema } from "@/lib/radicals";
 
 type RouteContext = {
   params: Promise<{ id: string }>;
@@ -14,10 +11,7 @@ export async function GET(_request: Request, context: RouteContext) {
   const parsedId = RadicalIdParamSchema.safeParse(id);
 
   if (!parsedId.success) {
-    return NextResponse.json(
-      { error: "Invalid radical id" },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: "Invalid radical id" }, { status: 400 });
   }
 
   const detail = getRadicalDetail(parsedId.data);
