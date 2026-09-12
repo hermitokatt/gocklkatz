@@ -10,9 +10,9 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { applyCanvasDisplaySize, resolveCanvasDisplaySize } from "./canvas-display";
-import { createColony, step } from "./colony";
-import { DEFAULT_BEE_COUNT, DEFAULT_SEED } from "./params";
+import { countBeesInState, step } from "./colony";
 import { createRng, type Rng } from "./rng";
+import type { Colony } from "./types";
 import { FLOWER_PATCHES, SCENERY_SEED } from "./world";
 
 export type HiveScene = {
@@ -315,12 +315,14 @@ function writeReadout(
   fps: number,
   beeCount: number,
   hiveNectar: number,
+  scattered: number,
 ): void {
   if (!el) {
     return;
   }
   const fpsText = fps > 0 ? `${Math.round(fps)} fps` : "measuring fps";
-  el.textContent = `${beeCount} bees · ${fpsText} · hive ${hiveNectar.toFixed(1)} nectar`;
+  const scatterText = scattered > 0 ? ` · ${scattered} scattered` : "";
+  el.textContent = `${beeCount} bees · ${fpsText} · hive ${hiveNectar.toFixed(1)} nectar${scatterText}`;
 }
 
 function webglAvailable(): boolean {
@@ -336,7 +338,11 @@ function webglAvailable(): boolean {
   }
 }
 
-export function createHiveScene(host: HTMLElement, readout?: HTMLElement | null): HiveScene {
+export function createHiveScene(
+  host: HTMLElement,
+  readout: HTMLElement | null | undefined,
+  colony: Colony,
+): HiveScene {
   if (!webglAvailable()) {
     throw new Error("WebGL is not available in this browser.");
   }
@@ -409,7 +415,6 @@ export function createHiveScene(host: HTMLElement, readout?: HTMLElement | null)
   scene.add(createTrees(scenery));
   scene.add(createSkep());
 
-  const colony = createColony({ seed: DEFAULT_SEED, beeCount: DEFAULT_BEE_COUNT });
   const bees = createBeeSwarm(colony.bees.length);
   scene.add(bees);
   const beeDummy = new THREE.Object3D();
@@ -465,7 +470,13 @@ export function createHiveScene(host: HTMLElement, readout?: HTMLElement | null)
       fps = fpsFrames / fpsWindowMs;
       fpsFrames = 0;
       fpsWindowMs = 0;
-      writeReadout(readout ?? null, fps, colony.bees.length, colony.hive.nectar);
+      writeReadout(
+        readout ?? null,
+        fps,
+        colony.bees.length,
+        colony.hive.nectar,
+        countBeesInState(colony, "fleeing"),
+      );
     }
     step(colony, Math.min(wallDt, 0.05));
     syncBees();
@@ -474,7 +485,13 @@ export function createHiveScene(host: HTMLElement, readout?: HTMLElement | null)
     frame = requestAnimationFrame(render);
   }
 
-  writeReadout(readout ?? null, 0, colony.bees.length, colony.hive.nectar);
+  writeReadout(
+    readout ?? null,
+    0,
+    colony.bees.length,
+    colony.hive.nectar,
+    countBeesInState(colony, "fleeing"),
+  );
   syncBees();
   resize();
   frame = requestAnimationFrame(render);

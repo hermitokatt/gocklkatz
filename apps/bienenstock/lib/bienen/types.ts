@@ -1,7 +1,7 @@
 import type { ColonyParams } from "./params";
 import type { Rng } from "./rng";
 
-export type BeeState = "inHive" | "outbound" | "foraging" | "returning";
+export type BeeState = "inHive" | "outbound" | "foraging" | "returning" | "fleeing";
 
 export type Bee = {
   id: number;

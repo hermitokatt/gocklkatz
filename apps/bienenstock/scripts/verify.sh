@@ -10,8 +10,9 @@
 #
 #   /                       200, and names the app
 #   /bienen                 200, contains `data-bienen-scene`, and contains text the page actually
-#                           renders. A 200 on an error page or empty shell must not pass, so the
-#                           assertion is on content, not on status alone.
+#                           renders (`Woven skep`, `Disturb hive`, `Boost nectar`). A 200 on an
+#                           error page or empty shell must not pass, so the assertion is on content,
+#                           not on status alone.
 #   /api/health             200, JSON, `"ok": true`, and naming this app. The service field is
 #                           checked too: `ok` alone would let a sibling app that answers the same
 #                           shape pass as this one.
@@ -205,7 +206,9 @@ html="$(printf '%s' "$body" | sed '$d')"
 say "route GET /bienen                 $code"
 if [ "$code" = "200" ] \
     && printf '%s' "$html" | grep -q 'data-bienen-scene' \
-    && printf '%s' "$html" | grep -q 'Woven skep'; then
+    && printf '%s' "$html" | grep -q 'Woven skep' \
+    && printf '%s' "$html" | grep -q 'Disturb hive' \
+    && printf '%s' "$html" | grep -q 'Boost nectar'; then
     ok "GET /bienen is 200 with scene host and rendered content"
 else
     bad "GET /bienen did not answer 200 with scene host and rendered content (got $code)"

@@ -16,7 +16,8 @@ export default function HomePage() {
         <h1 className="hiveBrand">Bienenstock</h1>
         <p className="hiveLead">
           A woven skep in a meadow — bees leave, forage the flower patches, and recruit toward
-          richer nectar. Move the camera with pointer and wheel.
+          richer nectar. Boost or empty a patch, or disturb the hive. Move the camera with pointer
+          and wheel.
         </p>
         <p>
           <Link className="hiveCta" href="/bienen">

@@ -1,7 +1,26 @@
 import { DEFAULT_PARAMS, DEFAULT_SEED, type ColonyParams } from "./params";
 import { createRng } from "./rng";
-import type { Bee, Colony, ColonySnapshot, Patch } from "./types";
+import type { Bee, BeeState, Colony, ColonySnapshot, Patch } from "./types";
 import { FLOWER_PATCHES, HIVE_ENTRANCE, type FlowerPatchSpec } from "./world";
+
+/** Nectar added to a patch by `boostPatch`. */
+export const NECTAR_BOOST_AMOUNT = 80;
+
+/**
+ * Simulated seconds within which a nectar spike must shift bees toward the boosted patch.
+ * Asserted by tests; the UI copy should use the same figure.
+ */
+export const NECTAR_SPIKE_VISIBLE_WITHIN_S = 20;
+
+/**
+ * Simulated seconds within which a hive disturbance must finish re-homing.
+ * Asserted by tests; the UI copy should use the same figure.
+ */
+export const DISTURBANCE_RECOVERY_WITHIN_S = 20;
+
+/** Horizontal distance from the hive that a fleeing bee is sent, in world units. */
+export const FLEE_DISTANCE_MIN = 7;
+export const FLEE_DISTANCE_SPAN = 5;
 
 export type CreateColonyInput = {
   seed?: number;
@@ -179,8 +198,10 @@ function unload(bee: Bee, colony: Colony): void {
   if (patch && bee.carried > 0) {
     patch.advertisement += bee.carried * patch.richness;
   }
-  bee.lastPatchId = bee.patchId;
-  bee.lastQuality = bee.carried;
+  if (bee.patchId != null) {
+    bee.lastPatchId = bee.patchId;
+    bee.lastQuality = bee.carried;
+  }
   bee.carried = 0;
   bee.patchId = null;
 }
@@ -253,6 +274,19 @@ function stepBee(colony: Colony, bee: Bee, dt: number): void {
       bee.rest = 0.3 + (bee.phase % 1) * 0.55;
       return;
     }
+    case "fleeing": {
+      fly(bee, colony.time, dt, colony.params.flySpeed * 1.2);
+      if (bee.progress < 1) {
+        return;
+      }
+      bee.state = "returning";
+      beginLeg(bee, colony.hive.x, colony.hive.z);
+      return;
+    }
+    default: {
+      const _never: never = bee.state;
+      return _never;
+    }
   }
 }
 
@@ -273,6 +307,146 @@ export function step(colony: Colony, dt: number): Colony {
     stepBee(colony, bee, dt);
   }
   return colony;
+}
+
+function requirePatch(colony: Colony, patchId: number): Patch {
+  const patch = patchById(colony, patchId);
+  if (!patch) {
+    throw new Error(`unknown flower patch id ${patchId}`);
+  }
+  return patch;
+}
+
+function abandonPatch(colony: Colony, patchId: number): void {
+  for (const bee of colony.bees) {
+    if (bee.lastPatchId === patchId) {
+      bee.lastPatchId = null;
+      bee.lastQuality = 0;
+    }
+    if (bee.patchId !== patchId) {
+      continue;
+    }
+    if (bee.state === "outbound" || bee.state === "foraging") {
+      bee.state = "returning";
+      beginLeg(bee, colony.hive.x, colony.hive.z);
+    }
+  }
+}
+
+function reallocateToPatch(colony: Colony, patch: Patch): void {
+  for (const bee of colony.bees) {
+    if (bee.lastPatchId !== patch.id) {
+      bee.lastPatchId = patch.id;
+      bee.lastQuality = colony.params.capacity;
+    }
+    if (bee.state === "inHive") {
+      bee.rest = 0;
+      continue;
+    }
+    if (bee.state === "returning") {
+      bee.patchId = null;
+      continue;
+    }
+    if (bee.state !== "outbound" && bee.state !== "foraging") {
+      continue;
+    }
+    if (bee.patchId === patch.id) {
+      continue;
+    }
+    bee.patchId = patch.id;
+    bee.state = "outbound";
+    beginLeg(bee, patch.x, patch.z);
+  }
+}
+
+/**
+ * Set a flower patch's remaining nectar. Boosting (a higher value) injects an advertisement,
+ * silences stale dances on the other patches, and turns bees already outbound or foraging at
+ * other patches toward it. Dropping to zero clears the advertisement and sends bees at that
+ * patch home. If every patch is empty, bees wait in the hive; the run does not stall or throw.
+ */
+export function spikeNectar(colony: Colony, patchId: number, nectar: number): Colony {
+  if (!Number.isFinite(nectar) || nectar < 0) {
+    throw new Error("nectar must be a finite number ≥ 0");
+  }
+  const patch = requirePatch(colony, patchId);
+  const previous = patch.nectar;
+  patch.nectar = nectar;
+  if (nectar <= 1e-9) {
+    patch.nectar = 0;
+    patch.advertisement = 0;
+    abandonPatch(colony, patch.id);
+  } else if (nectar > previous) {
+    patch.advertisement += (nectar - previous) * patch.richness;
+    for (const other of colony.patches) {
+      if (other.id !== patch.id) {
+        other.advertisement = 0;
+      }
+    }
+    reallocateToPatch(colony, patch);
+  } else if (previous > 0 && nectar < previous) {
+    patch.advertisement *= nectar / previous;
+  }
+  return colony;
+}
+
+/** Add `NECTAR_BOOST_AMOUNT` nectar to a patch and reallocate foragers toward it. */
+export function boostPatch(colony: Colony, patchId: number): Colony {
+  const patch = requirePatch(colony, patchId);
+  return spikeNectar(colony, patchId, patch.nectar + NECTAR_BOOST_AMOUNT);
+}
+
+/** Drop a patch's nectar to zero. Bees working it leave; they will not starve the run. */
+export function emptyPatch(colony: Colony, patchId: number): Colony {
+  return spikeNectar(colony, patchId, 0);
+}
+
+/**
+ * Fling every bee to a deterministic scatter point, then the usual state machine sends them
+ * home (`fleeing` → `returning` → `inHive`) and they resume foraging. Re-homing completes;
+ * the colony is not left in `fleeing`.
+ */
+export function disturbHive(colony: Colony): Colony {
+  for (const bee of colony.bees) {
+    const angle = colony.rng() * Math.PI * 2;
+    const dist = FLEE_DISTANCE_MIN + colony.rng() * FLEE_DISTANCE_SPAN;
+    bee.state = "fleeing";
+    beginLeg(bee, colony.hive.x + Math.sin(angle) * dist, colony.hive.z + Math.cos(angle) * dist);
+  }
+  return colony;
+}
+
+/** Mean horizontal distance of bees from the hive entrance. */
+export function meanHiveDistance(colony: Colony): number {
+  if (colony.bees.length === 0) {
+    return 0;
+  }
+  let sum = 0;
+  for (const bee of colony.bees) {
+    sum += Math.hypot(bee.x - colony.hive.x, bee.z - colony.hive.z);
+  }
+  return sum / colony.bees.length;
+}
+
+export function countBeesInState(colony: Colony, state: BeeState): number {
+  let n = 0;
+  for (const bee of colony.bees) {
+    if (bee.state === state) {
+      n += 1;
+    }
+  }
+  return n;
+}
+
+/** Bees currently flying to or collecting at a patch. */
+export function countBeesWorkingPatch(colony: Colony, patchId: number): number {
+  let n = 0;
+  for (const bee of colony.bees) {
+    if (bee.patchId === patchId && (bee.state === "outbound" || bee.state === "foraging")) {
+      n += 1;
+    }
+  }
+  return n;
 }
 
 export function snapshot(colony: Colony): ColonySnapshot {

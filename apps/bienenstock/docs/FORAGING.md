@@ -10,3 +10,7 @@ waggle dancing or of real colony energetics.
 Time is simulated: `step(dt)` advances colony time by `dt` seconds. The renderer feeds it
 clamped frame deltas; tests feed it whatever they want — ten minutes of colony time does not
 take ten minutes of wall-clock.
+
+A visitor can change the nectar on a chosen patch (`boostPatch` / `emptyPatch`) or disturb
+the hive (`disturbHive`). Those are colony-state functions; measured effects are in
+[`INTERACTIONS.md`](./INTERACTIONS.md).
