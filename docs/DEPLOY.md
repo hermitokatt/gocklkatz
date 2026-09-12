@@ -241,6 +241,58 @@ commit that configures the app, and the setting is reviewable in a pull request.
 
 The settings-side equivalent is `vercel project update --framework nextjs`.
 
+### The settings each project actually uses
+
+Read back from the Vercel API and from a production build log, for the `gocklkatz` project. The four
+app projects differ only in **Root Directory**, which is why that column is the one to check first
+when a build behaves oddly.
+
+| Setting | Value | Where it lives |
+| --- | --- | --- |
+| Root Directory | `.` (apps: `apps/<name>`) | project settings (UI) |
+| Framework Preset | `nextjs` | repository, via `vercel.json` — see above |
+| Node.js Version | `24.x` | project settings (UI) |
+| Build Command | framework default (`next build`) | not overridden |
+| Install Command | framework default (`npm install`) | not overridden |
+| Output Directory | framework default (`.next`) | not overridden |
+| Production Branch | `main` | project settings (UI) |
+| Ignored Build Step | **not readable through the API** | project settings (UI) |
+| Deployment Protection | `ssoProtection: all_except_custom_domains` | project settings (UI) |
+
+Three of these are worth stating plainly rather than leaving to be discovered:
+
+* **`framework` in the API is not the effective preset.** `get_project` still reports
+  `"framework": null` — the `Other` preset — for `gocklkatz` while it deploys correctly, because
+  `vercel.json` declares Next.js and the repository wins. Do not "fix" the null by chasing it; the
+  settings-side equivalent above is optional tidying.
+* **A production build log is the authority on whether the repository is at fault.** The current one
+  reads `✓ Compiled successfully`, then four routes, then `Deployment completed` — no error lines,
+  only an `npm warn allow-scripts` notice about `unrs-resolver`.
+* **The Ignored Build Step is invisible to every check we have.** It is the one setting that can stop
+  deployments with no error anywhere, and its polarity differs between production and preview.
+
+### The Ignored Build Step, and the trap in its exit code
+
+Read from Vercel's knowledge base: the command's **exit code is inverted relative to what you would
+guess**. Returning **`0` skips the build**; returning **`1` or greater builds it**:
+
+> If the command returns "0", the build will be skipped. If, however, a code "1" or greater is
+> returned, then a new deployment will be built.
+
+Two consequences for a monorepo, both of which have bitten this project:
+
+1. **Vercel shallow-clones**, `git clone --depth=10`, so a rule that diffs against history has ten
+   commits to work with and no more.
+2. **The polarity is not the same for production and preview.** A rule that is correct for previews
+   can evaluate to "skip" on the production branch and silently stop production deployments while
+   previews keep building. That signature — previews green, production frozen, no error in any log —
+   is what this project showed for about four hours on 2026-09-12, and it is the reason the ignored
+   build step is called out here rather than being left to the UI.
+
+**Nothing is configured for these projects today that the API can confirm**, so treat the field as
+unverified until GOC-43 records it per project, with the rule's polarity checked against a production
+deployment and not only a preview.
+
 ### Deployment protection covers deployment URLs, not custom domains
 
 Read back from the Vercel API:
