@@ -9,12 +9,33 @@ export const site = {
   description:
     "An engineering portfolio: a small number of complete applications, built end to end, " +
     "each with its own build, its own tests and its own deployment.",
+  /**
+   * The portfolio intro. Ticket GOC-12 asks for one short paragraph saying what these projects are
+   * and what connects them, and for it to be specific rather than a greeting — so it leads with the
+   * through-line and states only what is true of all four demos:
+   *
+   *   - each is a complete application, not a snippet;
+   *   - each is independently built, tested and deployed;
+   *   - each is verified by running it, which is the rule in `AGENTS.md` §7.
+   *
+   * `scripts/probe.mjs` asserts this text is in the served HTML and that it makes no claim the
+   * cards themselves would contradict.
+   */
   intro:
-    "Every demo below is a self-contained application with its own dependencies, quality gate " +
-    "and Vercel project, so one of them breaking cannot take the others down. A card links to " +
-    "its deployment only once that deployment has been fetched and answered.",
+    "Four demo applications, each a complete build rather than a sketch: its own dependencies, " +
+    "its own tests, its own quality gate, its own Vercel project. What connects them is how they " +
+    "are made — every project here is built, tested and deployed on its own, and verified by " +
+    "running it rather than by trusting a green build.",
   repositoryUrl: "https://github.com/hermitokatt/gocklkatz",
   repositoryLabel: "github.com/hermitokatt/gocklkatz",
+  /**
+   * Base for a card's claim-source link. Each claim names a repository-relative file, and the card
+   * renders `<sourceBaseUrl>/<path>` so a reader who doubts a number can open the file it came from.
+   *
+   * It points at this repository rather than the Origin code host: the GitHub mirror is the copy a
+   * visitor can actually read, and `tools/verify-live.sh` already fetches it anonymously.
+   */
+  sourceBaseUrl: "https://github.com/hermitokatt/gocklkatz/blob/main",
   license: "MIT",
   copyrightYear: 2026,
 } as const;

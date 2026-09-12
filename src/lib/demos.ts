@@ -8,6 +8,24 @@ export const demoStatusSchema = z.enum(["live", "in-development"]);
 
 export type DemoStatus = z.infer<typeof demoStatusSchema>;
 
+/**
+ * One measured claim per demo, with where it comes from and how to reproduce it.
+ *
+ * `AGENTS.md` §4 forbids publishing a number without provenance, so the three fields are structural
+ * rather than optional: a claim cannot be recorded without saying which file it came from and which
+ * command re-derives it. The card renders all three, and `scripts/verify.sh` fetches the source URL.
+ */
+export const claimSchema = z.object({
+  /** The claim itself. `demo-card.tsx` renders it, and scripts/verify.sh asserts it in the HTML. */
+  text: z.string().min(1),
+  /** Repository-relative path to the file the claim comes from, not from memory. */
+  source: z.string().regex(/^[A-Za-z0-9._/-]+$/, "claim source must be a repository-relative path"),
+  /** The command that reproduces the measurement. */
+  command: z.string().min(1),
+});
+
+export type Claim = z.infer<typeof claimSchema>;
+
 export const demoSchema = z.object({
   /** Stable identifier. It is the card's `data-demo` attribute, which scripts/verify.sh reads. */
   slug: z.string().regex(/^[a-z][a-z0-9-]*$/),
@@ -16,6 +34,7 @@ export const demoSchema = z.object({
   /** Where the demo lives once it is deployed. Rendered as a link only while status is `live`. */
   url: z.url(),
   status: demoStatusSchema,
+  claim: claimSchema,
 });
 
 export type Demo = z.infer<typeof demoSchema>;
@@ -37,6 +56,11 @@ const DEMOS = [
     description: "Ant colony optimization on a fixed TSP, with a live 3D workspace.",
     url: "https://gocklkatz-ameisenwerkstatt.vercel.app",
     status: "live",
+    claim: {
+      text: "62 tests over its simulation, HTTP façade and tool allowlist, all passing",
+      source: "apps/ameisenwerkstatt/tests/ameisen.test.ts",
+      command: "npm run test",
+    },
   },
   {
     slug: "bienenstock",
@@ -44,6 +68,11 @@ const DEMOS = [
     description: "Bee colony simulation — hive and foraging, rendered in 3D.",
     url: "https://gocklkatz-bienenstock.vercel.app",
     status: "live",
+    claim: {
+      text: "13 tests over the colony model, its interactions and the canvas sizing, all passing",
+      source: "apps/bienenstock/tests/colony.test.ts",
+      command: "npm run test",
+    },
   },
   {
     slug: "simplified",
@@ -51,6 +80,11 @@ const DEMOS = [
     description: "Learning and practising simplified Chinese characters.",
     url: "https://gocklkatz-simplified.vercel.app",
     status: "live",
+    claim: {
+      text: "29 tests over the radicals data, practice sessions and health shape, all passing",
+      source: "apps/simplified/tests/radicals.test.ts",
+      command: "npm run test",
+    },
   },
   {
     slug: "arbeitsmarkt",
@@ -58,6 +92,11 @@ const DEMOS = [
     description: "A relevance-ranked job-listing pipeline, demonstrated on synthetic data.",
     url: "https://gocklkatz-arbeitsmarkt.vercel.app",
     status: "live",
+    claim: {
+      text: "23 tests over the synthetic dataset generator, the ranking pipeline and the operations model, all passing",
+      source: "apps/arbeitsmarkt/tests/dataset.test.ts",
+      command: "npm run test",
+    },
   },
 ] as const satisfies readonly Demo[];
 

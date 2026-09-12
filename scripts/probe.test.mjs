@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { cardFailures, hrefsIn, linkTargets, parsePage } from "./probe.mjs";
+import { cardFailures, claimCardProblems, hrefsIn, linkTargets, parsePage } from "./probe.mjs";
 
 const ANTS = { slug: "ameisenwerkstatt", name: "Ameisenwerkstatt" };
 const BEES = { slug: "bienenstock", name: "Bienenstock" };
@@ -249,5 +249,74 @@ describe("bypasses the review demonstrated, now closed", () => {
   it("does not run the page-level assertion when the caller declares nothing", () => {
     const html = page(card({ ...ANTS, status: "in-development" }));
     expect(cardFailures(parsePage(html), [ANTS])).toEqual([]);
+  });
+});
+
+describe("claimCardProblems — one measured, sourced claim per live card", () => {
+  const SOURCE = "apps/example/tests/example.test.ts";
+  const HREF = `https://example.invalid/blob/main/${SOURCE}`;
+
+  /**
+   * @param {{ status?: string, claim?: string | null, source?: string | null, href?: string | null, command?: string | null }} over
+   */
+  function claimCard(over = {}) {
+    const markup = `<article data-demo="example" data-status="${over.status ?? "live"}">
+      <p data-claim="${over.claim ?? "12 tests over the example fixture, all passing"}">…</p>
+      <a href="${over.href ?? HREF}" data-claim-source="${over.source ?? SOURCE}">${over.source ?? SOURCE}</a>
+      <code data-claim-command="${over.command ?? "npm run test"}">…</code>
+    </article>`;
+    const parsed = parsePage(markup).cards[0];
+    if (!parsed) {
+      throw new Error("the fixture markup did not parse into a card");
+    }
+    return parsed;
+  }
+
+  it("accepts a live card that carries claim, source and command", () => {
+    expect(claimCardProblems(claimCard())).toEqual([]);
+  });
+
+  it("reads the claim fields off the served markup", () => {
+    const card = claimCard();
+    expect(card.claim).toBe("12 tests over the example fixture, all passing");
+    expect(card.claimSource).toBe(SOURCE);
+    expect(card.claimSourceHref).toBe(HREF);
+    expect(card.claimCommand).toBe("npm run test");
+  });
+
+  it("exempts a card that is not live", () => {
+    // An in-development card has no deployment, so there is nothing for a claim to be about yet.
+    expect(claimCardProblems(claimCard({ status: "in-development" }))).toEqual([]);
+  });
+
+  it("rejects a live card with no claim", () => {
+    const problems = claimCardProblems(claimCard({ claim: "" }));
+    expect(problems.join(" ")).toMatch(/no measured claim/);
+  });
+
+  it("rejects a claim that names no source", () => {
+    const problems = claimCardProblems(claimCard({ source: "" }));
+    expect(problems.join(" ")).toMatch(/names no source/);
+  });
+
+  it("rejects a claim with no reproducing command", () => {
+    // AGENTS.md section 4: a number nobody can re-derive is a claim, not a measurement.
+    const problems = claimCardProblems(claimCard({ command: "" }));
+    expect(problems.join(" ")).toMatch(/no reproducing command/);
+  });
+
+  it("rejects a source that is recorded but not linked", () => {
+    // Requirement 3: the reader must be able to check the number in two clicks.
+    const problems = claimCardProblems(claimCard({ href: "", source: SOURCE }));
+    expect(problems.join(" ")).toMatch(/renders no link to it/);
+  });
+
+  it("rejects a relative href, which a reader could not follow as a link", () => {
+    const problems = claimCardProblems(claimCard({ href: SOURCE }));
+    expect(problems.join(" ")).toMatch(/renders no link to it/);
+  });
+
+  it("names the card whose claim is wrong", () => {
+    expect(claimCardProblems(claimCard({ command: "" })).join(" ")).toContain('card "example"');
   });
 });

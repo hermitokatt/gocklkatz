@@ -8,7 +8,9 @@ export default function HomePage() {
       <header className="masthead">
         <p className="masthead__eyebrow">{site.company}</p>
         <h1 className="masthead__headline">{site.headline}</h1>
-        <p className="masthead__lede">{site.intro}</p>
+        <p className="masthead__lede" data-intro>
+          {site.intro}
+        </p>
       </header>
 
       <section className="demos" aria-labelledby="demos-heading">
