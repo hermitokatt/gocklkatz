@@ -45,6 +45,10 @@ if [ ! -f node_modules/.package-lock.json ]; then
 fi
 
 run "lint (eslint)" npm run --silent lint
+# Formatting is checked here, not only configured. This app ships a .prettierrc.json and a
+# .prettierignore; without this step nothing ever ran them, so the config was decoration. The
+# previous two apps in this monorepo are in exactly that state and are not format-clean.
+run "format (prettier --check)" npm run --silent format:check
 run "typecheck (tsc --noEmit)" npm run --silent typecheck
 run "tests (vitest run)" npm run --silent test
 run "build (next build)" npm run --silent build
@@ -54,4 +58,4 @@ if [ "$fail" -ne 0 ]; then
     printf 'ci: FAIL\n'
     exit 1
 fi
-printf 'ci: PASS (lint, typecheck, tests, build)\n'
+printf 'ci: PASS (lint, format, typecheck, tests, build)\n'

@@ -27,8 +27,7 @@ body {
   background:
     radial-gradient(1100px 640px at 8% -12%, #2a5a28 0%, transparent 58%),
     radial-gradient(900px 560px at 108% 8%, #87b7e0 0%, transparent 52%),
-    radial-gradient(700px 480px at 50% 110%, #c4a35a 0%, transparent 55%),
-    #1a2a18;
+    radial-gradient(700px 480px at 50% 110%, #c4a35a 0%, transparent 55%), #1a2a18;
 }
 
 .hiveCard {

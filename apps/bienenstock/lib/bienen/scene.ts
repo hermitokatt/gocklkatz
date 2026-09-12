@@ -1,7 +1,8 @@
 /**
- * Static outdoor hive scene for /bienen (GOC-19).
+ * Outdoor hive scene for /bienen. The world (ground, vegetation, skep) is the stage; the
+ * colony in `./colony` is the action. This module reads simulation state and never feeds
+ * positions back into it.
  *
- * Bee agents, foraging, and visitor interactions are intentionally absent — later epic issues.
  * Host sizing follows the canvas-display contract: measure the frame, pin the CSS box, pass
  * `false` as the third argument to `renderer.setSize`.
  */
@@ -9,24 +10,22 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { applyCanvasDisplaySize, resolveCanvasDisplaySize } from "./canvas-display";
+import { createColony, step } from "./colony";
+import { DEFAULT_BEE_COUNT, DEFAULT_SEED } from "./params";
+import { createRng, type Rng } from "./rng";
+import { FLOWER_PATCHES, SCENERY_SEED } from "./world";
 
 export type HiveScene = {
   resize: () => void;
   render: () => void;
   dispose: () => void;
+  stats: () => { fps: number; beeCount: number; hiveNectar: number };
 };
 
 /** Deterministic 0..1 from a seed and index — no Math.random in scene construction. */
 function hash01(seed: number, i: number): number {
   const x = Math.sin(seed * 12.9898 + i * 78.233) * 43758.5453;
   return x - Math.floor(x);
-}
-
-function mulberryNext(state: { s: number }): number {
-  let t = (state.s += 0x6d2b79f5);
-  t = Math.imul(t ^ (t >>> 15), t | 1);
-  t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
 }
 
 function createSkep(): THREE.Group {
@@ -112,7 +111,7 @@ function createGround(): THREE.Mesh {
   return mesh;
 }
 
-function createGrass(rng: { s: number }): THREE.InstancedMesh {
+function createGrass(random: Rng): THREE.InstancedMesh {
   const count = 1400;
   const geo = new THREE.ConeGeometry(0.035, 0.28, 4);
   geo.translate(0, 0.14, 0);
@@ -128,8 +127,8 @@ function createGrass(rng: { s: number }): THREE.InstancedMesh {
   const dummy = new THREE.Object3D();
   const color = new THREE.Color();
   for (let i = 0; i < count; i++) {
-    const angle = mulberryNext(rng) * Math.PI * 2;
-    const radius = 1.8 + mulberryNext(rng) * 16;
+    const angle = random() * Math.PI * 2;
+    const radius = 1.8 + random() * 16;
     // Keep a clear ring around the hive so the skep stays readable.
     const x = Math.cos(angle) * radius;
     const z = Math.sin(angle) * radius;
@@ -140,13 +139,13 @@ function createGrass(rng: { s: number }): THREE.InstancedMesh {
       continue;
     }
     dummy.position.set(x, 0, z);
-    dummy.rotation.y = mulberryNext(rng) * Math.PI * 2;
-    dummy.rotation.z = (mulberryNext(rng) - 0.5) * 0.25;
-    const s = 0.7 + mulberryNext(rng) * 0.9;
-    dummy.scale.set(s, s * (0.8 + mulberryNext(rng) * 0.6), s);
+    dummy.rotation.y = random() * Math.PI * 2;
+    dummy.rotation.z = (random() - 0.5) * 0.25;
+    const s = 0.7 + random() * 0.9;
+    dummy.scale.set(s, s * (0.8 + random() * 0.6), s);
     dummy.updateMatrix();
     mesh.setMatrixAt(i, dummy.matrix);
-    color.setHSL(0.28 + mulberryNext(rng) * 0.08, 0.45 + mulberryNext(rng) * 0.25, 0.32 + mulberryNext(rng) * 0.12);
+    color.setHSL(0.28 + random() * 0.08, 0.45 + random() * 0.25, 0.32 + random() * 0.12);
     mesh.setColorAt(i, color);
   }
   mesh.instanceMatrix.needsUpdate = true;
@@ -156,58 +155,62 @@ function createGrass(rng: { s: number }): THREE.InstancedMesh {
   return mesh;
 }
 
-function createFlowers(rng: { s: number }): THREE.Group {
+function createFlowers(random: Rng): THREE.Group {
   const group = new THREE.Group();
   const stemGeo = new THREE.CylinderGeometry(0.015, 0.02, 0.35, 5);
   stemGeo.translate(0, 0.175, 0);
   const bloomGeo = new THREE.SphereGeometry(0.07, 8, 6);
   const stemMat = new THREE.MeshStandardMaterial({ color: 0x2f6b28, roughness: 0.9 });
   const bloomMats = [
-    new THREE.MeshStandardMaterial({ color: 0xf2c14e, roughness: 0.55, emissive: 0x3a2800, emissiveIntensity: 0.15 }),
-    new THREE.MeshStandardMaterial({ color: 0xe85d75, roughness: 0.55, emissive: 0x3a0010, emissiveIntensity: 0.12 }),
-    new THREE.MeshStandardMaterial({ color: 0x7ec8e3, roughness: 0.55, emissive: 0x001828, emissiveIntensity: 0.1 }),
+    new THREE.MeshStandardMaterial({
+      color: 0xf2c14e,
+      roughness: 0.55,
+      emissive: 0x3a2800,
+      emissiveIntensity: 0.15,
+    }),
+    new THREE.MeshStandardMaterial({
+      color: 0xe85d75,
+      roughness: 0.55,
+      emissive: 0x3a0010,
+      emissiveIntensity: 0.12,
+    }),
+    new THREE.MeshStandardMaterial({
+      color: 0x7ec8e3,
+      roughness: 0.55,
+      emissive: 0x001828,
+      emissiveIntensity: 0.1,
+    }),
     new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.6 }),
   ];
 
-  const patchCenters: [number, number][] = [
-    [4.5, 3.2],
-    [-5.2, 2.4],
-    [3.8, -5.5],
-    [-4.0, -4.8],
-    [7.5, -1.2],
-    [-7.0, 5.5],
-  ];
-
-  const stemCount = patchCenters.length * 28;
+  const stemCount = FLOWER_PATCHES.length * 28;
   const stems = new THREE.InstancedMesh(stemGeo, stemMat, stemCount);
   stems.castShadow = true;
-  const blooms = bloomMats.map(
-    (mat) => {
-      const m = new THREE.InstancedMesh(bloomGeo, mat, Math.ceil(stemCount / bloomMats.length) + 8);
-      m.castShadow = true;
-      return m;
-    },
-  );
+  const blooms = bloomMats.map((mat) => {
+    const m = new THREE.InstancedMesh(bloomGeo, mat, Math.ceil(stemCount / bloomMats.length) + 8);
+    m.castShadow = true;
+    return m;
+  });
   const bloomCursor = blooms.map(() => 0);
 
   const dummy = new THREE.Object3D();
   let stemIndex = 0;
-  for (const [cx, cz] of patchCenters) {
+  for (const patch of FLOWER_PATCHES) {
     for (let i = 0; i < 28; i++) {
-      const ox = (mulberryNext(rng) - 0.5) * 2.4;
-      const oz = (mulberryNext(rng) - 0.5) * 2.4;
-      dummy.position.set(cx + ox, 0, cz + oz);
-      dummy.rotation.y = mulberryNext(rng) * Math.PI * 2;
-      const s = 0.75 + mulberryNext(rng) * 0.5;
+      const ox = (random() - 0.5) * 2.4;
+      const oz = (random() - 0.5) * 2.4;
+      dummy.position.set(patch.x + ox, 0, patch.z + oz);
+      dummy.rotation.y = random() * Math.PI * 2;
+      const s = 0.75 + random() * 0.5;
       dummy.scale.set(s, s, s);
       dummy.updateMatrix();
       stems.setMatrixAt(stemIndex, dummy.matrix);
 
-      const bi = Math.floor(mulberryNext(rng) * blooms.length);
+      const bi = Math.floor(random() * blooms.length);
       const bloom = blooms[bi]!;
       const ci = bloomCursor[bi]!;
       dummy.position.y = 0.35 * s;
-      dummy.scale.setScalar(0.9 + mulberryNext(rng) * 0.5);
+      dummy.scale.setScalar(0.9 + random() * 0.5);
       dummy.updateMatrix();
       bloom.setMatrixAt(ci, dummy.matrix);
       bloomCursor[bi] = ci + 1;
@@ -224,7 +227,7 @@ function createFlowers(rng: { s: number }): THREE.Group {
   return group;
 }
 
-function createTrees(rng: { s: number }): THREE.Group {
+function createTrees(random: Rng): THREE.Group {
   const group = new THREE.Group();
   const trunkGeo = new THREE.CylinderGeometry(0.12, 0.18, 1.6, 8);
   trunkGeo.translate(0, 0.8, 0);
@@ -238,12 +241,12 @@ function createTrees(rng: { s: number }): THREE.Group {
 
   const placements: { x: number; z: number; s: number }[] = [];
   for (let i = 0; i < 14; i++) {
-    const angle = (i / 14) * Math.PI * 2 + mulberryNext(rng) * 0.35;
-    const radius = 11 + mulberryNext(rng) * 8;
+    const angle = (i / 14) * Math.PI * 2 + random() * 0.35;
+    const radius = 11 + random() * 8;
     placements.push({
       x: Math.cos(angle) * radius,
       z: Math.sin(angle) * radius,
-      s: 0.85 + mulberryNext(rng) * 0.55,
+      s: 0.85 + random() * 0.55,
     });
   }
 
@@ -279,20 +282,61 @@ function createTrees(rng: { s: number }): THREE.Group {
   return group;
 }
 
+function createBeeSwarm(count: number): THREE.InstancedMesh {
+  const geo = new THREE.SphereGeometry(0.055, 7, 5);
+  geo.scale(1, 0.72, 1.45);
+  const mat = new THREE.MeshStandardMaterial({
+    color: 0xe8b84a,
+    roughness: 0.45,
+    metalness: 0.05,
+    emissive: 0x3a2800,
+    emissiveIntensity: 0.12,
+  });
+  const mesh = new THREE.InstancedMesh(geo, mat, count);
+  mesh.frustumCulled = false;
+  const dummy = new THREE.Object3D();
+  const color = new THREE.Color();
+  for (let i = 0; i < count; i++) {
+    dummy.position.set(0, -20, 0);
+    dummy.updateMatrix();
+    mesh.setMatrixAt(i, dummy.matrix);
+    color.setHSL(0.11 + hash01(19, i) * 0.04, 0.72, 0.48 + hash01(23, i) * 0.12);
+    mesh.setColorAt(i, color);
+  }
+  mesh.instanceMatrix.needsUpdate = true;
+  if (mesh.instanceColor) {
+    mesh.instanceColor.needsUpdate = true;
+  }
+  return mesh;
+}
+
+function writeReadout(
+  el: HTMLElement | null,
+  fps: number,
+  beeCount: number,
+  hiveNectar: number,
+): void {
+  if (!el) {
+    return;
+  }
+  const fpsText = fps > 0 ? `${Math.round(fps)} fps` : "measuring fps";
+  el.textContent = `${beeCount} bees · ${fpsText} · hive ${hiveNectar.toFixed(1)} nectar`;
+}
+
 function webglAvailable(): boolean {
   try {
     const canvas = document.createElement("canvas");
     return Boolean(
       canvas.getContext("webgl2") ||
-        canvas.getContext("webgl") ||
-        canvas.getContext("experimental-webgl"),
+      canvas.getContext("webgl") ||
+      canvas.getContext("experimental-webgl"),
     );
   } catch {
     return false;
   }
 }
 
-export function createHiveScene(host: HTMLElement): HiveScene {
+export function createHiveScene(host: HTMLElement, readout?: HTMLElement | null): HiveScene {
   if (!webglAvailable()) {
     throw new Error("WebGL is not available in this browser.");
   }
@@ -358,17 +402,37 @@ export function createHiveScene(host: HTMLElement): HiveScene {
   rim.position.set(-8, 4, -6);
   scene.add(rim);
 
-  const rng = { s: 0xbee5 };
+  const scenery = createRng(SCENERY_SEED);
   scene.add(createGround());
-  scene.add(createGrass(rng));
-  scene.add(createFlowers(rng));
-  scene.add(createTrees(rng));
+  scene.add(createGrass(scenery));
+  scene.add(createFlowers(scenery));
+  scene.add(createTrees(scenery));
   scene.add(createSkep());
+
+  const colony = createColony({ seed: DEFAULT_SEED, beeCount: DEFAULT_BEE_COUNT });
+  const bees = createBeeSwarm(colony.bees.length);
+  scene.add(bees);
+  const beeDummy = new THREE.Object3D();
 
   let prevCssWidth = 0;
   let prevCssHeight = 0;
   let frame = 0;
   let disposed = false;
+  let lastStamp = performance.now();
+  let fpsFrames = 0;
+  let fpsWindowMs = 0;
+  let fps = 0;
+
+  function syncBees(): void {
+    for (let i = 0; i < colony.bees.length; i++) {
+      const bee = colony.bees[i]!;
+      beeDummy.position.set(bee.x, bee.y, bee.z);
+      beeDummy.rotation.set(0.12, bee.heading, Math.sin(colony.time * 22 + bee.phase) * 0.25);
+      beeDummy.updateMatrix();
+      bees.setMatrixAt(i, beeDummy.matrix);
+    }
+    bees.instanceMatrix.needsUpdate = true;
+  }
 
   function resize(): void {
     const rect = host.getBoundingClientRect();
@@ -392,11 +456,26 @@ export function createHiveScene(host: HTMLElement): HiveScene {
     if (disposed) {
       return;
     }
+    const now = performance.now();
+    const wallDt = Math.max(0, (now - lastStamp) / 1000);
+    lastStamp = now;
+    fpsFrames += 1;
+    fpsWindowMs += wallDt;
+    if (fpsWindowMs >= 1) {
+      fps = fpsFrames / fpsWindowMs;
+      fpsFrames = 0;
+      fpsWindowMs = 0;
+      writeReadout(readout ?? null, fps, colony.bees.length, colony.hive.nectar);
+    }
+    step(colony, Math.min(wallDt, 0.05));
+    syncBees();
     controls.update();
     renderer.render(scene, camera);
     frame = requestAnimationFrame(render);
   }
 
+  writeReadout(readout ?? null, 0, colony.bees.length, colony.hive.nectar);
+  syncBees();
   resize();
   frame = requestAnimationFrame(render);
 
@@ -422,5 +501,6 @@ export function createHiveScene(host: HTMLElement): HiveScene {
         }
       });
     },
+    stats: () => ({ fps, beeCount: colony.bees.length, hiveNectar: colony.hive.nectar }),
   };
 }

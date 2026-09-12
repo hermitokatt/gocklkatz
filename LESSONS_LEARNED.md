@@ -237,6 +237,96 @@ wrong lesson is worse than no lesson, because the next reader acts on it.
 
 ---
 
+## 2026-09-12 — Bienenstock foraging (GOC-20)
+
+Colony simulation: seeded `step(dt)`, recruitment toward richer patches, instanced bees.
+
+### Collected share is not a choice metric when collect rate scales with richness
+
+To prove the concentration assertion can fail, `choosePatch` was replaced with a uniform
+`colony.rng()` draw (not `Math.random`, which a source-scan test would have caught first). The
+app still built. Observed:
+
+```
+concentration seed=11 steps=2400 richVisits=270 poorVisits=223 richCollected=270.000 poorCollected=43.514 richShare=0.861
+AssertionError: expected 270 to be greater than 446
+```
+
+exit 1. `richShare` stayed 0.861 because `collectRate * richness` drains the rich patch faster
+even when visits are nearly even. The visits assertion is what failed. Reverted.
+
+A test that only asserted collected share would have stayed green on uniform choice.
+
+### Chrome's virtual time does not advance `requestAnimationFrame`
+
+The scene has one canvas readout showing bee count, frame rate and hive nectar. Measuring the frame
+rate with the obvious tool failed:
+
+```
+$ chrome --headless=new --virtual-time-budget=12000 --dump-dom http://127.0.0.1:43129/bienen
+  readout: 120 bees · measuring fps · hive 0.0 nectar
+```
+
+`--virtual-time-budget` advances timers, not the rendering loop. The animation never ran, so the app
+reported `measuring fps` forever and the hive read 0.0 — a working scene that looks broken, and a
+conclusion ("WebGL is unavailable headlessly") that would have been wrong.
+
+Driving Chrome over the DevTools protocol with **real** elapsed time gives the truth on the same
+machine:
+
+```
+$ node tools/measure-fps.mjs http://127.0.0.1:43129/bienen 15
+{ "readout": "120 bees · 60 fps · hive 142.7 nectar",
+  "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1, Unspecified Version)",
+  "consoleErrors": [] }
+```
+
+The script is at `apps/bienenstock/tools/measure-fps.mjs`, committed so the number in the README can
+be reproduced rather than believed.
+
+*Rule:* when a headless measurement reports that a graphical feature is unavailable, check the
+measurement method before believing the finding. A probe that cannot run the code under test will
+happily report it as broken.
+
+### A stalled worker looks like a busy one from the outside
+
+The GOC-20 worker's connection dropped mid-run and `cursor-agent` entered a reconnect loop. The
+process stayed alive and the connection kept being retried, so anything watching only for the process
+to exit saw a worker that had been "running" for 30 minutes at **0% CPU** with no file modification
+for 2 minutes.
+
+The tree it had already written was complete and its tests passed, so the work was salvaged rather
+than re-run. But the stall cost the wall-clock time, and the only thing that identified it was
+watching the filesystem rather than the process.
+
+*Rule:* "the process is alive" is not "the process is working". For a long autonomous run, watch file
+modification time and CPU, not liveness.
+
+### The gate validates a commit, not a working tree — and says nothing about which
+
+`tools/gate.sh` computes its report path from `git rev-parse HEAD^{tree}`. On a dirty tree that is
+the **previous commit's** tree, and the run reports `GATE: PASS` for content it never looked at.
+
+Observed while reviewing GOC-20: after formatting the app, adding `format:check` to `ci.sh` and
+adding a measurement script, a gate run reported
+
+```
+GATE: PASS (tree ac043e67..., 4 app block(s))
+```
+
+and `ac043e67` was the tree of the **pre-review** commit. The staged content was `7171f089`. Both
+hashes are printed in their own runs, so the mismatch is visible — but only to a reader who compares
+them, which is exactly the reader the pass line discourages.
+
+Whoever runs it is not misled for long: `HEAD` moves on commit and the next run keys on the new
+tree, and `.githooks/pre-push` refuses a push with no report for the tree being pushed. So this is a
+correctness-of-report problem rather than a hole.
+
+*Rule:* commit first, then gate. If you gate a dirty tree, read the `tree:` line and confirm it is
+the tree you mean to ship. A pass is a statement about one tree, and the gate names which.
+
+---
+
 ## Journal template
 
 ```
@@ -262,4 +352,7 @@ The claims above are worth exactly as much as the evidence behind them, so where
 * **The 24,047 files / 601 MB figure** for the earlier Ameisenwerkstatt copy comes from an earlier
   session and was **not** re-verified when this entry was written. Treat it as reported, not
   confirmed, and re-measure it if it ever matters.
+* **The 2026-09-12 foraging entry** quotes the vitest output from the deliberate uniform-choice
+  run (`richVisits=270`, `poorVisits=223`, `richShare=0.861`, exit 1). The figures were not
+  re-run after revert except to confirm the restored test is green.
 * Anything added later should say how it was measured, or say that it was not.
