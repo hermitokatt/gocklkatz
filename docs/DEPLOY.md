@@ -447,7 +447,7 @@ dependency graph.
 root, so `git diff -- .` matches every path: a rule that only asked "did anything change?" would
 rebuild the landing page for every sub-issue of every epic while the apps rebuilt for none. Its set is
 therefore an explicit subtraction — everything except `apps/`, `docs/`, and the root prose
-(`README.md`, `LESSONS_LEARNED.md`), none of which is an input to its build.
+(`README.md`), none of which is an input to its build.
 
 #### Verified, without touching Vercel
 
