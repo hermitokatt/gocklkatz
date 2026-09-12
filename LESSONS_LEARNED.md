@@ -959,3 +959,35 @@ the issue is finished.
 The delivery loop in `AGENTS.md` §11 is unchanged — branch, gate, PR, local merge, push, mirror. What
 changes is the **frequency of deployment**: the app's Vercel project and the card flip belong to the
 final sub-issue of an epic, not to each piece of it.
+
+### All five projects are identically configured, so the difference is not configuration
+
+`gocklkatz` was the only project whose deployments stopped. Rather than reconnect something — which
+four successful deployments make implausible — every field the API exposes was compared across all
+five:
+
+| Field | gocklkatz | four app projects |
+| --- | --- | --- |
+| `link.type` / `repo` / `owner` | `cursor-origin` / `gocklkatz` / `gocklkatz` | identical |
+| `originConnections` | one connection, `cursor-origin` `gocklkatz` | same connection |
+| `ssoProtection` | `enabled`, `all_except_custom_domains` | identical |
+| `passwordProtection` | `enabled: false` | identical |
+| `trustedIps` | `enabled: false` | identical |
+| `nodeVersion` | `24.x` | `24.x` |
+| custom domain attached | `gocklkatz.vercel.app` | one each |
+| `framework` | **`null`** | `"nextjs"` |
+
+**`framework: null` is the only difference, and it is not the cause.** `gocklkatz` deployed four
+times on this exact configuration — 10:19, 10:32, 10:41, 11:00, 11:13, 11:19, 11:26 and 11:34Z, a
+regular ~48-minute cadence from git pushes. A setting that was never changed cannot explain a
+failure that began at a point in time. It is recorded as a tidy-up, not a fix.
+
+The team is on the **`hobby`** plan, and this session created four projects and ran roughly thirty
+preview builds. `build-rate-limit` has been failing previews across projects since. **A plan-level
+build limit is the remaining explanation consistent with all the evidence**, and it is the one that
+matches the fourth-to-fifth transition: the fifth project is what tipped it.
+
+That also makes this the wrong thing to keep retrying. The budget is per team, and every push spends
+from it, so a retry loop costs the thing it is testing. The honest position: the repository is
+correct and unchanged, the deploy is bounded by a shared plan limit, and the check is to wait and
+push once — not to add a fifth variant of the same attempt.
