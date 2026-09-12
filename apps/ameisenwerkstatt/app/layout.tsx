@@ -3,10 +3,11 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: {
-    default: "Software Factory Demo",
-    template: "%s · Software Factory",
+    default: "Ameisenwerkstatt",
+    template: "%s · Ameisenwerkstatt",
   },
-  description: "Software Factory Demo #1 — Ameisenfabrik live ACO, DualAB-A façade, Origin→Vercel.",
+  description:
+    "Ant colony optimisation on a fixed travelling-salesman problem, in a live 3D Werkstatt.",
 };
 
 export default function RootLayout({

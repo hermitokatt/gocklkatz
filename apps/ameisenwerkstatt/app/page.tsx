@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Software Factory Demo #1",
+  title: "Ameisenwerkstatt",
   description:
-    "Ameisenfabrik — live ACO colony, DualAB-A façade, Origin→Vercel. Demo #1 proof: full-stack in ~2 days.",
+    "Ant colony optimisation on a fixed travelling-salesman problem, in a live 3D Werkstatt you can disturb.",
 };
 
 export default function HomePage() {
@@ -12,16 +12,17 @@ export default function HomePage() {
     <main className="home">
       <div className="homeAtmosphere" aria-hidden="true" />
       <article className="factoryCard">
-        <p className="factoryKicker">Software Factory · Demo #1</p>
+        <p className="factoryKicker">Ant colony optimisation · live simulation</p>
         <h1 className="factoryBrand">Ameisenfabrik</h1>
         <p className="factoryLead">
-          Living ant-colony optimization on a fixed TSP. Meaningful backend, Werkstatt UI, public
-          URL — proof we can create and deploy full-stack in ~2 days.
+          A living ant colony optimises a fixed travelling-salesman problem in the browser, with a
+          real backend behind it: one shared colony, a typed HTTP façade, and a Werkstatt view whose
+          chaos controls you can use to watch it recover.
         </p>
         <ul className="factoryBeats">
           <li>live ACO · chaos inject · no LLM</li>
-          <li>DualAB-A typed tools façade</li>
-          <li>Origin → Vercel production</li>
+          <li>Typed, allowlisted tool façade</li>
+          <li>One shared colony behind every view</li>
         </ul>
         <p className="factoryCtaRow">
           <Link className="factoryCta" href="/ameisen">
@@ -29,8 +30,10 @@ export default function HomePage() {
           </Link>
         </p>
         <p className="factoryNext">
-          Next · Demo #2 · <span className="factoryNextBrand">Bienenfabrik</span> ·{" "}
-          <code>/bienen</code> · due Wed evening Vienna
+          One of four demos ·{" "}
+          <a className="factoryNextBrand" href="https://gocklkatz.vercel.app">
+            gocklkatz.vercel.app
+          </a>
         </p>
         <p className="factoryFoot">
           Health: <a href="/api/health">GET /api/health</a>
