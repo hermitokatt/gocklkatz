@@ -44,7 +44,7 @@ const VALID_STATUSES = ["live", "in-development"];
  */
 const DEFAULT_PAGE_HREF = "https://github.com/hermitokatt/gocklkatz";
 
-/** @typedef {{ slug: string, status: string | null, hrefs: string[], block: string }} Card */
+/** @typedef {{ slug: string, status: string | null, hrefs: string[], block: string, claim: string | null, claimSource: string | null, claimSourceHref: string | null, claimCommand: string | null }} Card */
 /** @typedef {{ cards: Card[], outside: string, problems: string[] }} ParsedPage */
 /** @typedef {{ label: string, url: string }} LinkTarget */
 
@@ -69,6 +69,22 @@ export function hrefsIn(html) {
     hrefs.push(decodeAttribute(match[1] ?? match[2] ?? match[3] ?? ""));
   }
   return hrefs;
+}
+
+/**
+ * Read one attribute out of a fragment of markup, or null when it is absent.
+ *
+ * @param {string} markup
+ * @param {string} name attribute name, lowercased
+ * @returns {string | null}
+ */
+function attributeValue(markup, name) {
+  const re = new RegExp(`\\b${name}\\s*=\\s*(?:"([^"]*)"|'([^']*)'|([^\\s"'>]+))`, "i");
+  const m = re.exec(markup);
+  if (m === null) {
+    return null;
+  }
+  return decodeAttribute(m[1] ?? m[2] ?? m[3] ?? "");
 }
 
 /**
@@ -125,15 +141,31 @@ export function parsePage(html) {
       continue;
     }
 
-    const statusMatch = /\bdata-status\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'>]+))/i.exec(match[0]);
     const block = html.slice(bodyStart, closeAt);
     cards.push({
       slug,
-      status: statusMatch
-        ? decodeAttribute(statusMatch[1] ?? statusMatch[2] ?? statusMatch[3] ?? "")
-        : null,
+      status: attributeValue(match[0], "data-status"),
       block,
       hrefs: hrefsIn(block),
+      // Requirement 1 of ticket GOC-11: every card carries a measured claim, the file it came from,
+      // and the command that reproduces it. Read here rather than trusted, because the card is what
+      // a visitor sees.
+      claim: attributeValue(block, "data-claim"),
+      claimSource: attributeValue(block, "data-claim-source"),
+      // `data-claim-source` records the repository-relative path; the fetchable URL is the href of
+      // the anchor that carries it. Reading the attribute as if it were the URL was the first
+      // version of this check, and it failed on links that were resolving fine.
+      claimSourceHref: (() => {
+        const m =
+          /<a\b[^>]*?\bdata-claim-source\s*=[^>]*?\bhref\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'>]+))/i.exec(
+            block,
+          ) ??
+          /<a\b[^>]*?\bhref\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'>]+))[^>]*?\bdata-claim-source\s*=/i.exec(
+            block,
+          );
+        return m === null ? null : decodeAttribute(m[1] ?? m[2] ?? m[3] ?? "");
+      })(),
+      claimCommand: attributeValue(block, "data-claim-command"),
     });
 
     cursor = closeAt + `</${tag}>`.length;
@@ -403,6 +435,73 @@ async function get(url) {
 }
 
 /**
+ * The card-level half of the claim rule: a live card must carry a claim, name its source, and link
+ * to it. The reachability of that link is checked separately, because it needs a fetch.
+ *
+ * Exported so scripts/probe.test.mjs can exercise both directions without a server — the fetch is
+ * the only part this predicate cannot cover, and the fetch is the part the ticket's A-2
+ * demonstrates by hand.
+ *
+ * @param {Card} card
+ * @returns {string[]} problems, empty when the card satisfies the rule
+ */
+export function claimCardProblems(card) {
+  /** @type {string[]} */
+  const problems = [];
+  if (card.status !== "live") {
+    return problems;
+  }
+  const label = `card "${card.slug}"`;
+  if (!card.claim || card.claim.trim().length < 10) {
+    problems.push(`${label}: publishes no measured claim (data-claim)`);
+    return problems;
+  }
+  if (!card.claimSource) {
+    problems.push(`${label}: its claim names no source (data-claim-source)`);
+    return problems;
+  }
+  if (!card.claimCommand) {
+    problems.push(`${label}: its claim names no reproducing command (data-claim-command)`);
+    return problems;
+  }
+  if (!card.claimSourceHref || !/^https:\/\//.test(card.claimSourceHref)) {
+    problems.push(
+      `${label}: records the source "${card.claimSource}" but renders no link to it (data-claim-source needs an absolute href)`,
+    );
+  }
+  return problems;
+}
+
+/**
+ * The claim rule's other half: the card must publish a count.
+ *
+ * A claim of the form "62 tests over X, all passing" is checkable, and `npm run test` is the
+ * command that checks it. A claim with no number in it would pass everything else here while
+ * telling the reader nothing, so the shape is asserted rather than left to the card's discretion.
+ *
+ * The VALUE is deliberately not asserted here: `scripts/ci.sh` in each app runs the suite, and
+ * scripts/verify.sh fetches the cited source. This predicate only refuses a claim that publishes no
+ * measurement at all.
+ *
+ * @param {Card} card
+ * @returns {string[]}
+ */
+export function claimCountProblems(card) {
+  if (card.status !== "live") {
+    return [];
+  }
+  if (!card.claim) {
+    return [];
+  }
+  if (!/^\d+ tests? over /.test(card.claim.trim())) {
+    return [
+      `card "${card.slug}": its claim states no measured count — "${card.claim}" should begin with "<n> tests over …"`,
+    ];
+  }
+  return [];
+}
+
+/**
  * @param {string} baseUrl
  * @returns {Promise<number>} process exit code
  */
@@ -443,6 +542,80 @@ async function check(baseUrl) {
   // page is expected to publish besides its live cards. Its default is off so that unit tests can
   // exercise the card rules on markup that carries no footer link.
   failures.push(...cardFailures(page, REQUIRED_DEMOS, DEFAULT_PAGE_HREF));
+
+  // ---- every card carries a measured, sourced claim (ticket GOC-11) -----
+  //
+  // Requirement 1: a claim, the file it came from, and the command that reproduces it. Requirement
+  // 3: the source is LINKED, so a reader who doubts a number can open the file it came from. The
+  // fetch below asserts that link answers 200 and NAMES THE CARD when it does not, which is what
+  // A-2 of the ticket asks for. A rendered anchor is not the same as a reachable one.
+  for (const card of page.cards) {
+    const label = `card "${card.slug}"`;
+    const problems = [...claimCardProblems(card), ...claimCountProblems(card)];
+    if (problems.length > 0) {
+      failures.push(...problems);
+      continue;
+    }
+    if (card.status !== "live") {
+      continue;
+    }
+    say(`claim ${card.slug.padEnd(18)} ${card.claimSource}  [${card.claimCommand}]`);
+
+    // Already asserted non-null by claimCardProblems above; restated for the type checker.
+    if (!card.claimSourceHref) {
+      continue;
+    }
+    const source = await get(card.claimSourceHref);
+    if ("error" in source) {
+      failures.push(
+        `${label}: its claim source does not resolve — ${card.claimSourceHref} (${source.error})`,
+      );
+      continue;
+    }
+    if (source.status !== 200) {
+      failures.push(
+        `${label}: its claim source answered ${source.status}, expected 200 — ${card.claimSourceHref}`,
+      );
+      continue;
+    }
+    say(`claim ${card.slug.padEnd(18)} source ${source.status}`);
+  }
+
+  // ---- the portfolio intro (ticket GOC-12) ------------------------------
+  //
+  // Requirement 1: one short paragraph at the top saying what these projects are and what connects
+  // them. Requirement 2: it must be specific — "Welcome to my portfolio" is explicitly not
+  // acceptable. Two assertion directions, because either alone is passable by the wrong text:
+  //
+  //   absence   the paragraph is there at all
+  //   quality   it names the properties the repository actually has, so a greeting cannot satisfy it
+  //
+  // The words below are the ones site.intro uses, and they are the repository's own rules: every
+  // demo here is built, tested, deployed and verified by running it.
+  const intro = /<p\b[^>]*\bdata-intro\b[^>]*>([\s\S]*?)<\/p>/i.exec(home.body);
+  // The match index is typed as possibly undefined; normalise once rather than asserting.
+  const introText = intro === null ? null : (intro[1] ?? "");
+  if (introText === null) {
+    failures.push("GET / does not publish the portfolio intro (no <p data-intro>)");
+  } else {
+    const text = introText
+      .replace(/<[^>]+>/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+    say(`intro ${text.length} chars`);
+    if (text.length < 120) {
+      failures.push(
+        `the portfolio intro is ${text.length} characters; ticket GOC-12 asks for a paragraph`,
+      );
+    }
+    for (const word of ["built", "tested", "deployed", "verified"]) {
+      if (!new RegExp(`\\b${word}\\b`, "i").test(text)) {
+        failures.push(
+          `the portfolio intro does not say the demos are ${word}; a greeting is not specific enough`,
+        );
+      }
+    }
+  }
 
   // ---- every published link resolves ------------------------------------
   const targets = linkTargets(page, `${base}/`);
