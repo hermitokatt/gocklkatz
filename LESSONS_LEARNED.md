@@ -1022,10 +1022,27 @@ Then the direct test: a push to `main` at `14:31:55Z` created **no deployment at
 production one, not even a preview. Querying deployments since `14:15:00Z` returned exactly one row,
 the PR-branch preview.
 
-So the integration responds to **pull-request branches** and ignores **`main`**. Every sibling project
-built from the same `main` pushes, so this is per-project and per-branch, not repository-wide and not
-a quota. The remaining candidate is the project's own **Production Branch** setting, which no MCP tool
-reads or writes, so it needs the Vercel UI to confirm.
+So the integration responded to **pull-request branches** and ignored **`main`**. Every sibling
+project built from the same `main` pushes, so this was per-project, not repository-wide and not a
+quota.
+
+**Production Branch was checked and is `main`** — so that was not it either. The standing hypothesis
+is the project's **Ignored Build Step**, which this repository's own `docs/DEPLOY.md` says is set per
+project "so that a commit touching only `apps/simplified` does not rebuild the other four". If that
+value was written for a single-app repository, then a commit changing only `src/lib/demos.ts`,
+`README.md` and `docs/` is inside its skipped set — which matches the timeline exactly: production
+stopped after `11:13:15Z`, and every `main` commit since touched only those paths. No error appears
+anywhere, because skipping is the configured behaviour.
+
+**That hypothesis was never confirmed.** No MCP tool exposes the Ignored Build Step, and a **manual
+deploy from the Vercel UI succeeded immediately** and published all four anchors. A manual deploy
+bypasses the trigger, so it does not discriminate between this hypothesis and any other trigger-side
+cause — it localises the fault to the trigger, and leaves the mechanism unidentified.
+
+Left as an open unknown deliberately. The cost of chasing it further was already higher than the
+value: the site is live, the four-hour hunt produced one confirmed negative (the quota) and one
+confirmed exclusion (the production branch), and the next occurrence is cheap to recognise now that
+the signature — previews build, production silently does not — is written down.
 
 *Rule:* when "deployments stopped" is the symptom, split it by target before theorising. Preview and
 production are separate trigger paths, and here only one of them was broken — a single count of
