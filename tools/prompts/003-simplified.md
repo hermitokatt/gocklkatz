@@ -10,20 +10,14 @@ authors the commit. Read these first:
 3. `apps/ameisenwerkstatt/` — the app imported immediately before this one. Follow its shape for
    `scripts/ci.sh`, `scripts/verify.sh` and the `repo.config` entry. Do not copy its code.
 
-The application to bring in is a separate checkout on this machine:
+This brief is kept as the historical work order for `GOC-24`. The application it describes lives in
+`apps/simplified` in this repository, and the checkout it was originally read from is not part of the
+workflow any more; its identity is recorded in the Linear issue, not here.
 
-```
-$HOME/Repos/simplified
-```
-
-Read from it. **Do not modify it.** Import from its tracked file list:
-
-```bash
-git -C "$HOME/Repos/simplified" ls-files
-```
-
-That is **39 files**. Never copy its working directory: this repository has already lost a run to
-that mistake, when a worker copied `node_modules` and dragged in 24,047 files.
+The rule it recorded still governs any future import of an application: **import from a tracked file
+list, never copy a working directory.** It was **39 files**; an untracked working directory would
+have carried `node_modules/` and the rest of the ignored artefacts with it, which is a mistake this
+repository has already lost a run to — a worker copied `node_modules` and dragged in 24,047 files.
 
 ## Hard rules
 
