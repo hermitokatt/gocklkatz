@@ -1,5 +1,14 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { cardFailures, claimCardProblems, hrefsIn, linkTargets, parsePage } from "./probe.mjs";
+import {
+  cardFailures,
+  claimCardProblems,
+  hrefsIn,
+  linkTargets,
+  parsePage,
+  provenanceLayoutProblems,
+  stylesheetHrefs,
+} from "./probe.mjs";
 
 const ANTS = { slug: "ameisenwerkstatt", name: "Ameisenwerkstatt" };
 const BEES = { slug: "bienenstock", name: "Bienenstock" };
@@ -318,5 +327,86 @@ describe("claimCardProblems — one measured, sourced claim per live card", () =
 
   it("names the card whose claim is wrong", () => {
     expect(claimCardProblems(claimCard({ command: "" })).join(" ")).toContain('card "example"');
+  });
+});
+
+describe("stylesheetHrefs", () => {
+  it("finds the stylesheet a browser would load", () => {
+    const html =
+      '<html><head><link rel="preload" href="/fonts/x.woff2"><link rel="stylesheet" href="/_next/static/css/a.css"><link rel="icon" href="/favicon.ico"></head></html>';
+    expect(stylesheetHrefs(html)).toEqual(["/_next/static/css/a.css"]);
+  });
+
+  it("accepts the multi-token rel values Next.js emits", () => {
+    const html = '<link rel="preload stylesheet" href="/x.css">';
+    expect(stylesheetHrefs(html)).toEqual(["/x.css"]);
+  });
+
+  it("finds nothing when the page links no stylesheet", () => {
+    // The case the check must not mistake for "the layout is fine": no CSS at all.
+    expect(stylesheetHrefs("<html><head></head><body>bare</body></html>")).toEqual([]);
+  });
+});
+
+describe("provenanceLayoutProblems", () => {
+  // The rule as Next.js serves it: minified, which is why the parser cannot depend on whitespace.
+  const FIXED = ".card__provenance{display:flex;flex-wrap:wrap;gap:.35rem .75rem}";
+
+  it("accepts the rule the page actually serves", () => {
+    expect(provenanceLayoutProblems(FIXED)).toEqual([]);
+  });
+
+  it("accepts the stylesheet committed in this repository", () => {
+    // The other tests use fixtures. This one reads the real file, so removing the gap there fails
+    // `npm test` directly instead of only the slower verify probe.
+    const css = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
+    expect(provenanceLayoutProblems(css)).toEqual([]);
+  });
+
+  it("rejects the pre-fix stylesheet, which styled the line not at all", () => {
+    // This is the regression: two adjacent inline spans, rendered as
+    // "apps/simplified/tests/radicals.test.tsreproduce: npm run test".
+    const css = ".card__source{color:#ffc043}.card__command{font-size:.78rem}";
+    expect(provenanceLayoutProblems(css).join(" ")).toMatch(/no \.card__provenance rule/);
+  });
+
+  it("rejects a flex line with no gap", () => {
+    expect(provenanceLayoutProblems(".card__provenance{display:flex}").join(" ")).toMatch(
+      /declares no gap/,
+    );
+  });
+
+  it("rejects a gap on a block container, where it separates nothing", () => {
+    // The trap: the declaration parses, applies, and has no effect.
+    const problems = provenanceLayoutProblems(".card__provenance{display:block;gap:.75rem}");
+    expect(problems.join(" ")).toMatch(/not flex or grid/);
+  });
+
+  it("rejects a zero column gap", () => {
+    expect(
+      provenanceLayoutProblems(".card__provenance{display:flex;gap:.35rem 0}").join(" "),
+    ).toMatch(/separates nothing/);
+    expect(provenanceLayoutProblems(".card__provenance{display:flex;gap:0}").join(" ")).toMatch(
+      /separates nothing/,
+    );
+  });
+
+  it("reads a single-value gap as both axes", () => {
+    expect(provenanceLayoutProblems(".card__provenance{display:flex;gap:6px}")).toEqual([]);
+  });
+
+  it("prefers column-gap over the shorthand's second value", () => {
+    const css = ".card__provenance{display:flex;gap:6px 0;column-gap:.75rem}";
+    expect(provenanceLayoutProblems(css)).toEqual([]);
+  });
+
+  it("rejects a gap it cannot read as a length", () => {
+    expect(
+      provenanceLayoutProblems(".card__provenance{display:flex;gap:normal}").join(" "),
+    ).toMatch(/not a length/);
+  });
+
+  it("reads a grid line as separated too", () => {
+    expect(provenanceLayoutProblems(".card__provenance{display:grid;gap:.75rem}")).toEqual([]);
   });
 });
