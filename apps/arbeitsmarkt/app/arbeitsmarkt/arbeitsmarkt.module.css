@@ -112,6 +112,131 @@
   color: #c5d4dc;
 }
 
+.stageList {
+  list-style: none;
+  margin: 0 0 1rem;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 0.75rem;
+}
+
+.stageItem {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.85rem 1rem;
+  border-top: 1px solid rgba(62, 207, 190, 0.28);
+  background: rgba(8, 18, 24, 0.5);
+}
+
+.stageLabel {
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #3ecfbe;
+}
+
+.stageCount {
+  font-family: "Futura", "Trebuchet MS", "Century Gothic", sans-serif;
+  font-size: 1.8rem;
+  color: #f2f7f9;
+  line-height: 1;
+}
+
+.demoNote {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #80919b;
+  line-height: 1.45;
+  max-width: 40rem;
+}
+
+.demoNote code {
+  font-family: "SF Mono", "Menlo", "Consolas", monospace;
+  font-size: 0.86em;
+  color: #c5d4dc;
+}
+
+.digestList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 1rem;
+}
+
+.digestItem {
+  padding: 1rem 1.1rem;
+  border-top: 1px solid rgba(62, 207, 190, 0.22);
+  background: rgba(8, 18, 24, 0.45);
+}
+
+.rankBadge {
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #0f1c24;
+  background: #7ae8da;
+  padding: 0.18rem 0.45rem;
+  font-weight: 700;
+}
+
+.scoreTotal {
+  margin-left: auto;
+  font-family: "SF Mono", "Menlo", "Consolas", monospace;
+  font-size: 0.82rem;
+  color: #7ae8da;
+}
+
+.reasonBlock {
+  margin-top: 0.75rem;
+  padding-top: 0.65rem;
+  border-top: 1px solid rgba(62, 207, 190, 0.14);
+}
+
+.reasonLead {
+  margin: 0 0 0.45rem;
+  font-size: 0.9rem;
+  color: #c5d4dc;
+}
+
+.componentList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.componentList li {
+  display: grid;
+  gap: 0.05rem;
+  font-size: 0.86rem;
+  color: #95a6b0;
+}
+
+.componentList strong {
+  color: #e8eef2;
+  font-weight: 600;
+}
+
+.rejectBadge {
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #f2f7f9;
+  background: #5a3a3a;
+  padding: 0.18rem 0.45rem;
+  font-weight: 700;
+}
+
+.rejectReason {
+  margin: 0.45rem 0 0;
+  font-size: 0.9rem;
+  color: #d4b8b8;
+  line-height: 1.4;
+}
+
 .list {
   list-style: none;
   margin: 0;

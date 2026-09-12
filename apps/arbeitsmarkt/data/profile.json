@@ -1,0 +1,30 @@
+{
+  "id": "syn-profile-demo-01",
+  "synthetic": true,
+  "label": "Demonstration candidate profile",
+  "statement": "This candidate profile is synthetic demonstration data. It does not describe a real person, a real employer preference, or a hiring intent.",
+  "preferredRoles": [
+    "Platform engineer",
+    "Reliability engineer",
+    "Infrastructure engineer",
+    "Data pipeline engineer"
+  ],
+  "preferredFocus": ["ranking stages", "source health", "retention windows", "digest assembly"],
+  "preferredDistricts": ["Ironmere", "Bayloop", "Northgrid"],
+  "eligibility": {
+    "postedOnOrAfter": "2024-02-01",
+    "excludedFocus": ["alarm routing"],
+    "excludedRoles": ["Frontend systems engineer"]
+  },
+  "scoring": {
+    "weights": {
+      "role_match": 0.4,
+      "focus_match": 0.35,
+      "location_match": 0.15,
+      "recency": 0.1
+    },
+    "recencyAnchor": "2024-06-30",
+    "recencyHalfLifeDays": 60
+  },
+  "digestSize": 12
+}

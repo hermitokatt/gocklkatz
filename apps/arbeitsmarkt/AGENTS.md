@@ -11,11 +11,12 @@ gates. It does not import from the landing page or any other app.
 
 ## Surface
 
-| Route           | Method | Notes                                                   |
-| --------------- | ------ | ------------------------------------------------------- |
-| `/`             | GET    | App card                                                |
-| `/arbeitsmarkt` | GET    | Exhibit; states that data is synthetic; sample + legend |
-| `/api/health`   | GET    | `{ "ok": true, "service": "arbeitsmarkt" }`             |
+| Route                  | Method | Notes                                                   |
+| ---------------------- | ------ | ------------------------------------------------------- |
+| `/`                    | GET    | App card                                                |
+| `/arbeitsmarkt`        | GET    | Exhibit; states that data is synthetic; sample + legend |
+| `/arbeitsmarkt/digest` | GET    | Ranked digest; filter rejections; pipeline stage counts |
+| `/api/health`          | GET    | `{ "ok": true, "service": "arbeitsmarkt" }`             |
 
 ## Rules that are easy to break here
 
@@ -25,6 +26,8 @@ gates. It does not import from the landing page or any other app.
   no `Date.now`, no `new Date()` with no argument, no `performance.now`, no `process.env`. Posting
   dates come from a fixed window recorded in the dataset. `new Date(ms)` from a fixed timestamp is
   fine — it is the no-argument form that reads the clock.
+- **Pipeline is pure.** Every module under `lib/pipeline/` reads no clock and no environment. Ranking
+  is deterministic given the committed dataset and `data/profile.json`.
 - **Synthetic flags are structural.** Dataset `meta.synthetic` and every record's `synthetic:
 true` must remain meaningful — the synthetic-only filter test must keep returning every record.
 - **Committed output matches the generator.** Editing `data/listings.json` by hand without
