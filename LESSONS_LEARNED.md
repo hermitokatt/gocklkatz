@@ -302,6 +302,29 @@ watching the filesystem rather than the process.
 *Rule:* "the process is alive" is not "the process is working". For a long autonomous run, watch file
 modification time and CPU, not liveness.
 
+### The gate validates a commit, not a working tree — and says nothing about which
+
+`tools/gate.sh` computes its report path from `git rev-parse HEAD^{tree}`. On a dirty tree that is
+the **previous commit's** tree, and the run reports `GATE: PASS` for content it never looked at.
+
+Observed while reviewing GOC-20: after formatting the app, adding `format:check` to `ci.sh` and
+adding a measurement script, a gate run reported
+
+```
+GATE: PASS (tree ac043e67..., 4 app block(s))
+```
+
+and `ac043e67` was the tree of the **pre-review** commit. The staged content was `7171f089`. Both
+hashes are printed in their own runs, so the mismatch is visible — but only to a reader who compares
+them, which is exactly the reader the pass line discourages.
+
+Whoever runs it is not misled for long: `HEAD` moves on commit and the next run keys on the new
+tree, and `.githooks/pre-push` refuses a push with no report for the tree being pushed. So this is a
+correctness-of-report problem rather than a hole.
+
+*Rule:* commit first, then gate. If you gate a dirty tree, read the `tree:` line and confirm it is
+the tree you mean to ship. A pass is a statement about one tree, and the gate names which.
+
 ---
 
 ## Journal template
