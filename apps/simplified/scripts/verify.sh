@@ -13,7 +13,18 @@
 #                                an error page must not pass, so the assertion is on seed content,
 #                                not on status.
 #   /learn/radicals/practice     200
-#   /api/health                  200, JSON, `"ok": true`
+#   /api/health                  200, JSON, `"ok": true`, and naming this app. The service field
+#                                is checked too: `ok` alone would let a sibling app that answers the
+#                                same shape pass as this one.
+#
+# Neither the content assertion nor the health assertion may be relaxed to a status check. Both
+# were seen to fail before they were trusted: dropping one radical from the seed left
+# `/learn/radicals` answering 200 while the check reported
+#
+#   FAIL  GET /learn/radicals did not answer 200 with rendered component content (got 200)
+#
+# which a status-only check would have passed. Remove an assertion and add nothing that fails in
+# its place, and this script starts reporting PASS on a page that renders nothing.
 #
 # Usage:  bash scripts/verify.sh
 # Env:    VERIFY_PORT  override the port (default 43125; 43123 is Ameisenwerkstatt, 43124 is the
@@ -219,15 +230,20 @@ else
     bad "GET /learn/radicals/practice did not answer 200 (got $code)"
 fi
 
-# /api/health — parsed as JSON; status alone is not enough
+# /api/health — parsed as JSON; status alone is not enough, and the service name is asserted so a
+# sibling app answering the same shape cannot stand in for this one.
 body="$(curl -sS -m 10 -w '\n%{http_code}' "$BASE/api/health" 2>/dev/null)"
 code="$(printf '%s' "$body" | tail -1)"
 json="$(printf '%s' "$body" | sed '$d')"
 say "route GET /api/health             $code $(printf '%s' "$json" | head -c 60)"
-if [ "$code" = "200" ] && printf '%s' "$json" | python3 -c 'import json,sys; d=json.load(sys.stdin); raise SystemExit(0 if d.get("ok") is True else 1)'; then
-    ok "GET /api/health is 200 and JSON with ok true"
+if [ "$code" = "200" ] && printf '%s' "$json" | python3 -c '
+import json, sys
+d = json.load(sys.stdin)
+raise SystemExit(0 if d.get("ok") is True and d.get("service") == "simplified" else 1)
+'; then
+    ok "GET /api/health is 200, JSON, ok true, and names simplified"
 else
-    bad "GET /api/health was not HTTP 200 JSON with ok true (got $code): $json"
+    bad "GET /api/health was not HTTP 200 JSON with ok true and service simplified (got $code): $json"
 fi
 
 # ---------------------------------------------------------------------------
