@@ -294,6 +294,9 @@ Then publish it with the mirror:
 
 ```bash
 git tag -a v1.0.0 <commit> -m "..."      # annotate: a lightweight tag carries no message or date
+git push origin refs/tags/v1.0.0         # Origin is the code source of truth, so the tag goes
+                                         # there first — a release that exists only on the mirror
+                                         # would leave a clone of Origin with no marker at all
 bash tools/mirror-to-github.sh --push    # publishes the branch and any unpublished release tag
 ```
 
