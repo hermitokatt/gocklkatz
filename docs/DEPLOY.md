@@ -280,7 +280,32 @@ bash tools/mirror-to-github.sh --push   # publish
 The script refuses to publish from a dirty tree, so what is published is always a state that has
 passed the local gate. It pushes the `main` branch explicitly rather than using `--mirror`,
 because `--mirror` would also publish Origin's internal pull-request refs, which are not part of
-the public history.
+the public history. Release tags go the same way — one ref at a time, matched by `MIRROR_TAG_GLOB`
+(default `v*`), never `--tags`, which would publish every local tag including anything experimental.
+
+## Releases
+
+A release is an **annotated tag** on the commit that was declared, named `v<major>.<minor>.<patch>`.
+It is the one marker that cannot drift from what it points at: a `CHANGELOG` can be edited and a
+README line can go stale, but a tag names a commit and no later commit can change it.
+
+Cut a tag deliberately, not per change — the same kind of act as a deployment (`AGENTS.md` §12).
+Then publish it with the mirror:
+
+```bash
+git tag -a v1.0.0 <commit> -m "..."      # annotate: a lightweight tag carries no message or date
+git push origin refs/tags/v1.0.0         # Origin is the code source of truth, so the tag goes
+                                         # there first — a release that exists only on the mirror
+                                         # would leave a clone of Origin with no marker at all
+bash tools/mirror-to-github.sh --push    # publishes the branch and any unpublished release tag
+```
+
+**A published tag is a fixed point.** The mirror never uses `--force` on one; re-cutting a release
+means a new tag, not an edited one, because a reader may already have fetched the old one.
+
+| Release | Commit | Declared | Record |
+| --- | --- | --- | --- |
+| `v1.0.0` | `9593c9765f620ce5a9fcaeb3da1c3a038786ce10` | 2026-09-12 | `GOC-51` |
 
 ## Why one-way, and why a script rather than a workflow
 
@@ -298,8 +323,9 @@ into itself. Running the publication from the trusted copy removes that problem 
 git ls-remote https://github.com/hermitokatt/gocklkatz.git
 ```
 
-Expect a single `refs/heads/main`, matching the local `main`. No `refs/pull/*` should appear: if
-one does, something published more than the branch.
+Expect `refs/heads/main`, matching the local `main`, plus one `refs/tags/<release>` per published
+release — and nothing else. No `refs/pull/*`: if one appears, something published more than the
+branch.
 
 ---
 

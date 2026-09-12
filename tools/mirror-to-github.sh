@@ -14,9 +14,13 @@
 #   bash tools/mirror-to-github.sh                 # dry run: show what would change
 #   bash tools/mirror-to-github.sh --push          # publish
 #
+# Publishes the branch and its release tags, and nothing else. See the notes on the push below for
+# why both are pushed ref by ref rather than with --mirror or --tags.
+#
 # Configuration (environment):
-#   MIRROR_REMOTE   target URL (default: the public GitHub mirror)
-#   MIRROR_BRANCH   branch to publish (default: main)
+#   MIRROR_REMOTE     target URL (default: the public GitHub mirror)
+#   MIRROR_BRANCH     branch to publish (default: main)
+#   MIRROR_TAG_GLOB   release tags to publish (default: v*)
 
 set -euo pipefail
 
@@ -46,25 +50,57 @@ fi
 LOCAL_SHA="$(git rev-parse HEAD)"
 REMOTE_SHA="$(git ls-remote "$MIRROR_REMOTE" "refs/heads/$MIRROR_BRANCH" | cut -f1)"
 
+# Release tags travel with the branch, and MIRROR_TAG_GLOB decides which ones. Not `--tags`: that
+# would publish every local tag, including anything experimental, and the public copy is meant to
+# show the branch and its releases and nothing else.
+MIRROR_TAG_GLOB="${MIRROR_TAG_GLOB:-v*}"
+REMOTE_TAGS="$(git ls-remote --tags "$MIRROR_REMOTE" 2>/dev/null || true)"
+
+TAGS_TO_PUSH=""
+for tag in $(git tag -l "$MIRROR_TAG_GLOB"); do
+    local_tag_sha="$(git rev-parse "refs/tags/$tag")"
+    remote_tag_sha="$(printf '%s\n' "$REMOTE_TAGS" | awk -v ref="refs/tags/$tag" '$2 == ref { print $1 }')"
+    if [ "$local_tag_sha" != "$remote_tag_sha" ]; then
+        TAGS_TO_PUSH="$TAGS_TO_PUSH $tag"
+    fi
+done
+
 echo "mirror: source  Origin $LOCAL_SHA"
 echo "mirror: target  $MIRROR_REMOTE ($MIRROR_BRANCH)"
 echo "mirror: target currently ${REMOTE_SHA:-<empty>}"
+if [ -n "$TAGS_TO_PUSH" ]; then
+    echo "mirror: release tags to publish:$TAGS_TO_PUSH"
+else
+    echo "mirror: release tags: up to date"
+fi
 
-if [ "$LOCAL_SHA" = "$REMOTE_SHA" ]; then
+if [ "$LOCAL_SHA" = "$REMOTE_SHA" ] && [ -z "$TAGS_TO_PUSH" ]; then
     echo "mirror: already up to date; nothing to do."
     exit 0
 fi
 
 if [ "$DO_PUSH" -ne 1 ]; then
     echo
-    echo "mirror: dry run. Would publish $LOCAL_SHA -> $MIRROR_REMOTE ($MIRROR_BRANCH)."
+    echo "mirror: dry run. Would publish $LOCAL_SHA -> $MIRROR_REMOTE ($MIRROR_BRANCH)"
+    if [ -n "$TAGS_TO_PUSH" ]; then
+        echo "mirror:            and release tags:$TAGS_TO_PUSH"
+    fi
     echo "mirror: re-run with --push to publish."
     exit 0
 fi
 
 # Push the branch explicitly rather than --mirror: --mirror would also publish Origin's internal
 # pull-request refs, which are not part of the public history.
-git push "$MIRROR_REMOTE" "$MIRROR_BRANCH:$MIRROR_BRANCH"
+if [ "$LOCAL_SHA" != "$REMOTE_SHA" ]; then
+    git push "$MIRROR_REMOTE" "$MIRROR_BRANCH:$MIRROR_BRANCH"
+fi
+
+# Tags go one ref at a time for the same reason, and never with --force: a published release tag is
+# a fixed point, and moving or deleting one would rewrite what a reader may already have fetched.
+# Re-cutting a release means a new tag, not an edited one.
+for tag in $TAGS_TO_PUSH; do
+    git push "$MIRROR_REMOTE" "refs/tags/$tag:refs/tags/$tag"
+done
 
 echo
 echo "mirror: published. Verify the public copy:"

@@ -200,6 +200,8 @@ depending on settings this repository does not control. That is not the loop's b
 * Do not report a missing deployment as a failure of the merge — it is not one.
 
 A deployment is a **separate, explicit step**: a human does it, or a human asks for it by name.
+**Cutting a release tag is the same kind of act** — deliberate, at a declared commit, never part of
+the loop and never per change. `docs/DEPLOY.md` carries the convention and the releases so far.
 
 ### Why, measured
 
