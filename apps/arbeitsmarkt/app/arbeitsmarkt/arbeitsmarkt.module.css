@@ -1,0 +1,254 @@
+.page {
+  position: relative;
+  isolation: isolate;
+  min-height: 100vh;
+  padding: clamp(1.5rem, 4vw, 3rem) clamp(1.25rem, 4vw, 3rem) 3.5rem;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.atmosphere {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(900px 520px at 0% 0%, #163a42 0%, transparent 55%),
+    radial-gradient(800px 480px at 100% 10%, #1e3350 0%, transparent 50%),
+    linear-gradient(180deg, #0f1c24 0%, #12262f 45%, #0c1820 100%);
+}
+
+.hero {
+  max-width: 42rem;
+  margin-bottom: 2rem;
+  animation: rise 0.7s ease-out both;
+}
+
+.kicker {
+  margin: 0 0 0.5rem;
+  font-family: "Futura", "Trebuchet MS", "Century Gothic", sans-serif;
+  font-size: 0.78rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #3ecfbe;
+}
+
+.brand {
+  margin: 0;
+  font-family: "Futura", "Trebuchet MS", "Century Gothic", sans-serif;
+  font-size: clamp(2.6rem, 8vw, 4rem);
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+  color: #f2f7f9;
+}
+
+.lead {
+  margin: 0.9rem 0 0;
+  font-size: 1.08rem;
+  line-height: 1.5;
+  color: #b7c5cd;
+  max-width: 36rem;
+}
+
+.notice {
+  max-width: 48rem;
+  margin-bottom: 2.25rem;
+  padding: 1.15rem 1.25rem;
+  border-left: 3px solid #3ecfbe;
+  background: rgba(62, 207, 190, 0.08);
+  animation: rise 0.7s ease-out 0.12s both;
+}
+
+.noticeTitle {
+  margin: 0;
+  font-family: "Futura", "Trebuchet MS", "Century Gothic", sans-serif;
+  font-size: 1.05rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #7ae8da;
+}
+
+.noticeBody {
+  margin: 0.65rem 0 0;
+  font-size: 1.02rem;
+  line-height: 1.5;
+  color: #e8eef2;
+}
+
+.noticeMeta {
+  margin: 0.75rem 0 0;
+  font-size: 0.88rem;
+  color: #80919b;
+}
+
+.noticeMeta code {
+  font-family: "SF Mono", "Menlo", "Consolas", monospace;
+  font-size: 0.84em;
+  color: #c5d4dc;
+}
+
+.panel {
+  max-width: 56rem;
+  margin-bottom: 2.5rem;
+  animation: rise 0.7s ease-out 0.22s both;
+}
+
+.panelHead h2 {
+  margin: 0;
+  font-family: "Futura", "Trebuchet MS", "Century Gothic", sans-serif;
+  font-size: 1.35rem;
+  color: #f2f7f9;
+}
+
+.panelHead p {
+  margin: 0.45rem 0 1.1rem;
+  color: #95a6b0;
+  max-width: 40rem;
+  line-height: 1.45;
+}
+
+.panelHead code {
+  font-family: "SF Mono", "Menlo", "Consolas", monospace;
+  font-size: 0.86em;
+  color: #c5d4dc;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.85rem;
+}
+
+.item {
+  padding: 1rem 1.1rem;
+  border-top: 1px solid rgba(62, 207, 190, 0.22);
+  background: rgba(8, 18, 24, 0.45);
+}
+
+.itemTop {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.35rem;
+}
+
+.badge {
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #0f1c24;
+  background: #3ecfbe;
+  padding: 0.18rem 0.45rem;
+  font-weight: 700;
+}
+
+.id {
+  font-family: "SF Mono", "Menlo", "Consolas", monospace;
+  font-size: 0.8rem;
+  color: #80919b;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.05rem;
+  color: #f2f7f9;
+}
+
+.company {
+  margin: 0.3rem 0 0;
+  font-family: "SF Mono", "Menlo", "Consolas", monospace;
+  font-size: 0.92rem;
+  color: #7ae8da;
+}
+
+.meta {
+  margin: 0.25rem 0 0;
+  font-size: 0.88rem;
+  color: #95a6b0;
+}
+
+.legendGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: 1.25rem 1.5rem;
+}
+
+.legendLabel {
+  margin: 0 0 0.5rem;
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #3ecfbe;
+}
+
+.legendList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.legendList li {
+  display: grid;
+  gap: 0.1rem;
+  font-size: 0.88rem;
+  color: #95a6b0;
+}
+
+.legendList strong {
+  color: #e8eef2;
+  font-family: "SF Mono", "Menlo", "Consolas", monospace;
+  font-weight: 600;
+}
+
+.roadmap {
+  max-width: 40rem;
+  margin-bottom: 2rem;
+  animation: rise 0.7s ease-out 0.32s both;
+}
+
+.roadmap h2 {
+  margin: 0 0 0.55rem;
+  font-family: "Futura", "Trebuchet MS", "Century Gothic", sans-serif;
+  font-size: 1.15rem;
+  color: #f2f7f9;
+}
+
+.roadmap ul {
+  margin: 0;
+  padding-left: 1.15rem;
+  color: #95a6b0;
+  line-height: 1.55;
+}
+
+.back {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.back a {
+  text-decoration: none;
+  border-bottom: 1px solid rgba(62, 207, 190, 0.45);
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(0.6rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero,
+  .notice,
+  .panel,
+  .roadmap {
+    animation: none;
+  }
+}
