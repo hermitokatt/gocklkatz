@@ -648,11 +648,9 @@ export function ColonyStage() {
       <header className={styles.mast}>
         <div>
           <p className={`${styles.kicker} ${hud.chaosActive ? styles.kickerHot : ""}`}>
-            {hud.chaosActive ? "Demo #1 · chaos aktiv · no LLM" : "Demo #1 · chaos inject · no LLM"}
+            {hud.chaosActive ? "chaos aktiv · no LLM" : "chaos inject · no LLM"}
           </p>
-          <p className={styles.story}>
-            Software Factory · full-stack in ~2 days · DualAB-A façade · Origin→Vercel
-          </p>
+          <p className={styles.story}>Werkstatt · one shared colony · allowlisted tool façade</p>
           <h1 className={styles.title}>Ameisenfabrik</h1>
           <p className={styles.sub}>{subText}</p>
         </div>

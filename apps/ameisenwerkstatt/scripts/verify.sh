@@ -234,6 +234,23 @@ else
     bad "GET /ameisen did not answer 200 with rendered Werkstatt content (got $code)"
 fi
 
+# The pages must not reintroduce the vocabulary of the project this app was moved out of.
+#
+# This is a guard rather than a tidy-up: the phrases were in the browser <title> template, so every
+# page of the deployed site advertised them, and one of them was a deadline that had already passed.
+# A build passes over copy that names the wrong thing, so the assertion is on the served HTML. GOC-49.
+step "the pages describe this application, not the process that produced it"
+FOREIGN='Software Factory|DualAB|Bienenfabrik|due Wed|full-stack in ~2 days|Demo #'
+for route in / /ameisen; do
+    body="$(curl -sS -m 10 "$BASE$route" 2>/dev/null)"
+    if printf '%s' "$body" | grep -qE "$FOREIGN"; then
+        found="$(printf '%s' "$body" | grep -oE "$FOREIGN" | sort -u | paste -sd', ' -)"
+        bad "GET $route still carries source-project vocabulary: $found"
+    else
+        ok "GET $route carries none of the source project's vocabulary"
+    fi
+done
+
 # /api/health — asserted on the parsed body, not the status alone
 body="$(curl -sS -m 10 "$BASE/api/health" 2>/dev/null)"
 say "route GET /api/health             $(printf '%s' "$body" | head -c 60)"
