@@ -318,9 +318,41 @@ answer `302` to `vercel.com/sso-api`. That is the intended behaviour, and it is 
 that a `302` on such a URL is not mistaken for a broken deployment. `gocklkatz-gocklkatz.vercel.app`
 in the list above is a custom domain and is therefore excluded, which is why it answers `200`.
 
-The check that keeps this honest is `GOC-46`: fetch every **published** URL anonymously and treat a
-`302` to an authentication host as failure rather than following it. Published means the custom
-custom domains in the table above, not the deployment URLs.
+The check that keeps this honest is [`tools/verify-live.sh`](../tools/verify-live.sh) (GOC-46). It
+fetches every **published** URL anonymously and treats a `302` to an authentication host as failure
+rather than following it. Published means the custom domains in the table above, not the deployment
+URLs.
+
+```bash
+bash tools/verify-live.sh
+```
+
+```
+  ok    landing page — 200, contains 'Gocklkatz Inc' (12843 bytes): https://gocklkatz.vercel.app/
+  ok    Ameisenwerkstatt — 200, contains 'Werkstatt' (8243 bytes): …
+  ok    Simplified — 200, contains 'Simplified' (9107 bytes): …
+  ok    Bienenstock — 200, contains 'Bienenstock' (9692 bytes): …
+  ok    Arbeitsmarkt — 200, contains 'Synthetic' (30340 bytes): …
+verify-live: PASS (5 URL(s) reachable anonymously, each serving its own content)
+```
+
+It is not a status check. Two things it does that a dashboard cannot: it never follows a redirect, so
+a gated URL cannot land on a login page and answer `200`; and it asserts a string each application
+renders, so an error page cannot pass either. The negative fixture is one of the project aliases,
+which `ssoProtection` deliberately gates:
+
+```bash
+bash tools/verify-live.sh --expect-fail \
+  --url https://gocklkatz-gocklkatz.vercel.app/ "Gocklkatz Inc"
+```
+
+```
+  FAIL  ad-hoc URL — 302 to an authentication host, so a visitor gets a login: …
+verify-live: 1 of 1 failed, as expected — the check tells gated from published
+```
+
+`--expect-fail` inverts the exit code, so this passes only when something failed. Without it the same
+run exits `1`, which is how the check fails a real outage.
 
 `live: false` on the project is a separate flag and does not mean the site is down — it reflects
 that no deployment is currently aliased as the project's live production in the way the API
