@@ -1,7 +1,9 @@
 # Bienenstock
 
 Outdoor hive scene: a woven skep in a meadow, a colony of bee agents foraging the flower
-patches, rendered with `three` and `OrbitControls`.
+patches, rendered with `three` and `OrbitControls`. A visitor can boost or empty a flower
+patch and watch foragers reallocate, or disturb the hive and watch the colony scatter and
+re-home.
 
 ## Surface
 
@@ -58,14 +60,13 @@ and by advertisements from returning foragers, and they tend to revisit a patch 
 filled their crop. Details, and the "this is a toy model" caveat, are in
 [`docs/FORAGING.md`](./docs/FORAGING.md).
 
+Nectar spikes and hive disturbance are functions on colony state. The page only triggers
+them. What each does, and the numbers a test actually measured, are in
+[`docs/INTERACTIONS.md`](./docs/INTERACTIONS.md).
+
 ## Camera
 
 Orbit rather than walk — see [`docs/CAMERA.md`](./docs/CAMERA.md).
-
-## Out of scope (this ticket)
-
-Nectar spikes and hive disturbance are later issues. This app ships the scene, the camera, and
-the foraging colony.
 
 ## Deploy
 

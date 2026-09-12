@@ -327,6 +327,44 @@ the tree you mean to ship. A pass is a statement about one tree, and the gate na
 
 ---
 
+## 2026-09-12 — Bienenstock interactions (GOC-21)
+
+Nectar spike and hive disturbance as functions on colony state, with labelled on-screen controls.
+
+### A position bump is not a determinism break if the stepper overwrites it
+
+To prove the new interaction-determinism test can fail, a module counter was added inside
+`disturbHive` and then `bee.x += disturbNonce * 1e-6` after `beginLeg`. The test stayed green:
+
+```
+interaction-determinism seed=37 bees=40 runA=10215:53de2984 hiveA=70.610000
+  runB=10215:53de2984 hiveB=70.610000
+```
+
+exit 0. `fly()` writes `bee.x` from `fromX`/`toX`/`progress` on the next `step`, and the test
+fingerprints state after ten more simulated seconds, so the bump was gone. `Math.random` was not
+used — a source scan would have caught that first, which is the recorded GOC-20 failure mode.
+
+Adding `colony.hive.nectar += disturbNonce` instead (a field `step` does not overwrite) failed
+the assertion on the fingerprints it prints:
+
+```
+runA=10215:491a4fa4 hiveA=71.610000 runB=10215:90d9e3e5 hiveB=72.610000
+AssertionError: expected '10215:491a4fa4' to be '10215:90d9e3e5'
+```
+
+exit 1. Reverted. The break has to survive until the snapshot the test actually compares.
+
+### Returning foragers re-advertise the old patch and can undo a nectar spike
+
+A boost that only redirected outbound and foraging bees left visit counts almost even
+(`deltaVisits0=46 deltaVisits1=38` on seed 19). Returning bees still held `patchId` of the
+unboosted patch; `unload` wrote that advertisement back and reset `lastPatchId` to it. Clearing
+`patchId` on those returning bees (nectar still lands in the hive) and keeping the new memory
+through unload moved the same script to `deltaVisits0=71 deltaVisits1=13`.
+
+---
+
 ## Journal template
 
 ```
@@ -355,4 +393,9 @@ The claims above are worth exactly as much as the evidence behind them, so where
 * **The 2026-09-12 foraging entry** quotes the vitest output from the deliberate uniform-choice
   run (`richVisits=270`, `poorVisits=223`, `richShare=0.861`, exit 1). The figures were not
   re-run after revert except to confirm the restored test is green.
+* **The 2026-09-12 interactions entry** quotes the vitest output from two deliberate breaks:
+  the position-bump run that stayed green (`runA` = `runB` = `10215:53de2984`, exit 0) and the
+  hive-nectar nonce run that failed (`hiveA=71.610000` vs `hiveB=72.610000`, exit 1). The
+  visit-shift figures `46/38` then `71/13` are from the nectar-spike test log on seed 19
+  before and after the unload-memory change, on the same machine, same command.
 * Anything added later should say how it was measured, or say that it was not.

@@ -36,3 +36,16 @@ export const FLOWER_PATCHES: readonly FlowerPatchSpec[] = [
 
 /** Seed for the scenery generator only (grass / flowers / trees). Not the colony seed. */
 export const SCENERY_SEED = 0xbee5;
+
+/**
+ * On-screen names for the six meadow patches. The visitor picks a patch by these labels;
+ * the simulation addresses them by `id`.
+ */
+export const PATCH_NAMES: Readonly<Record<number, string>> = {
+  0: "northeast patch",
+  1: "northwest patch",
+  2: "southeast patch",
+  3: "southwest patch",
+  4: "east patch",
+  5: "north patch",
+};
