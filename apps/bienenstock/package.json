@@ -10,6 +10,7 @@
     "build": "next build",
     "start": "next start --port 43126",
     "lint": "eslint .",
+    "format:check": "prettier --check .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"
   },

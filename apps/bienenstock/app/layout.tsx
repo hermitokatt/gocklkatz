@@ -6,7 +6,7 @@ export const metadata: Metadata = {
     default: "Bienenstock",
     template: "%s · Bienenstock",
   },
-  description: "Bienenstock — outdoor hive scene with an orbit camera.",
+  description: "Bienenstock — outdoor hive scene with a foraging bee colony and an orbit camera.",
 };
 
 export default function RootLayout({

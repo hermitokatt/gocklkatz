@@ -11,11 +11,11 @@ landing page or any other app.
 
 ## Surface
 
-| Route | Method | Notes |
-| --- | --- | --- |
-| `/` | GET | App card |
-| `/bienen` | GET | Outdoor hive scene; host carries `data-bienen-scene` in SSR HTML |
-| `/api/health` | GET | `{ "ok": true, "service": "bienenstock" }` |
+| Route         | Method | Notes                                                            |
+| ------------- | ------ | ---------------------------------------------------------------- |
+| `/`           | GET    | App card                                                         |
+| `/bienen`     | GET    | Outdoor hive scene; host carries `data-bienen-scene` in SSR HTML |
+| `/api/health` | GET    | `{ "ok": true, "service": "bienenstock" }`                       |
 
 ## Rules that are easy to break here
 
@@ -24,7 +24,11 @@ landing page or any other app.
   write CSS size creates a ResizeObserver feedback loop.
 - **Scene host in JSX.** `data-bienen-scene` must be present in server-rendered HTML. Do not create
   the host inside an effect.
-- **No simulation yet.** Bee agents and visitor interactions are later epic issues.
+- **Simulation is pure.** `lib/bienen/colony.ts` imports nothing from `three` and touches no DOM.
+  Time is `step(dt)`, not wall-clock. The renderer reads colony state; it does not write positions
+  back. `Math.random` is forbidden in the simulation — use `createRng`.
+- **One scenery stream, one colony stream.** The meadow RNG (`SCENERY_SEED`) and the colony seed
+  are separate instances. Do not insert draws into the scenery stream above existing ones.
 
 ## Gates
 

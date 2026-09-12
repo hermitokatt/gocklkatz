@@ -1,8 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  CANVAS_MIN_CSS_HEIGHT,
-  resolveCanvasDisplaySize,
-} from "@/lib/bienen/canvas-display";
+import { CANVAS_MIN_CSS_HEIGHT, resolveCanvasDisplaySize } from "@/lib/bienen/canvas-display";
 
 describe("resolveCanvasDisplaySize", () => {
   it("respects the minimum CSS height", () => {

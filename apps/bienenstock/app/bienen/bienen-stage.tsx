@@ -11,6 +11,7 @@ type SceneStatus = "loading" | "ready" | "unavailable" | "failed";
  */
 export function BienenStage() {
   const hostRef = useRef<HTMLDivElement>(null);
+  const readoutRef = useRef<HTMLParagraphElement>(null);
   const [status, setStatus] = useState<SceneStatus>("loading");
   const [detail, setDetail] = useState<string | null>(null);
 
@@ -30,7 +31,7 @@ export function BienenStage() {
         if (cancelled) {
           return;
         }
-        scene = createHiveScene(host);
+        scene = createHiveScene(host, readoutRef.current);
         observer = new ResizeObserver(() => {
           scene?.resize();
         });
@@ -64,11 +65,12 @@ export function BienenStage() {
     <div className={styles.stage}>
       <header className={styles.mast}>
         <div>
-          <p className={styles.kicker}>Demo · outdoor hive · orbit camera</p>
+          <p className={styles.kicker}>Demo · outdoor hive · foraging colony</p>
           <h1 className={styles.title}>Bienenstock</h1>
           <p className={styles.sub}>
-            A woven skep in a meadow — ground, grass, flower patches, trees, and sky. Drag to orbit;
-            scroll to zoom. Bee agents and visitor interactions land in later issues.
+            A woven skep in a meadow. Bees leave the hive, collect from flower patches, and return —
+            recruiting toward richer forage rather than wandering at random. Drag to orbit; scroll
+            to zoom.
           </p>
         </div>
       </header>
@@ -91,6 +93,9 @@ export function BienenStage() {
             {detail ?? "The hive scene is unavailable."}
           </p>
         ) : null}
+        <p ref={readoutRef} className={styles.readout} data-bienen-readout aria-live="polite">
+          Measuring frame rate…
+        </p>
       </div>
 
       <footer className={styles.foot}>
@@ -98,6 +103,7 @@ export function BienenStage() {
           <strong>Woven skep</strong> · recognisable hive silhouette with a visible entrance
         </span>
         <span>Orbit · pointer drag and wheel · polar angle clamped above the ground</span>
+        <span>Colony · instanced bees · simulated time, not wall-clock</span>
       </footer>
     </div>
   );
