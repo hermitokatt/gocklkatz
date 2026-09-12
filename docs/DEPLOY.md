@@ -6,7 +6,7 @@ Each app is a separate Vercel project pointing at its own root directory in this
 | --- | --- | --- |
 | `gocklkatz` | `.` | `gocklkatz.vercel.app` |
 | `gocklkatz-ameisenwerkstatt` | `apps/ameisenwerkstatt` | `gocklkatz-ameisenwerkstatt.vercel.app` |
-| `gocklkatz-bienenstock` | `apps/bienenstock` | — |
+| `gocklkatz-bienenstock` | `apps/bienenstock` | `gocklkatz-bienenstock.vercel.app` |
 | `gocklkatz-simplified` | `apps/simplified` | `gocklkatz-simplified.vercel.app` |
 | `gocklkatz-arbeitsmarkt` | `apps/arbeitsmarkt` | — |
 
@@ -311,7 +311,7 @@ domain, but nothing that attaches an existing address.
 | --- | --- | --- | --- |
 | `gocklkatz` | `.` | `gocklkatz.vercel.app` | attached |
 | `gocklkatz-ameisenwerkstatt` | `apps/ameisenwerkstatt` | `gocklkatz-ameisenwerkstatt.vercel.app` | attached |
-| `gocklkatz-bienenstock` | `apps/bienenstock` | `gocklkatz-bienenstock.vercel.app` | to attach |
+| `gocklkatz-bienenstock` | `apps/bienenstock` | `gocklkatz-bienenstock.vercel.app` | attached |
 | `gocklkatz-simplified` | `apps/simplified` | `gocklkatz-simplified.vercel.app` | attached |
 | `gocklkatz-arbeitsmarkt` | `apps/arbeitsmarkt` | `gocklkatz-arbeitsmarkt.vercel.app` | to attach |
 

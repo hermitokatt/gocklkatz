@@ -43,7 +43,7 @@ const DEMOS = [
     name: "Bienenstock",
     description: "Bee colony simulation — hive and foraging, rendered in 3D.",
     url: "https://gocklkatz-bienenstock.vercel.app",
-    status: "in-development",
+    status: "live",
   },
   {
     slug: "simplified",
