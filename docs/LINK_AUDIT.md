@@ -20,7 +20,7 @@ Every HTTP(S) URL in the tracked tree, discovered by `git ls-files` rather than 
 
 | URL | Class | Status | Checked | Appears in | Reason |
 | --- | --- | --- | --- | --- | --- |
-| `http://www.adobe.com/` | `external` | unverifiable: curl: (28) Operation timed out after 25005 milliseconds with 0 bytes received | 2026-09-12 | `THIRD_PARTY_NOTICES.md` | published http(s) address; fetched anonymously |
+| `http://www.adobe.com/` | `external` | unverifiable: curl: (28) Operation timed out after 25001 milliseconds with 0 bytes received | 2026-09-12 | `THIRD_PARTY_NOTICES.md`, `tools/audit-published-links.mjs` | published http(s) address; fetched anonymously |
 | `https://depot.dev/docs/ci/integrations/origin` | `external` | 200 | 2026-09-12 | `docs/DEPLOY.md` | published http(s) address; fetched anonymously |
 | `https://developers.google.com/fonts/terms` | `external` | 200 | 2026-09-12 | `docs/LEGAL.md` | published http(s) address; fetched anonymously |
 | `https://github.com/alyssabedard/chinese-hsk-and-frequency-lists/` | `external` | 200 | 2026-09-12 | `apps/simplified/docs/hanzi_research.md` | published http(s) address; fetched anonymously |
@@ -76,14 +76,14 @@ Every HTTP(S) URL in the tracked tree, discovered by `git ls-files` rather than 
 | `http://127.0.0.1:${port}/json/list` | `local` | not fetched | 2026-09-12 | `apps/bienenstock/tools/measure-fps.mjs` | contains a shell or template variable; reachable only after local expansion |
 | `http://127.0.0.1:43123` | `local` | not fetched | 2026-09-12 | `apps/ameisenwerkstatt/AGENTS.md`, `apps/ameisenwerkstatt/README.md` | loopback host; reachable only from a developer machine |
 | `http://127.0.0.1:43124` | `local` | not fetched | 2026-09-12 | `README.md` | loopback host; reachable only from a developer machine |
-| `http://127.0.0.1:43124/` | `local` | not fetched | 2026-09-12 | `scripts/probe.test.mjs` | loopback host; reachable only from a developer machine |
+| `http://127.0.0.1:43124/` | `local` | not fetched | 2026-09-12 | `scripts/probe.test.mjs`, `tests/published-audits.test.mjs` | loopback host; reachable only from a developer machine |
 | `http://127.0.0.1:43124/imprint` | `local` | not fetched | 2026-09-12 | `scripts/probe.test.mjs` | loopback host; reachable only from a developer machine |
 | `http://127.0.0.1:43125` | `local` | not fetched | 2026-09-12 | `apps/simplified/AGENTS.md`, `apps/simplified/docs/ROADMAP.md` | loopback host; reachable only from a developer machine |
 | `http://127.0.0.1:43126` | `local` | not fetched | 2026-09-12 | `apps/bienenstock/AGENTS.md`, `apps/bienenstock/README.md` | loopback host; reachable only from a developer machine |
 | `http://127.0.0.1:43126/bienen` | `local` | not fetched | 2026-09-12 | `apps/bienenstock/README.md` | loopback host; reachable only from a developer machine |
 | `http://127.0.0.1:43127` | `local` | not fetched | 2026-09-12 | `apps/arbeitsmarkt/AGENTS.md`, `apps/arbeitsmarkt/README.md` | loopback host; reachable only from a developer machine |
 | `http://localhost` | `local` | not fetched | 2026-09-12 | `apps/simplified/tests/radicals.test.ts` | loopback host; reachable only from a developer machine |
-| `http://localhost:3000` | `local` | not fetched | 2026-09-12 | `apps/simplified/README.md` | loopback host; reachable only from a developer machine |
+| `http://localhost:3000` | `local` | not fetched | 2026-09-12 | `apps/simplified/README.md`, `tools/audit-published-links.mjs` | loopback host; reachable only from a developer machine |
 | `http://localhost:3000/api/health` | `local` | not fetched | 2026-09-12 | `apps/simplified/README.md` | loopback host; reachable only from a developer machine |
 | `http://localhost:43123/` | `local` | not fetched | 2026-09-12 | `apps/ameisenwerkstatt/docs/DEMO.md` | loopback host; reachable only from a developer machine |
 | `http://localhost:43123/ameisen` | `local` | not fetched | 2026-09-12 | `apps/ameisenwerkstatt/docs/DEMO.md` | loopback host; reachable only from a developer machine |
@@ -92,13 +92,13 @@ Every HTTP(S) URL in the tracked tree, discovered by `git ls-files` rather than 
 | `http://localhost/api/ameisen/tools` | `local` | not fetched | 2026-09-12 | `apps/ameisenwerkstatt/tests/ameisen-tools.test.ts` | loopback host; reachable only from a developer machine |
 | `https://example.invalid/blob/main/${SOURCE}` | `local` | not fetched | 2026-09-12 | `scripts/probe.test.mjs` | contains a shell or template variable; reachable only after local expansion |
 | `http://example.invalid/demo` | `fixture` | not fetched | 2026-09-12 | `scripts/probe.test.mjs` | RFC 2606 .invalid host — deliberately unresolvable, so a negative test can fail on purpose |
-| `https://example.invalid` | `fixture` | not fetched | 2026-09-12 | `src/lib/demos.test.ts` | RFC 2606 .invalid host — deliberately unresolvable, so a negative test can fail on purpose |
+| `https://example.invalid` | `fixture` | not fetched | 2026-09-12 | `src/lib/demos.test.ts`, `tests/published-audits.test.mjs`, `tools/audit-published-links.mjs` | RFC 2606 .invalid host — deliberately unresolvable, so a negative test can fail on purpose |
 | `https://example.invalid/demo` | `fixture` | not fetched | 2026-09-12 | `scripts/probe.test.mjs` | RFC 2606 .invalid host — deliberately unresolvable, so a negative test can fail on purpose |
 | `https://example.invalid/nested` | `fixture` | not fetched | 2026-09-12 | `scripts/probe.test.mjs` | RFC 2606 .invalid host — deliberately unresolvable, so a negative test can fail on purpose |
-| `https://example.invalid/repo` | `fixture` | not fetched | 2026-09-12 | `scripts/probe.test.mjs` | RFC 2606 .invalid host — deliberately unresolvable, so a negative test can fail on purpose |
+| `https://example.invalid/repo` | `fixture` | not fetched | 2026-09-12 | `scripts/probe.test.mjs`, `tests/published-audits.test.mjs` | RFC 2606 .invalid host — deliberately unresolvable, so a negative test can fail on purpose |
 | `https://example.invalid/surprise` | `fixture` | not fetched | 2026-09-12 | `scripts/probe.test.mjs` | RFC 2606 .invalid host — deliberately unresolvable, so a negative test can fail on purpose |
 | `https://example.invalid/wrapped` | `fixture` | not fetched | 2026-09-12 | `scripts/probe.test.mjs` | RFC 2606 .invalid host — deliberately unresolvable, so a negative test can fail on purpose |
-| `https://example.invalid/x` | `fixture` | not fetched | 2026-09-12 | `scripts/probe.test.mjs` | RFC 2606 .invalid host — deliberately unresolvable, so a negative test can fail on purpose |
+| `https://example.invalid/x` | `fixture` | not fetched | 2026-09-12 | `scripts/probe.test.mjs`, `tests/published-audits.test.mjs` | RFC 2606 .invalid host — deliberately unresolvable, so a negative test can fail on purpose |
 | `https://no-such-host.invalid/` | `fixture` | not fetched | 2026-09-12 | `docs/DEPLOY.md`, `tools/verify-deployments.sh` | RFC 2606 .invalid host — deliberately unresolvable, so a negative test can fail on purpose |
 | `https://x.invalid/1` | `fixture` | not fetched | 2026-09-12 | `scripts/probe.test.mjs` | RFC 2606 .invalid host — deliberately unresolvable, so a negative test can fail on purpose |
 | `https://x.invalid/2` | `fixture` | not fetched | 2026-09-12 | `scripts/probe.test.mjs` | RFC 2606 .invalid host — deliberately unresolvable, so a negative test can fail on purpose |
@@ -111,11 +111,23 @@ Every HTTP(S) URL in the tracked tree, discovered by `git ls-files` rather than 
 
 An anonymous scripted client is not a reader. Some hosts answer it with `401`/`403` whatever headers it sends, and some are unreachable from the network this ran on. Those rows are recorded here rather than deleted, because removing a citation to make a check green is the one outcome worse than a failing link. **Each is a judgement for a human, not a cleared link.**
 
-- http://www.adobe.com/ — curl: (28) Operation timed out after 25005 milliseconds with 0 bytes received
+- http://www.adobe.com/ — curl: (28) Operation timed out after 25001 milliseconds with 0 bytes received
 - https://hanzicraft.com/lists/frequency — HTTP 403 to an anonymous client that sends browser Accept headers
 - https://languagelearning.stackexchange.com/questions/6007/what-are-the-disadvantages-of-learning-thousands-of-chinese-characters-one-by — HTTP 403 to an anonymous client that sends browser Accept headers
 
 The rule that separates these from a defect: a server that **answers** with any other 4xx or any 5xx is a failure, and so is a hostname that does not resolve. Only a refusal (401/403) or no response from a host that **does** resolve is recorded as unverifiable with this command.
+
+### Accepted deviations
+
+This block is preserved across regeneration, because it is a decision rather than an observation. GOC-40's A-1 asks for a success status or removal; a row above that is neither is only settled by a human saying so.
+
+<!-- BEGIN PRESERVE:accepted -->
+**Accepted by the repository owner on 2026-09-12.** All three rows above stand as they are. No citation was removed.
+
+The reasoning, recorded so the decision does not have to be reconstructed: each row is a citation whose removal would destroy provenance in a document that exists to provide it, and the `adobe.com` URL cannot be removed at all without corrupting the verbatim OFL copyright line it is quoted inside. Two of the three are demonstrated to be live for a real reader — the StackExchange question through that site's own API (exists, not closed, canonical link identical to the published one) and `hanzicraft.com`, which returned `200` to a browser-like request on one measurement and `403` on another, which is rate limiting rather than a dead page.
+
+GOC-40's A-1 therefore stands unmet in the letter and satisfied in substance, by explicit decision rather than by quietly weakening the check. The check itself is unchanged: a server that answers with any other 4xx or any 5xx still fails, a hostname that does not resolve still fails, and a recorded `FAIL:` row is never accepted.
+<!-- END PRESERVE:accepted -->
 
 ## Relative links
 
@@ -180,7 +192,7 @@ An earlier run of this command, from a sandbox that could not reach `*.vercel.ap
 A later reader re-runs `node tools/audit-published-links.mjs --check`. That command re-discovers every URL from `git ls-files` and fails if this document is missing any of them, contains a URL the tree no longer has, or records an `external` URL as anything other than ok or a recorded `unverifiable` observation. It does not compare the date column, and it does not fetch.
 
 <!-- BEGIN LINK_AUDIT_ROWS
-row	http://www.adobe.com/	external	unverifiable: curl: (28) Operation timed out after 25005 milliseconds with 0 bytes received
+row	http://www.adobe.com/	external	unverifiable: curl: (28) Operation timed out after 25001 milliseconds with 0 bytes received
 row	https://depot.dev/docs/ci/integrations/origin	external	200
 row	https://developers.google.com/fonts/terms	external	200
 row	https://github.com/alyssabedard/chinese-hsk-and-frequency-lists/	external	200

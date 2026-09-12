@@ -668,6 +668,14 @@ function renderDocument(rows, date, command, preserved, unverifiable = [], relat
     "The rule that separates these from a defect: a server that **answers** with any other 4xx or any 5xx is a failure, and so is a hostname that does not resolve. Only a refusal (401/403) or no response from a host that **does** resolve is recorded as unverifiable with this command.",
   );
   lines.push("");
+  lines.push("### Accepted deviations");
+  lines.push("");
+  lines.push(
+    "This block is preserved across regeneration, because it is a decision rather than an observation. GOC-40's A-1 asks for a success status or removal; a row above that is neither is only settled by a human saying so.",
+  );
+  lines.push("");
+  lines.push(wrapPreserve("accepted", preserved.accepted ?? ""));
+  lines.push("");
   lines.push("## Relative links");
   lines.push("");
   lines.push(
@@ -913,12 +921,13 @@ async function main(argv) {
   });
 
   if (write) {
-    let preserved = { corrections: "", a3: "" };
+    let preserved = { corrections: "", a3: "", accepted: "" };
     if (existsSync(AUDIT_PATH)) {
       const previous = readFileSync(AUDIT_PATH, "utf8");
       preserved = {
         corrections: readPreserve(previous, "corrections"),
         a3: readPreserve(previous, "a3"),
+        accepted: readPreserve(previous, "accepted"),
       };
     }
     if (preserved.corrections === "") {
@@ -926,6 +935,10 @@ async function main(argv) {
         failures.length === 0
           ? "None. Every `external` URL returned a success status on this run."
           : failures.map((line) => `- ${line}`).join("\n");
+    }
+    if (preserved.accepted === undefined || preserved.accepted === "") {
+      preserved.accepted =
+        "_Not yet decided. Each row above is a judgement for a human: accept it, or remove the citation._";
     }
     if (preserved.a3 === "") {
       preserved.a3 =
