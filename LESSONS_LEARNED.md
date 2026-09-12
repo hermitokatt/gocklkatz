@@ -174,6 +174,69 @@ true.
 
 ---
 
+## 2026-09-12 — Bienenstock scene (GOC-19)
+
+Greenfield `apps/bienenstock`: outdoor skep scene with orbit camera, `scripts/ci.sh` /
+`scripts/verify.sh`, `repo.config` entry, verify port 43126.
+
+### Content assertion must fail on a wrong 200, not on a type error
+
+To prove `scripts/verify.sh` asserts content (not status alone), the footer marker `Woven skep`
+was renamed while the page still answered 200 with `data-bienen-scene`. Observed:
+
+```
+route GET /bienen                 200
+    FAIL  GET /bienen did not answer 200 with scene host and rendered content (got 200)
+```
+
+exit 1. Reverted. Breaking types or Zod would have failed the build and proved nothing about the
+content check — same lesson as Simplified (GOC-23).
+
+### npm install needed a workspace-local cache
+
+The default user npm cache refused writes (`EPERM` on `_cacache/tmp`). `npm install --cache
+$PWD/.npm-cache` inside the app directory succeeded; the cache directory was removed afterwards
+and never tracked. This is a sandbox restriction, not a project one, and is recorded only so the
+next sandboxed run recognises it instead of debugging it again.
+
+### A sandboxed worker can make a working guard look broken
+
+Inside the restricted worker sandbox, `bash tools/gate.sh` reported `bienenstock` ci + verify green
+but `GATE: FAIL` overall, for two reasons that had nothing to do with the work:
+
+1. `tests/guard.test.sh` failed its `secret-shaped value is caught` case.
+2. The landing-page verify could not reach the live card URLs (`CONNECT tunnel failed, response
+   403` for `*.vercel.app` under the sandbox proxy).
+
+**The first was investigated and is not a defect.** An earlier draft of this entry concluded that
+the secret scan was a silent no-op, on the evidence that `xargs -0 grep` printed
+`xargs: sysconf(_SC_ARG_MAX) failed`. That conclusion was wrong, and it is exactly the kind of
+claim that should not be left in a public record. Re-run outside the sandbox:
+
+```
+$ bash tests/guard.test.sh
+  ok   secret-shaped value is caught (exit 1, reported by name)
+guard self-test: 13 passed, 0 failed, 0 skipped
+
+$ printf 'DEEPSEEK_API_KEY=sk-0000...\n' > zz-guard-probe.txt && bash tools/guard.sh --paths zz-guard-probe.txt
+guard: secret-shaped value detected:
+    1:DEEPSEEK_API_KEY=sk-0000...
+guard: FAILED            # exit 1
+```
+
+The scan works. What the sandbox broke was `xargs`, which is a real fragility in the guard's
+implementation rather than in its logic — and it fails **closed** (it reports a finding even when
+the scan cannot run), which is the safe direction.
+
+`bash tools/gate.sh` on the same tree, outside the sandbox: `GATE: PASS (tree 4770f2ee, 4 app
+block(s))`.
+
+*Rule:* a sandboxed environment can fail a guard for reasons the guard's own logic never sees.
+Before recording that a check is broken, re-run it in the environment the check is meant for. A
+wrong lesson is worse than no lesson, because the next reader acts on it.
+
+---
+
 ## Journal template
 
 ```
