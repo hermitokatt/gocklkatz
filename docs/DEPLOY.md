@@ -88,9 +88,13 @@ The gate has self-tests for the guards themselves, because a guard that passes b
 looks identical to a guard that passes:
 
 ```bash
-bash tests/guard.test.sh    # 13 cases, five of them must-fail
+bash tests/guard.test.sh    # 13 cases, seven of them must-fail
 bash tests/gate.test.sh     # 8 cases, five of them must-fail
 ```
+
+"Must-fail" is the count of cases whose pass condition is that the guard **failed**. Both numbers
+were read off a run rather than off the test names; the count in this file said five for the guard
+until it was checked.
 
 ## 2. Depot CI — the enforced server-side check
 
@@ -365,13 +369,22 @@ bash tools/verify-live.sh
 ```
 
 ```
-  ok    landing page — 200, contains 'Gocklkatz Inc' (12843 bytes): https://gocklkatz.vercel.app/
-  ok    Ameisenwerkstatt — 200, contains 'Werkstatt' (8243 bytes): …
-  ok    Simplified — 200, contains 'Simplified' (9107 bytes): …
-  ok    Bienenstock — 200, contains 'Bienenstock' (9692 bytes): …
-  ok    Arbeitsmarkt — 200, contains 'Synthetic' (30340 bytes): …
+verify-live: 5 URL(s)
+date:        2026-09-12T20:32:50Z
+fetched:     anonymously, following no redirects
+
+  ok    landing page — 200, contains 'Gocklkatz Inc' (18557 bytes): https://gocklkatz.vercel.app/
+  ok    Ameisenwerkstatt — 200, contains 'Werkstatt' (8243 bytes): https://gocklkatz-ameisenwerkstatt.vercel.app/
+  ok    Simplified — 200, contains 'Simplified' (9107 bytes): https://gocklkatz-simplified.vercel.app/
+  ok    Bienenstock — 200, contains 'Bienenstock' (9692 bytes): https://gocklkatz-bienenstock.vercel.app/bienen
+  ok    Arbeitsmarkt — 200, contains 'Synthetic' (30340 bytes): https://gocklkatz-arbeitsmarkt.vercel.app/arbeitsmarkt
+
 verify-live: PASS (5 URL(s) reachable anonymously, each serving its own content)
 ```
+
+The byte counts and the timestamp move between runs — the check asserts the status code and the
+rendered string, not the size. Treat those two columns as illustrative and the `ok`/`FAIL` line as
+the claim.
 
 It is not a status check. Two things it does that a dashboard cannot: it never follows a redirect, so
 a gated URL cannot land on a login page and answer `200`; and it asserts a string each application
@@ -403,15 +416,21 @@ bash tools/verify-deployments.sh
 
 ```
 verify-deployments: 20 route(s)
-  ok    200  https://gocklkatz.vercel.app/  (12843 bytes, contains 'Gocklkatz Inc')
-  ok    200  https://gocklkatz.vercel.app/api/health  (33 bytes, contains '{"ok":true,…}')
+date:               2026-09-12T20:33:00Z
+fetched:            anonymously, bodies asserted
+
+  ok    200  https://gocklkatz.vercel.app/  (18557 bytes, contains 'Gocklkatz Inc')
+  ok    200  https://gocklkatz.vercel.app/api/health  (33 bytes, contains '{"ok":true,"service":"gocklkatz"}')
   ok    200  https://gocklkatz-ameisenwerkstatt.vercel.app/ameisen  (11509 bytes, contains 'Ameisenfabrik')
   ok    200  https://gocklkatz-simplified.vercel.app/learn/radicals/person  (14505 bytes, contains 'person; people')
   ok    200  https://gocklkatz-bienenstock.vercel.app/bienen  (9692 bytes, contains 'data-bienen-scene')
   ok    200  https://gocklkatz-arbeitsmarkt.vercel.app/arbeitsmarkt/operations  (39309 bytes, contains 'data-alarm-state')
-  … 20 routes across the landing page and all four demos
+  … 14 further routes, one line per route across the landing page and all four demos
 verify-deployments: PASS (20 route(s) across every live deployment, each serving its own content)
 ```
+
+As with `verify-live.sh`, the byte counts and timestamp move between runs and are not what is
+asserted; the status code and the body string are.
 
 **Why both checks exist.** A host can answer `200` while a route `500`s; a route can answer `200` with
 an error page or an empty shell; and a project can be gated so nobody sees any of it. Neither check
@@ -474,36 +493,51 @@ therefore an explicit subtraction — everything except `apps/`, `docs/`, and th
 
 #### Verified, without touching Vercel
 
-The rule can be exercised against any pair of commits, which is how it was checked. Pass a base and
-head and it answers for that range:
+The rule takes a base and a head and answers for that range, which is what makes it testable without
+Vercel at all:
 
 ```bash
 bash tools/vercel-ignore.sh <root> <base-sha> <head-sha>
 ```
 
-`tests/vercel-ignore.test.sh` uses real commits from this repository's history — including the
-docs-only commit that stalled production on 2026-09-12 — and asserts both directions of the polarity:
+`tests/vercel-ignore.test.sh` asserts both directions of the polarity. It builds its **own** git
+repositories and commits in a temporary directory, so no case depends on this clone's history or on
+the network — an earlier version used real commits from this repository and passed locally while
+failing in CI, because `actions/checkout` clones shallowly and those commits were not there:
 
 ```
 vercel-ignore self-test (bash 3.2.57)
-  ok   the fixture commits still have the shapes this test assumes
+
   --- a docs-only commit skips every project ---
-  ok   landing page skips on a docs-only commit
-  ok   Ameisenwerkstatt skips on a docs-only commit
-  …
-  --- adding an app rebuilds that app, not its siblings ---
-  ok   the new app builds
-  ok   a sibling app skips
+  ok   . skips on a docs-only commit
+  ok   apps/alpha skips on a docs-only commit
+  ok   apps/beta skips on a docs-only commit
+
+  --- a landing-page file rebuilds the landing page only ---
+  ok   landing page builds on its own file
+  ok   alpha skips when only the landing page changed
+  ok   beta skips when only the landing page changed
+
+  --- an app change rebuilds that app, not its sibling ---
+  ok   alpha builds on its own change
+  ok   beta skips when alpha changed
+  ok   the landing page skips when only an app changed
+
+  --- a root config change rebuilds the landing page ---
+  ok   landing page builds on a root config change
+  ok   alpha skips on a root config change
+
   --- misuse must BUILD, never skip ---
+  ok   no argument is misuse (exit 2, not a silent skip)
   ok   an unresolvable base is reported as build, not skip
+  ok   an empty change set skips, and says so
+
 vercel-ignore self-test: 14 passed, 0 failed
 ```
 
-Two properties are deliberate and tested. An **unreadable state builds**: Vercel clones shallowly, so
+One property is deliberate and tested. An **unreadable state builds**: Vercel clones shallowly, so
 without a parent commit the rule builds rather than skipping, because an unnecessary build costs a
-minute while a wrongly skipped build costs a deployment nobody notices is stale. And the test
-re-asserts that its fixture commits still have the shapes it assumes, so a future change that
-invalidates a fixture fails loudly instead of passing while testing nothing.
+minute while a wrongly skipped build costs a deployment nobody notices is stale.
 
 #### The one step that needs a human
 
@@ -518,7 +552,9 @@ silently stop production.
 Each application is its own Vercel project pointing at its own root directory, created with the
 Vercel MCP `create_git_project`, which takes the repository, the provider and the root directory.
 `provider: cursor-origin` links the project to the Origin repository directly, so a **merge to
-`main` is what deploys** — there is no separate deploy step.
+`main` is what a deployment builds from** — there is no separate deploy command to run. That is a
+statement about Vercel's trigger, not about the delivery loop: the loop ends at the mirror and does
+not wait for the deployment this produces (`AGENTS.md` §12).
 
 A project publishes several addresses and only some are public, so `get_project` is the thing to
 read rather than the URL a deploy log happens to print. For `gocklkatz-ameisenwerkstatt` it reports
