@@ -367,8 +367,21 @@ through unload moved the same script to `deltaVisits0=71 deltaVisits1=13`.
 
 ## 2026-09-12 — formatting enforcement across the older apps
 
-Brought `apps/ameisenwerkstatt` and `apps/simplified` to the standard Bienenstock set, and wired the
-check into both gates so it cannot regress.
+**Ticket: GOC-47**, filed retroactively. Brought `apps/ameisenwerkstatt` and `apps/simplified` to the
+standard Bienenstock set, and wired the check into both gates so it cannot regress.
+
+### This work shipped without a ticket, which is the wrong order
+
+It was merged as `3111a5b` and only then given an issue. The repository's convention is that a change
+carries a ticket — `AGENTS.md` §6 requires a dependency change to name one, and this change added
+`prettier` to `apps/simplified`'s `devDependencies` and its lockfile.
+
+The gap was noticed by the owner, not by the process. Nothing in the gate asks whether a change has a
+ticket, and nothing could: the gate validates the tree, and a tree has no way to say what it is for.
+
+*Rule:* when work is done outside the queue, file the issue anyway and say in it that it is
+retroactive. An issue that documents why it exists late is worth more than an untracked commit,
+because the commit is what the next reader will find and the ticket is what explains it.
 
 ### Two apps promised Prettier and did not have it, in two different ways
 
