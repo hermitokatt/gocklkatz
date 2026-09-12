@@ -45,9 +45,30 @@ mkdir -p "$tmp"
 
 echo "gate self-test (bash ${BASH_VERSION%%(*})"
 
-# --- 1. the real configuration passes today -------------------------------
-out="$(GATE_SKIP_SELF_TESTS=1 GIT_AUTHOR_NAME='Hermito Katt' GIT_AUTHOR_EMAIL='gocklkatz@gmail.com' bash tools/gate.sh 2>&1)"; rc=$?
-expect "real repo.config passes (harness-only)" 0 "GATE: PASS" "$out" "$rc"
+# --- 1. a well-formed config passes --------------------------------------
+#
+# This used to run the gate against the REAL repo.config, which builds and serves all five
+# applications. That duplicated the workflow's next step — "Pre-flight gate" runs the real
+# `bash tools/gate.sh` immediately after this one — while doing it under the self-test's load, which
+# is where it broke: on 2026-09-12 the nested run timed out waiting for the fifth application to
+# answer on its port, failing the whole job for a resource reason rather than a defect.
+#
+# The real config is covered by the real gate run, under normal conditions. What belongs here is what
+# every other case in this file makes its fixtures do: exercise the gate's LOGIC against something
+# small. So this uses a one-app fixture, and it still proves a good config reaches "GATE: PASS".
+mkdir -p "$tmp/goodapp/scripts"
+printf '#!/usr/bin/env bash\nexit 0\n' >"$tmp/goodapp/scripts/ci.sh"
+printf '#!/usr/bin/env bash\nexit 0\n' >"$tmp/goodapp/scripts/verify.sh"
+cat >"$tmp/good.config" <<CFG
+version: 1
+apps:
+  - name: goodapp
+    path: $tmp/goodapp
+    enabled: true
+    verify_cmd: bash scripts/verify.sh
+CFG
+out="$(GATE_CONFIG="$tmp/good.config" GATE_SKIP_SELF_TESTS=1 GIT_AUTHOR_NAME='Hermito Katt' GIT_AUTHOR_EMAIL='gocklkatz@gmail.com' bash tools/gate.sh 2>&1)"; rc=$?
+expect "a well-formed config passes (harness-only)" 0 "GATE: PASS" "$out" "$rc"
 
 # --- 2. an app that is not declared is reported as absent ----------------
 cat >"$tmp/unknown-app.config" <<'CFG'
