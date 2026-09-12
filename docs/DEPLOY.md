@@ -230,18 +230,21 @@ repository recreated from this one can be configured from the same commit that c
 everything else. `tools/mirror-to-github.sh` pushes the `main` branch and never touches repository
 settings, so nothing here is applied automatically and nothing gets overwritten by a publication.
 
-Observed on the public copy, 2026-09-12:
+The block below **is** the record, and `tools/audit-mirror-metadata.mjs` reads it. Machine-readable
+rather than prose for the same reason `docs/LINK_AUDIT.md` carries its rows in a block: a check that
+parses prose breaks when someone rewraps a line, and one that silently finds nothing is not a check.
 
-**Description**
+<!-- BEGIN MIRROR_METADATA -->
+repository: hermitokatt/gocklkatz
+description: Gocklkatz Inc — engineering portfolio: a landing page and four self-contained demo applications (ant colony optimisation, a bee colony, Chinese radicals, job listings), each built, tested and deployed on its own.
+homepage: https://gocklkatz.vercel.app
+topics: monorepo, nextjs, portfolio, simulation, typescript
+<!-- END MIRROR_METADATA -->
 
-> Gocklkatz Inc — engineering portfolio: a landing page and four self-contained demo applications
-> (ant colony optimisation, a bee colony, Chinese radicals, job listings), each built, tested and
-> deployed on its own.
+The homepage was fetched anonymously and answers `200`, like every other published URL in this
+document. Set by hand, 2026-09-12.
 
-**Homepage:** <https://gocklkatz.vercel.app> — fetched anonymously and answering `200`, like every
-other published URL in this document.
-
-**Topics:** `monorepo`, `nextjs`, `portfolio`, `simulation`, `typescript`
+Apply the record:
 
 ```bash
 gh repo edit hermitokatt/gocklkatz \
@@ -251,7 +254,21 @@ gh repo edit hermitokatt/gocklkatz \
   --add-topic simulation --add-topic typescript
 ```
 
-Read them back with `gh repo view hermitokatt/gocklkatz --json description,homepageUrl,repositoryTopics`.
+Check that the live copy still matches the record:
+
+```bash
+node tools/audit-mirror-metadata.mjs
+```
+
+It exits **0** when they agree, **1** when they differ — naming each field with both values, and
+reporting a topic present on only one side in either direction — and **2** when it could not read
+one side at all: no `gh`, no credentials, no network, or a record it cannot parse. Code 2 is
+deliberately distinct from 0, because a check that reports agreement without having read both sides
+is worse than no check.
+
+It is **not** part of `tools/gate.sh`: a CI runner has none of `gh`, credentials or network. Like
+[`tools/verify-live.sh`](../tools/verify-live.sh) and
+[`tools/verify-deployments.sh`](../tools/verify-deployments.sh), it is a check to run when asked.
 
 ## Publishing
 
