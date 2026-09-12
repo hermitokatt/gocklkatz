@@ -1276,3 +1276,37 @@ trusted.
 *Rule:* when a check cannot be observed, widen the query before concluding. A window that excludes the
 counter-example turns "one project is stuck" into "the mechanism is broken" — and the second is a
 different, and wrong, diagnosis.
+
+### A self-test that builds all five applications tests the environment, not the gate
+
+`tests/gate.test.sh`'s first case ran the gate against the **real `repo.config`**, which builds and
+serves all five applications. On 2026-09-12 the Gate check failed on it:
+
+```
+FAIL real repo.config passes (harness-only) (expected exit 0, got 1)
+  FAIL  arbeitsmarkt — verify failed: the app does not run correctly when served
+    FAIL  no answer from http://127.0.0.1:43127 within 180s
+```
+
+That is a timeout in a nested run, not a defect — and the CI diagnosis was only that useful because
+the self-test loop captures its child's output (GOC-48). Before that change this would have read
+"`tests/gate.test.sh` failed" and nothing more.
+
+Three things were wrong with the case, and only one of them was the timeout:
+
+1. **It duplicated the workflow.** The next CI step, "Pre-flight gate", runs the real
+   `bash tools/gate.sh` under normal conditions. So the full-config assertion already existed, in a
+   better place.
+2. **It ran the expensive thing under load.** Every other case in that file uses a tiny fixture app
+   with `exit 0` scripts. This one built five Next.js applications, inside a test, while the test
+   suite was running.
+3. **It tested the environment, not the gate.** A failure here says "the runner could not build and
+   serve five apps within the timeouts", which is a fact about the runner.
+
+The case now uses a one-app fixture and keeps its meaning — a well-formed config reaches
+`GATE: PASS`. The self-test went from building five applications to **6.8 seconds**, eight cases
+green.
+
+*Rule:* a test should exercise the logic it names, with the smallest input that does. When a case is
+both expensive and duplicated by a later step that runs in better conditions, it is not extra
+coverage — it is a flake with a coverage anecdote.
