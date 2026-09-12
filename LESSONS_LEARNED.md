@@ -1150,3 +1150,93 @@ that a pass.
 *Rule:* for every check, be able to say which row of a table like this it catches and which it does
 not. Two checks that feel redundant often differ by exactly one row — and the row is usually the one
 that matters.
+
+## 2026-09-12 — a rule with authority over production runs in the gate (GOC-43)
+
+`tools/vercel-ignore.sh` decides whether five production projects rebuild. Its failure mode is not a
+red build — it is **silence**: a wrong answer stops deploying, and the only symptom is that a page
+does not change. That is precisely what happened earlier today and took four hours to even
+characterise.
+
+So two things were done rather than one:
+
+* **The rule can be exercised against any commit pair.** `tools/vercel-ignore.sh <root> <base> <head>`
+  answers for that range, which means its behaviour is testable without deploying anything and without
+  checking anything out.
+* **`tests/vercel-ignore.test.sh` runs in `tools/gate.sh`.** A rule with that much authority over
+  production should not depend on someone remembering to run its test by hand.
+
+### The test asserts the polarity in both directions, on real history
+
+Fourteen cases, all green, built around three real commits whose shapes are re-verified at the top of
+the test so a future change fails loudly instead of testing nothing:
+
+| Fixture | Shape | What it proves |
+| --- | --- | --- |
+| `a285366` | docs-only — the commit that stalled production | every project **skips** |
+| `31115a3` | changed `src/lib/demos.ts` | landing page **builds**, untouched app **skips** |
+| `85b136f` | added `apps/arbeitsmarkt` | that app **builds**, sibling **skips** |
+
+The docs-only row is the regression guard for this morning's failure. `a285366` touched only
+`LESSONS_LEARNED.md` and `docs/DEPLOY.md`; production should not have rebuilt for it, and the stall was
+that something decided nothing should rebuild for *anything*.
+
+### An unreadable state must build, never skip
+
+Vercel clones shallowly (`git clone --depth=10`), so a rule that diffs against `HEAD^` may find no
+parent. Every uncertain path in the script exits `1`, which **builds**: an unnecessary build costs a
+build minute, while a wrongly skipped build costs a deployment nobody notices is stale. The test pins
+this with an unresolvable base commit and asserts the answer is `build`, not `skip`.
+
+*Rule:* for a check whose failure mode is silence, make an unreadable state fail toward the noisy
+side, and put a test for it in the gate. "It builds too often" is a cost; "it stopped deploying and
+nobody noticed" is a defect.
+
+### What the landing page's rule has to be, and why it is not the obvious one
+
+Its root directory is the repository root, so `git diff -- .` matches every path. A rule that asked
+only "did anything change?" would rebuild the landing page for every sub-issue of every epic while the
+apps rebuilt for none — the exact inversion of the intent. Its set is therefore an explicit
+subtraction: everything except `apps/`, `docs/`, and the root prose, none of which is an input to its
+build. Verified that no application imports across its own boundary, which is what makes a pure
+directory comparison correct rather than merely convenient.
+
+### A test that reads this repository's history works on one machine
+
+The first version of `tests/vercel-ignore.test.sh` took its fixtures from real commits in this
+repository — `a285366` for the docs-only shape, `31115a3` for the landing-page shape, `85b136f` for
+the new-app shape. It passed locally, fourteen cases green, and then failed the Gate check on CI:
+
+```
+FAIL a fixture commit is missing from this clone
+```
+
+`actions/checkout@v4` clones **shallowly by default**. Those commits are thirty-odd behind the pull
+request's merge commit, so they are not in the CI checkout at all. The test was not wrong about the
+rule; it was wrong about the world it would run in.
+
+The fix is to stop depending on the surrounding clone. The test now builds its own repositories and
+commits in a temporary directory, so it behaves identically on a laptop, in CI, and in any clone
+however shallow:
+
+```bash
+SCRATCH="$(mktemp -d)"; cd "$SCRATCH"; git init -q .
+commit_touching docs/notes.md     # a docs-only commit
+commit_touching src/lib-demos.ts  # the landing page's own file
+commit_touching apps/alpha/page.tsx
+```
+
+*Rule:* a test that reads the history of the repository it lives in is only valid where that history
+exists. If a fixture must be a commit, create the commit — and note that `actions/checkout` is shallow
+unless you say otherwise, which also means the `git clone --depth=10` in Vercel's own docs is a hint
+that shallow clones are normal rather than exceptional.
+
+### The gate's self-test loop made this findable in one run
+
+This is the payoff from capturing a failing self-test's output earlier today (GOC-48). The CI
+diagnosis named the exact failing line — `FAIL a fixture commit is missing from this clone` — rather
+than reporting only that `tests/vercel-ignore.test.sh` had failed. Before that change the harness sent
+the child's output to `/dev/null`, and this would have been another four-hour hunt.
+
+*Rule:* capture the output of a nested check. A harness that discards it converts every failure into
+an investigation.

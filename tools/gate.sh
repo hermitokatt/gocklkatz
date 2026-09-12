@@ -172,7 +172,11 @@ else
             tail -60 "$selftest_log" | sed 's/^/          /'
         fi
     }
-    for t in tests/guard.test.sh tests/gate.test.sh; do
+    # tests/vercel-ignore.test.sh is here because tools/vercel-ignore.sh decides whether five
+    # production projects rebuild, through an inverted exit code. A mistake in it does not fail
+    # loudly — it silently stops deploying. A rule with that much authority over production should
+    # not be guarded only by whoever remembers to run its test by hand.
+    for t in tests/guard.test.sh tests/gate.test.sh tests/vercel-ignore.test.sh; do
         run_selftest "$t" env GATE_SKIP_SELF_TESTS=1 bash "$t"
     done
     run_selftest "tests/dependency-allowlist.test.mjs" node tests/dependency-allowlist.test.mjs
