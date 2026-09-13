@@ -261,18 +261,28 @@ describe("bypasses the review demonstrated, now closed", () => {
   });
 });
 
-describe("claimCardProblems — one measured, sourced claim per live card", () => {
+describe("claimCardProblems — measured claim, no test-path / reproduce row", () => {
   const SOURCE = "apps/example/tests/example.test.ts";
   const HREF = `https://example.invalid/blob/main/${SOURCE}`;
 
   /**
-   * @param {{ status?: string, claim?: string | null, source?: string | null, href?: string | null, command?: string | null }} over
+   * @param {{ status?: string, claim?: string | null, source?: string | null, href?: string | null, command?: string | null, reproduceText?: boolean }} over
    */
   function claimCard(over = {}) {
+    const source =
+      over.source === undefined
+        ? ""
+        : `<a href="${over.href ?? HREF}" data-claim-source="${over.source}">${over.source}</a>`;
+    const command =
+      over.command === undefined
+        ? ""
+        : `<code data-claim-command="${over.command}">${over.command}</code>`;
+    const reproduce = over.reproduceText ? `<span>reproduce: npm run test</span>` : "";
     const markup = `<article data-demo="example" data-status="${over.status ?? "live"}">
       <p data-claim="${over.claim ?? "12 tests over the example fixture, all passing"}">…</p>
-      <a href="${over.href ?? HREF}" data-claim-source="${over.source ?? SOURCE}">${over.source ?? SOURCE}</a>
-      <code data-claim-command="${over.command ?? "npm run test"}">…</code>
+      ${source}
+      ${command}
+      ${reproduce}
     </article>`;
     const parsed = parsePage(markup).cards[0];
     if (!parsed) {
@@ -281,20 +291,15 @@ describe("claimCardProblems — one measured, sourced claim per live card", () =
     return parsed;
   }
 
-  it("accepts a live card that carries claim, source and command", () => {
+  it("accepts a live card that carries a claim and no provenance row", () => {
     expect(claimCardProblems(claimCard())).toEqual([]);
   });
 
-  it("reads the claim fields off the served markup", () => {
-    const card = claimCard();
-    expect(card.claim).toBe("12 tests over the example fixture, all passing");
-    expect(card.claimSource).toBe(SOURCE);
-    expect(card.claimSourceHref).toBe(HREF);
-    expect(card.claimCommand).toBe("npm run test");
+  it("reads the claim text off the served markup", () => {
+    expect(claimCard().claim).toBe("12 tests over the example fixture, all passing");
   });
 
-  it("exempts a card that is not live", () => {
-    // An in-development card has no deployment, so there is nothing for a claim to be about yet.
+  it("exempts a card that is not live from the claim-text rule", () => {
     expect(claimCardProblems(claimCard({ status: "in-development" }))).toEqual([]);
   });
 
@@ -303,30 +308,19 @@ describe("claimCardProblems — one measured, sourced claim per live card", () =
     expect(problems.join(" ")).toMatch(/no measured claim/);
   });
 
-  it("rejects a claim that names no source", () => {
-    const problems = claimCardProblems(claimCard({ source: "" }));
-    expect(problems.join(" ")).toMatch(/names no source/);
+  it("rejects the old card that printed the test path and reproduce command", () => {
+    // The case that must fail: the four cards used to render
+    // "apps/…/tests/….test.ts" and "reproduce: npm run test".
+    const problems = claimCardProblems(
+      claimCard({ source: SOURCE, href: HREF, command: "npm run test" }),
+    );
+    expect(problems.join(" ")).toMatch(/test-path \/ reproduce line/);
+    expect(problems.join(" ")).toContain('card "example"');
   });
 
-  it("rejects a claim with no reproducing command", () => {
-    // AGENTS.md section 4: a number nobody can re-derive is a claim, not a measurement.
-    const problems = claimCardProblems(claimCard({ command: "" }));
-    expect(problems.join(" ")).toMatch(/no reproducing command/);
-  });
-
-  it("rejects a source that is recorded but not linked", () => {
-    // Requirement 3: the reader must be able to check the number in two clicks.
-    const problems = claimCardProblems(claimCard({ href: "", source: SOURCE }));
-    expect(problems.join(" ")).toMatch(/renders no link to it/);
-  });
-
-  it("rejects a relative href, which a reader could not follow as a link", () => {
-    const problems = claimCardProblems(claimCard({ href: SOURCE }));
-    expect(problems.join(" ")).toMatch(/renders no link to it/);
-  });
-
-  it("names the card whose claim is wrong", () => {
-    expect(claimCardProblems(claimCard({ command: "" })).join(" ")).toContain('card "example"');
+  it("rejects a card that still prints reproduce: even without data attributes", () => {
+    const problems = claimCardProblems(claimCard({ reproduceText: true }));
+    expect(problems.join(" ")).toMatch(/test-path \/ reproduce line/);
   });
 });
 
@@ -349,64 +343,19 @@ describe("stylesheetHrefs", () => {
 });
 
 describe("provenanceLayoutProblems", () => {
-  // The rule as Next.js serves it: minified, which is why the parser cannot depend on whitespace.
-  const FIXED = ".card__provenance{display:flex;flex-wrap:wrap;gap:.35rem .75rem}";
+  const OLD = ".card__provenance{display:flex;flex-wrap:wrap;gap:.35rem .75rem}";
 
-  it("accepts the rule the page actually serves", () => {
-    expect(provenanceLayoutProblems(FIXED)).toEqual([]);
+  it("accepts a stylesheet with no .card__provenance rule", () => {
+    expect(provenanceLayoutProblems(".card{padding:1.5rem}")).toEqual([]);
   });
 
   it("accepts the stylesheet committed in this repository", () => {
-    // The other tests use fixtures. This one reads the real file, so removing the gap there fails
-    // `npm test` directly instead of only the slower verify probe.
     const css = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
     expect(provenanceLayoutProblems(css)).toEqual([]);
+    expect(css).not.toMatch(/card__provenance/);
   });
 
-  it("rejects the pre-fix stylesheet, which styled the line not at all", () => {
-    // This is the regression: two adjacent inline spans, rendered as
-    // "apps/simplified/tests/radicals.test.tsreproduce: npm run test".
-    const css = ".card__source{color:#ffc043}.card__command{font-size:.78rem}";
-    expect(provenanceLayoutProblems(css).join(" ")).toMatch(/no \.card__provenance rule/);
-  });
-
-  it("rejects a flex line with no gap", () => {
-    expect(provenanceLayoutProblems(".card__provenance{display:flex}").join(" ")).toMatch(
-      /declares no gap/,
-    );
-  });
-
-  it("rejects a gap on a block container, where it separates nothing", () => {
-    // The trap: the declaration parses, applies, and has no effect.
-    const problems = provenanceLayoutProblems(".card__provenance{display:block;gap:.75rem}");
-    expect(problems.join(" ")).toMatch(/not flex or grid/);
-  });
-
-  it("rejects a zero column gap", () => {
-    expect(
-      provenanceLayoutProblems(".card__provenance{display:flex;gap:.35rem 0}").join(" "),
-    ).toMatch(/separates nothing/);
-    expect(provenanceLayoutProblems(".card__provenance{display:flex;gap:0}").join(" ")).toMatch(
-      /separates nothing/,
-    );
-  });
-
-  it("reads a single-value gap as both axes", () => {
-    expect(provenanceLayoutProblems(".card__provenance{display:flex;gap:6px}")).toEqual([]);
-  });
-
-  it("prefers column-gap over the shorthand's second value", () => {
-    const css = ".card__provenance{display:flex;gap:6px 0;column-gap:.75rem}";
-    expect(provenanceLayoutProblems(css)).toEqual([]);
-  });
-
-  it("rejects a gap it cannot read as a length", () => {
-    expect(
-      provenanceLayoutProblems(".card__provenance{display:flex;gap:normal}").join(" "),
-    ).toMatch(/not a length/);
-  });
-
-  it("reads a grid line as separated too", () => {
-    expect(provenanceLayoutProblems(".card__provenance{display:grid;gap:.75rem}")).toEqual([]);
+  it("rejects the old stylesheet that still styled the provenance row", () => {
+    expect(provenanceLayoutProblems(OLD).join(" ")).toMatch(/still define \.card__provenance/);
   });
 });

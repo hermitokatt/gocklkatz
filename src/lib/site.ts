@@ -28,14 +28,6 @@ export const site = {
     "running it rather than by trusting a green build.",
   repositoryUrl: "https://github.com/hermitokatt/gocklkatz",
   repositoryLabel: "github.com/hermitokatt/gocklkatz",
-  /**
-   * Base for a card's claim-source link. Each claim names a repository-relative file, and the card
-   * renders `<sourceBaseUrl>/<path>` so a reader who doubts a number can open the file it came from.
-   *
-   * It points at this repository rather than the Origin code host: the GitHub mirror is the copy a
-   * visitor can actually read, and `tools/verify-live.sh` already fetches it anonymously.
-   */
-  sourceBaseUrl: "https://github.com/hermitokatt/gocklkatz/blob/main",
   license: "MIT",
   copyrightYear: 2026,
 } as const;

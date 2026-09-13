@@ -147,9 +147,8 @@ export function parsePage(html) {
       status: attributeValue(match[0], "data-status"),
       block,
       hrefs: hrefsIn(block),
-      // Requirement 1 of ticket GOC-11: every card carries a measured claim, the file it came from,
-      // and the command that reproduces it. Read here rather than trusted, because the card is what
-      // a visitor sees.
+      // The measured claim stays on the card. The test path and `reproduce:` command do not —
+      // they are parsed so the probe can fail a card that still prints them.
       claim: attributeValue(block, "data-claim"),
       claimSource: attributeValue(block, "data-claim-source"),
       // `data-claim-source` records the repository-relative path; the fetchable URL is the href of
@@ -435,12 +434,11 @@ async function get(url) {
 }
 
 /**
- * The card-level half of the claim rule: a live card must carry a claim, name its source, and link
- * to it. The reachability of that link is checked separately, because it needs a fetch.
+ * A live card must still publish a measured claim. It must not publish the test-path /
+ * `reproduce:` row that used to sit under that claim — the path and command stay in
+ * `src/lib/demos.ts`, not on the card.
  *
- * Exported so scripts/probe.test.mjs can exercise both directions without a server — the fetch is
- * the only part this predicate cannot cover, and the fetch is the part the ticket's A-2
- * demonstrates by hand.
+ * Exported so scripts/probe.test.mjs can exercise both directions without a server.
  *
  * @param {Card} card
  * @returns {string[]} problems, empty when the card satisfies the rule
@@ -448,26 +446,22 @@ async function get(url) {
 export function claimCardProblems(card) {
   /** @type {string[]} */
   const problems = [];
+  const label = `card "${card.slug}"`;
+  if (
+    card.claimSource ||
+    card.claimCommand ||
+    card.claimSourceHref ||
+    /\breproduce:\s*/i.test(card.block)
+  ) {
+    problems.push(
+      `${label}: still publishes a test-path / reproduce line (data-claim-source / data-claim-command)`,
+    );
+  }
   if (card.status !== "live") {
     return problems;
   }
-  const label = `card "${card.slug}"`;
   if (!card.claim || card.claim.trim().length < 10) {
     problems.push(`${label}: publishes no measured claim (data-claim)`);
-    return problems;
-  }
-  if (!card.claimSource) {
-    problems.push(`${label}: its claim names no source (data-claim-source)`);
-    return problems;
-  }
-  if (!card.claimCommand) {
-    problems.push(`${label}: its claim names no reproducing command (data-claim-command)`);
-    return problems;
-  }
-  if (!card.claimSourceHref || !/^https:\/\//.test(card.claimSourceHref)) {
-    problems.push(
-      `${label}: records the source "${card.claimSource}" but renders no link to it (data-claim-source needs an absolute href)`,
-    );
   }
   return problems;
 }
@@ -567,72 +561,22 @@ function declarationsFor(css, className) {
   return declarations;
 }
 
-/** `css` length prefix as a number, or null when the value is not a length we can judge. */
-function lengthValue(/** @type {string} */ value) {
-  const match = /^\s*([+-]?(?:\d+\.?\d*|\.\d+))/.exec(value);
-  return match === null || match[1] === undefined ? null : Number(match[1]);
-}
-
 /**
- * The landing page's provenance line renders a file path and the command that reproduces its claim
- * side by side. They were adjacent inline elements, so a served card read
- *
- *     apps/simplified/tests/radicals.test.tsreproduce: npm run test
- *
- * — two unrelated facts fused into one string, with no error anywhere to say so. The fix is a gap,
- * and **a gap only separates flex and grid children**: set the container back to `block` and the
- * rule still parses, still applies, and silently stops doing anything.
- *
- * So both halves are asserted against the stylesheet the server actually sends: the line is a flex
- * container, and its horizontal gap is a non-zero length. Either one alone is passable by a broken
- * page — `display: flex` with no gap still runs the text together, and a gap on a block container
- * does nothing at all. Exported so scripts/probe.test.mjs can exercise it on the pre-fix
- * stylesheet, which is the case that must fail.
+ * The test-path / `reproduce:` row is gone from the cards. A stylesheet that still styles
+ * `.card__provenance` means the section was put back, or the CSS was left behind as a blank
+ * rule. Either is a defect. Exported so scripts/probe.test.mjs can fail the old stylesheet.
  *
  * @param {string} css all served stylesheets, concatenated
- * @returns {string[]} problems, empty when the line is separated by layout rather than narration
+ * @returns {string[]} problems, empty when the provenance rule is absent
  */
 export function provenanceLayoutProblems(css) {
-  /** @type {string[]} */
-  const problems = [];
   const declarations = declarationsFor(css, "card__provenance");
   if (declarations.size === 0) {
-    problems.push(
-      "the served stylesheets define no .card__provenance rule, so the card's source path and its reproduce command have no layout separating them",
-    );
-    return problems;
+    return [];
   }
-
-  const display = declarations.get("display") ?? "";
-  if (!/^(inline-)?flex$|^grid$/.test(display.trim().toLowerCase())) {
-    problems.push(
-      `.card__provenance has display: ${display === "" ? "<unset>" : display}, which is not flex or grid — its gap cannot separate anything, and the source path and the reproduce command run together`,
-    );
-  }
-
-  // The column gap is what separates the two items when they share a line: `gap: A B` is row then
-  // column, a single `gap: A` is both, and `column-gap` overrides the shorthand's second value.
-  let column = declarations.get("column-gap");
-  if (column === undefined) {
-    const gap = declarations.get("gap");
-    if (gap === undefined) {
-      problems.push(
-        ".card__provenance declares no gap, so the source path and the reproduce command are laid out flush against each other",
-      );
-      return problems;
-    }
-    const parts = gap.trim().split(/\s+/);
-    column = parts.length > 1 ? parts[parts.length - 1] : parts[0];
-  }
-  const width = column === undefined ? null : lengthValue(column);
-  if (width === null) {
-    problems.push(`.card__provenance column gap is not a length this check can read: "${column}"`);
-  } else if (width <= 0) {
-    problems.push(
-      `.card__provenance column gap is ${column}, which separates nothing — the source path and the reproduce command run together`,
-    );
-  }
-  return problems;
+  return [
+    "the served stylesheets still define .card__provenance — the test-path / reproduce row was removed from the cards",
+  ];
 }
 
 /**
@@ -677,14 +621,11 @@ async function check(baseUrl) {
   // exercise the card rules on markup that carries no footer link.
   failures.push(...cardFailures(page, REQUIRED_DEMOS, DEFAULT_PAGE_HREF));
 
-  // ---- every card carries a measured, sourced claim (ticket GOC-11) -----
+  // ---- every live card carries a measured claim, without the test-path row -----
   //
-  // Requirement 1: a claim, the file it came from, and the command that reproduces it. Requirement
-  // 3: the source is LINKED, so a reader who doubts a number can open the file it came from. The
-  // fetch below asserts that link answers 200 and NAMES THE CARD when it does not, which is what
-  // A-2 of the ticket asks for. A rendered anchor is not the same as a reachable one.
+  // The claim text stays. The source path and `reproduce:` command do not: they were a bolted-on
+  // row on every card. claimCardProblems fails a card that still prints them.
   for (const card of page.cards) {
-    const label = `card "${card.slug}"`;
     const problems = [...claimCardProblems(card), ...claimCountProblems(card)];
     if (problems.length > 0) {
       failures.push(...problems);
@@ -693,34 +634,10 @@ async function check(baseUrl) {
     if (card.status !== "live") {
       continue;
     }
-    say(`claim ${card.slug.padEnd(18)} ${card.claimSource}  [${card.claimCommand}]`);
-
-    // Already asserted non-null by claimCardProblems above; restated for the type checker.
-    if (!card.claimSourceHref) {
-      continue;
-    }
-    const source = await get(card.claimSourceHref);
-    if ("error" in source) {
-      failures.push(
-        `${label}: its claim source does not resolve — ${card.claimSourceHref} (${source.error})`,
-      );
-      continue;
-    }
-    if (source.status !== 200) {
-      failures.push(
-        `${label}: its claim source answered ${source.status}, expected 200 — ${card.claimSourceHref}`,
-      );
-      continue;
-    }
-    say(`claim ${card.slug.padEnd(18)} source ${source.status}`);
+    say(`claim ${card.slug.padEnd(18)} ${card.claim}`);
   }
 
-  // ---- the provenance line is separated by layout, not by a space character ----------
-  //
-  // The markup checks above cannot see this. Two adjacent inline spans carry every data attribute
-  // the probe reads and are perfectly well-formed; the page is simply unreadable. That is the half
-  // that needs the stylesheet, so it is read from what the server sends rather than from the file
-  // in the repository — a rule that exists only in the working tree is not a rule the visitor got.
+  // ---- the provenance row stays off the stylesheet the visitor actually gets ----------
   const stylesheets = stylesheetHrefs(home.body);
   if (stylesheets.length === 0) {
     failures.push(
@@ -749,7 +666,7 @@ async function check(baseUrl) {
   if (layoutProblems.length > 0) {
     failures.push(...layoutProblems);
   } else {
-    say("css   .card__provenance is a flex line with a non-zero column gap");
+    say("css   .card__provenance is absent");
   }
 
   // ---- the portfolio intro (ticket GOC-12) ------------------------------

@@ -1,5 +1,4 @@
 import { deploymentLabels, hasDeployment, statusLabels, type Demo } from "@/lib/demos";
-import { site } from "@/lib/site";
 
 /**
  * One card per demo. The anchor is rendered only for a `live` demo: a card pointing at a
@@ -9,13 +8,12 @@ import { site } from "@/lib/site";
  * `data-demo` and `data-status` are part of the contract with scripts/verify.sh, which reads
  * the served markup to assert that rule in both directions.
  *
- * Each card also carries its measured claim, the file it came from, and the command that
- * reproduces it, because `AGENTS.md` §4 forbids publishing a number without provenance.
- * `data-claim`, `data-claim-source` and `data-claim-command` are what scripts/verify.sh reads.
+ * The measured claim stays on the card (`data-claim`). The test-path and `reproduce:` command
+ * lines do not: they were a bolted-on provenance row, and scripts/verify.sh now treats their
+ * absence as the rule.
  */
 export function DemoCard({ demo }: { demo: Demo }) {
   const live = hasDeployment(demo);
-  const sourceUrl = `${site.sourceBaseUrl}/${demo.claim.source}`;
 
   return (
     <article className="card" data-demo={demo.slug} data-status={demo.status}>
@@ -28,14 +26,6 @@ export function DemoCard({ demo }: { demo: Demo }) {
       <p className="card__description">{demo.description}</p>
       <p className="card__claim" data-claim={demo.claim.text}>
         {demo.claim.text}
-      </p>
-      <p className="card__provenance">
-        <a className="card__source" href={sourceUrl} data-claim-source={demo.claim.source}>
-          {demo.claim.source}
-        </a>
-        <span className="card__command">
-          reproduce: <code data-claim-command={demo.claim.command}>{demo.claim.command}</code>
-        </span>
       </p>
       <p className="card__action">
         {live ? (

@@ -13,7 +13,8 @@ export type DemoStatus = z.infer<typeof demoStatusSchema>;
  *
  * `AGENTS.md` §4 forbids publishing a number without provenance, so the three fields are structural
  * rather than optional: a claim cannot be recorded without saying which file it came from and which
- * command re-derives it. The card renders all three, and `scripts/verify.sh` fetches the source URL.
+ * command re-derives it. The card renders the claim text; the source path and command stay in this
+ * module (and in `docs/CLAIM_AUDIT.md`) rather than as a row on the card.
  */
 export const claimSchema = z.object({
   /** The claim itself. `demo-card.tsx` renders it, and scripts/verify.sh asserts it in the HTML. */
