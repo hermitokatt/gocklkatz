@@ -109,7 +109,7 @@ Numbers the prose scanner does not name, inspected on 2026-09-12.
 | ACO fixture: exactly 5 cities, complete graph of 10 edges | `apps/ameisenwerkstatt/docs/AMEISENFABRIK.md` | `lib/ameisen/fixture.ts` |
 | Room script 5–8 minutes / ~6 minutes | `apps/ameisenwerkstatt/docs/DEMO.md` | demo script timings, not a measurement of the repository |
 | Vercel `api-deployments-free-per-day` (100); two limits; five projects | `docs/DEPLOY.md` | platform limits and project count, declared in that document |
-| Gate self-test **13 cases** / **8 cases** / **14 passed** | `docs/DEPLOY.md` | `bash tests/guard.test.sh`, `bash tests/gate.test.sh`, `bash tests/vercel-ignore.test.sh`. This worker re-ran the first two: guard is 13 cases (one failed here because the sandbox blocked the secret-shaped fixture); gate is 8 passed. vercel-ignore could not be reproduced in this sandbox (git hooks `Operation not permitted` in the temporary repos); the published 14 is the quoted clean run in `docs/DEPLOY.md`. |
+| Gate self-test **16 cases** / **8 cases** / **14 passed** | `docs/DEPLOY.md` | `bash tests/guard.test.sh`, `bash tests/gate.test.sh`, `bash tests/vercel-ignore.test.sh`. This worker re-ran the first two: guard is 16 cases (one failed here because the sandbox blocked the secret-shaped fixture; three more were added when the commit-message scan landed); gate is 8 passed. vercel-ignore could not be reproduced in this sandbox (git hooks `Operation not permitted` in the temporary repos); the published 14 is the quoted clean run in `docs/DEPLOY.md`. |
 
 ### Measurements the scanner's nouns do not reach
 

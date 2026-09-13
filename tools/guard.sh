@@ -11,7 +11,7 @@
 #   tools/guard.sh --paths F..  scan named files
 #   tools/guard.sh --identity            report the configured identity; absent is not a failure
 #   tools/guard.sh --require-identity    check identity; an unset identity is a failure
-#   tools/guard.sh --audit-commits       check the AUTHOR and COMMITTER of every non-merge commit
+#   tools/guard.sh --audit-commits       check the AUTHOR and COMMITTER of every commit, and its MESSAGE
 #
 # The commit-identity check is deliberately NOT part of --tracked. A bare CI checkout has no git
 # identity at all, so asserting one there fails every run for a condition that cannot hold. The
@@ -40,7 +40,7 @@ cd "$REPO" || exit 2
 PATTERNS_FILE="tools/pii-patterns.txt"
 ALLOWLIST_FILE="tools/commit-identity-allowlist.txt"
 SECRET_ALLOWLIST_FILE="tools/secret-allowlist.txt"
-DIGESTS_FILE="tools/identity-digests.txt"
+DIGESTS_FILE="${DIGESTS_FILE:-tools/identity-digests.txt}"
 IDENTITY_NAME="Hermito Katt"
 IDENTITY_EMAIL="gocklkatz@gmail.com"
 
@@ -244,12 +244,12 @@ if [ "$CHECK_IDENTITY" = "1" ]; then
 fi
 
 # ---------------------------------------------------------------------------
-# 3. Commit audit — the AUTHOR and COMMITTER of every reachable commit
+# 3. Commit audit — the AUTHOR and COMMITTER of every reachable commit, and its MESSAGE
 # ---------------------------------------------------------------------------
 # The checks above inspect files. They cannot see commit metadata, and commit metadata is where
-# this repository has twice been caught out: a server-side merge is attributed to the account
-# that performed the merge, not to git config and not to the commit's original author. A commit
-# can therefore carry a foreign identity while every file in it is spotless.
+# this repository has three times been caught out: a server-side merge is attributed to the account
+# that performed the merge, not to git config and not to the commit's original author; and the
+# message is a third place an identity can hide, which nothing checked until one arrived.
 if [ "$MODE" = "audit" ]; then
     bad_commits=0
     while IFS='|' read -r sha an ae cn ce; do
@@ -280,6 +280,69 @@ if [ "$MODE" = "audit" ]; then
     else
         echo "guard: commit audit ok — every commit is $IDENTITY_NAME <$IDENTITY_EMAIL>"
     fi
+
+    # ---- the message is a third place an identity can hide -----------------
+    #
+    # A `Co-authored-by:` trailer, a `Signed-off-by:`, a "thanks to" line: all of them publish an
+    # address in the commit message, and none of them touches the author or committer fields or any
+    # file. One arrived this way — a personal address in a trailer on a commit pushed straight to
+    # main — and every check this repository had passed it.
+    #
+    # Matched by digest, through the same scanner the tracked-file check uses, so a finding names
+    # the commit and never echoes the identity itself. GUARD_COMMIT_MESSAGES_FILE exists so the
+    # self-test can exercise this without creating a commit carrying a real identity.
+    msg_list="$(mktemp)"
+    msg_dir=""
+    if [ -n "${GUARD_COMMIT_MESSAGES_FILE:-}" ]; then
+        printf '%s\n' "$GUARD_COMMIT_MESSAGES_FILE" >"$msg_list"
+    else
+        # One file per commit, named by its short SHA, so a finding names the commit. `%x01` starts
+        # each record; awk splits on it in a single pass rather than one `git log` per commit.
+        msg_dir="$(mktemp -d)"
+        git log --all --format='%x01%h%x02%B' 2>/dev/null | awk -v dir="$msg_dir" '
+            /^\001/ {
+                if (target != "") close(target)
+                sha = substr($0, 2)
+                sub(/\002.*$/, "", sha)
+                target = dir "/" sha
+                rest = $0
+                sub(/^\001[^\002]*\002/, "", rest)
+                print rest > target
+                next
+            }
+            { if (target != "") print > target }
+        '
+        for f in "$msg_dir"/*; do
+            [ -f "$f" ] && printf '%s\n' "$f" >>"$msg_list"
+        done
+    fi
+
+    if [ ! -f "$DIGESTS_FILE" ]; then
+        echo "guard: $DIGESTS_FILE is missing — the commit-message scan cannot run, refusing to" >&2
+        echo "       report the history clean." >&2
+        fail=1
+    elif [ -s "$msg_list" ]; then
+        msg_hits="$(python3 "$REPO/tools/identity_scan.py" "$DIGESTS_FILE" <"$msg_list" 2>/dev/null)"
+        msg_rc=$?
+        if [ "$msg_rc" -ne 0 ]; then
+            echo "guard: the commit-message identity scanner could not run (exit $msg_rc) —" >&2
+            echo "       refusing to report the history clean when the messages were not read." >&2
+            fail=1
+        elif [ -n "$msg_hits" ]; then
+            echo "guard: a commit MESSAGE carries a forbidden identity:" >&2
+            printf '%s\n' "$msg_hits" | while IFS= read -r hit; do
+                hit_sha="$(printf '%s' "$hit" | sed -n 's|.*/\([^/]*\):[0-9][0-9]*:.*|\1|p')"
+                echo "       commit ${hit_sha:-<unknown>}" >&2
+            done
+            echo "       a message is published with the commit, so the identity is published too." >&2
+            echo "       Removing the trailer means rewriting that commit; nothing else un-publishes it." >&2
+            fail=1
+        else
+            echo "guard: commit messages ok — no forbidden identity in any message"
+        fi
+    fi
+
+    rm -rf "$msg_list" "$msg_dir" 2>/dev/null || true
 fi
 
 if [ "$fail" -ne 0 ]; then
