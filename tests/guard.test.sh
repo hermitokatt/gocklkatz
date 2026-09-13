@@ -210,7 +210,50 @@ else
     skipped=$((skipped + 1))
 fi
 
-# --- 10. identity restored, tree passes again ------------------------------
+# --- 10. the commit MESSAGE is a third place an identity can hide ---------
+#
+# The author and committer fields are checked above; the message was not checked at all, and a
+# `Co-authored-by:` trailer with a personal address reached published history through exactly that
+# gap. The scanner is exercised through GUARD_COMMIT_MESSAGES_FILE so this test does not have to
+# create a real commit carrying a real identity — and the identity is assembled at runtime for the
+# same reason the staged-leak case does it: no tracked file may contain it.
+msg_clean="$tmpdir/messages-clean"
+python3 -c "import sys; sys.stdout.write('Add a thing' + chr(10) + chr(10) + 'Co-authored-by: A Colleague <colleague@example.invalid>' + chr(10))" >"$msg_clean"
+out="$(GUARD_COMMIT_MESSAGES_FILE="$msg_clean" tools/guard.sh --audit-commits 2>&1)"; rc=$?
+if [ "$rc" = "0" ] && printf '%s' "$out" | grep -q 'commit messages ok'; then
+    echo "  ok   a clean commit message passes the message scan"
+    pass=$((pass + 1))
+else
+    echo "  FAIL a clean commit message did not pass (exit $rc)"
+    printf '%s\n' "$out" | sed 's/^/       /'
+    fail=$((fail + 1))
+fi
+
+msg_leak="$tmpdir/messages-leak"
+python3 -c "import sys; sys.stdout.write('Add a thing' + chr(10) + chr(10) + 'Co-authored-by: s.' + 'katzen' + 'steiner' + ' <s.' + 'katzen' + 'steiner' + '@' + 'gmail.com>' + chr(10))" >"$msg_leak"
+out="$(GUARD_COMMIT_MESSAGES_FILE="$msg_leak" tools/guard.sh --audit-commits 2>&1)"; rc=$?
+if [ "$rc" = "1" ] && printf '%s' "$out" | grep -q 'MESSAGE carries a forbidden identity'; then
+    echo "  ok   a message trailer is caught, and the finding echoes the commit not the identity"
+    pass=$((pass + 1))
+else
+    echo "  FAIL a message trailer was not caught (exit $rc)"
+    printf '%s\n' "$out" | sed 's/^/       /'
+    fail=$((fail + 1))
+fi
+
+# A scanner that never ran must not be reportable as clean: a missing digest list is a failure, not
+# a skip. The identity scan had exactly that failure mode once before, and it was a silent no-op.
+out="$(GUARD_COMMIT_MESSAGES_FILE="$msg_clean" DIGESTS_FILE=/nonexistent/digests tools/guard.sh --audit-commits 2>&1)"; rc=$?
+if [ "$rc" = "1" ] && printf '%s' "$out" | grep -q 'refusing to'; then
+    echo "  ok   a missing digest list fails rather than reporting the messages clean"
+    pass=$((pass + 1))
+else
+    echo "  FAIL a missing digest list did not fail (exit $rc)"
+    printf '%s\n' "$out" | sed 's/^/       /'
+    fail=$((fail + 1))
+fi
+
+# --- 11. identity restored, tree passes again ------------------------------
 run 0 "identity restored, tree passes again"
 
 rm -rf "$tmpdir"

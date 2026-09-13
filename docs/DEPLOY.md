@@ -88,7 +88,7 @@ The gate has self-tests for the guards themselves, because a guard that passes b
 looks identical to a guard that passes:
 
 ```bash
-bash tests/guard.test.sh    # 13 cases, seven of them must-fail
+bash tests/guard.test.sh    # 16 cases, nine of them must-fail
 bash tests/gate.test.sh     # 8 cases, five of them must-fail
 ```
 
